@@ -64,7 +64,7 @@ export const receptionistProfileService = {
     const formData = new FormData()
     formData.append('photo', file)
     const response = await axios.post('/receptionist/profile/photo', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
     })
     return response.data.data
   },
@@ -80,5 +80,5 @@ export const receptionistProfileService = {
 
   async updateStatus(status: 'active' | 'on_break' | 'off_duty'): Promise<void> {
     await axios.post('/receptionist/profile/status', { status })
-  }
+  },
 }

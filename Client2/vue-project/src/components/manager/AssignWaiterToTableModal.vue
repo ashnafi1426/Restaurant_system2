@@ -69,7 +69,11 @@ const filteredWaiters = computed(() => {
   if (waiterSearch.value.trim()) {
     const q = waiterSearch.value.toLowerCase().trim()
     list = list.filter((w: any) => {
-      const name = (w.user?.name || w.name || `${w.user?.first_name || ''} ${w.user?.last_name || ''}`).toLowerCase()
+      const name = (
+        w.user?.name ||
+        w.name ||
+        `${w.user?.first_name || ''} ${w.user?.last_name || ''}`
+      ).toLowerCase()
       const email = (w.user?.email || w.email || '').toLowerCase()
       const empNum = String(w.employee_number || '').toLowerCase()
       const section = (w.section || '').toLowerCase()
@@ -90,7 +94,8 @@ const isFormValid = computed(() => {
 const getWaiterDisplayName = (waiter: any): string => {
   if (!waiter) return 'Unknown Staff'
   if (waiter.user?.name && waiter.user.name.trim()) return waiter.user.name.trim()
-  if (waiter.name && waiter.name.trim() && !waiter.name.startsWith('Waiter #')) return waiter.name.trim()
+  if (waiter.name && waiter.name.trim() && !waiter.name.startsWith('Waiter #'))
+    return waiter.name.trim()
   const fullName = `${waiter.user?.first_name || ''} ${waiter.user?.last_name || ''}`.trim()
   if (fullName) return fullName
   if (waiter.user?.email) return waiter.user.email
@@ -118,9 +123,10 @@ const loadTables = async () => {
 
 const loadWaiters = async () => {
   try {
-    const targetHotelId = props.hotelId || hotelStore.hotelId || localStorage.getItem('hotel_id') || ''
+    const targetHotelId =
+      props.hotelId || hotelStore.hotelId || localStorage.getItem('hotel_id') || ''
     const response = await api.get('/manager/waiters', {
-      params: targetHotelId ? { hotel_id: targetHotelId } : {}
+      params: targetHotelId ? { hotel_id: targetHotelId } : {},
     })
     let list: any[] = []
     if (Array.isArray(response.data?.data)) {
@@ -241,7 +247,7 @@ watch(
     if (open) {
       loadInitialData()
     }
-  }
+  },
 )
 
 watch(
@@ -250,7 +256,7 @@ watch(
     if (newId) {
       selectedTable.value = newId
     }
-  }
+  },
 )
 </script>
 
@@ -265,14 +271,22 @@ watch(
         class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-hidden flex flex-col transition-all"
       >
         <!-- Modal Header -->
-        <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
+        <div
+          class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex-shrink-0"
+        >
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-500/20">
+            <div
+              class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-500/20"
+            >
               <UtensilsCrossed class="w-5 h-5" />
             </div>
             <div>
-              <h2 class="text-lg font-black text-slate-900 dark:text-white">Assign Table to Waiters</h2>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Designate active waitstaff coverage for dining table</p>
+              <h2 class="text-lg font-black text-slate-900 dark:text-white">
+                Assign Table to Waiters
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Designate active waitstaff coverage for dining table
+              </p>
             </div>
           </div>
 
@@ -316,10 +330,15 @@ watch(
             <!-- Field 1: Restaurant Table (Required) -->
             <div>
               <div class="flex items-center justify-between mb-2">
-                <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                <label
+                  class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider"
+                >
                   Restaurant Table <span class="text-rose-500">*</span>
                 </label>
-                <span v-if="selectedTableData" class="text-[11px] font-semibold text-blue-600 dark:text-blue-400">
+                <span
+                  v-if="selectedTableData"
+                  class="text-[11px] font-semibold text-blue-600 dark:text-blue-400"
+                >
                   {{ selectedTableData.capacity || 2 }} Seats
                 </span>
               </div>
@@ -330,7 +349,12 @@ watch(
               >
                 <option value="" disabled>Select a dining table...</option>
                 <option v-for="table in tables" :key="table.id" :value="table.id">
-                  Table {{ table.table_number }} {{ table.table_name ? `(${table.table_name})` : '' }} — {{ table.section || table.location || 'Main Section' }} ({{ table.capacity }} Seats)
+                  Table {{ table.table_number }}
+                  {{ table.table_name ? `(${table.table_name})` : '' }} —
+                  {{ table.section || table.location || 'Main Section' }} ({{
+                    table.capacity
+                  }}
+                  Seats)
                 </option>
               </select>
 
@@ -340,29 +364,52 @@ watch(
                 class="mt-2.5 p-3 rounded-2xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/60 dark:bg-blue-950/20 flex items-center justify-between gap-3 text-xs"
               >
                 <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-8 h-8 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0 font-bold">
+                  <div
+                    class="w-8 h-8 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0 font-bold"
+                  >
                     {{ selectedTableData.table_number }}
                   </div>
                   <div class="truncate">
-                    <div class="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <div
+                      class="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5"
+                    >
                       <span>Table {{ selectedTableData.table_number }}</span>
-                      <span v-if="selectedTableData.table_name" class="font-medium text-slate-500 dark:text-slate-400">({{ selectedTableData.table_name }})</span>
+                      <span
+                        v-if="selectedTableData.table_name"
+                        class="font-medium text-slate-500 dark:text-slate-400"
+                        >({{ selectedTableData.table_name }})</span
+                      >
                     </div>
                     <!-- Table Section Information -->
-                    <div class="flex items-center gap-1 text-[11px] text-blue-700 dark:text-blue-300 font-semibold mt-0.5">
+                    <div
+                      class="flex items-center gap-1 text-[11px] text-blue-700 dark:text-blue-300 font-semibold mt-0.5"
+                    >
                       <MapPin class="w-3.5 h-3.5 flex-shrink-0 text-blue-500" />
-                      <span>Section: {{ selectedTableData.section || selectedTableData.location || 'Main Dining Room' }}</span>
+                      <span
+                        >Section:
+                        {{
+                          selectedTableData.section ||
+                          selectedTableData.location ||
+                          'Main Dining Room'
+                        }}</span
+                      >
                     </div>
                   </div>
                 </div>
 
                 <div class="flex items-center gap-1.5 flex-shrink-0">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800">
+                  <span
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800"
+                  >
                     {{ selectedTableData.capacity }} seats
                   </span>
                   <span
                     class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold capitalize"
-                    :class="selectedTableData.status === 'occupied' ? 'bg-amber-500/10 text-amber-600' : 'bg-emerald-500/10 text-emerald-600'"
+                    :class="
+                      selectedTableData.status === 'occupied'
+                        ? 'bg-amber-500/10 text-amber-600'
+                        : 'bg-emerald-500/10 text-emerald-600'
+                    "
                   >
                     {{ selectedTableData.status || 'available' }}
                   </span>
@@ -373,7 +420,9 @@ watch(
             <!-- Field 2: Assigned Waiter(s) (Required, Multi-Select) -->
             <div>
               <div class="flex items-center justify-between mb-2">
-                <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                <label
+                  class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider"
+                >
                   Assigned Waiter(s) <span class="text-rose-500">*</span>
                 </label>
                 <div class="flex items-center gap-2">
@@ -381,7 +430,10 @@ watch(
                     ({{ selectedWaiterIds.length }} selected)
                   </span>
                   <button
-                    v-if="filteredWaiters.length > 0 && selectedWaiterIds.length < filteredWaiters.length"
+                    v-if="
+                      filteredWaiters.length > 0 &&
+                      selectedWaiterIds.length < filteredWaiters.length
+                    "
                     type="button"
                     @click="selectAllWaiters"
                     class="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
@@ -434,7 +486,9 @@ watch(
               </div>
 
               <!-- Multi-Select Waiters List -->
-              <div class="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-950/50">
+              <div
+                class="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-950/50"
+              >
                 <div
                   v-if="filteredWaiters.length === 0"
                   class="p-4 text-center text-xs font-medium text-slate-400"
@@ -448,20 +502,29 @@ watch(
                   @click="toggleWaiter(waiter.id)"
                   class="p-3 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-900/80 transition cursor-pointer select-none"
                   :class="{
-                    'bg-blue-50/60 dark:bg-blue-950/20': selectedWaiterIds.includes(waiter.id)
+                    'bg-blue-50/60 dark:bg-blue-950/20': selectedWaiterIds.includes(waiter.id),
                   }"
                 >
                   <div class="flex items-center gap-2.5 min-w-0">
                     <!-- Checkbox indicator -->
                     <div
                       class="w-5 h-5 rounded-lg flex items-center justify-center border transition flex-shrink-0"
-                      :class="selectedWaiterIds.includes(waiter.id) ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900'"
+                      :class="
+                        selectedWaiterIds.includes(waiter.id)
+                          ? 'bg-blue-600 border-blue-600 text-white'
+                          : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900'
+                      "
                     >
-                      <Check v-if="selectedWaiterIds.includes(waiter.id)" class="w-3.5 h-3.5 stroke-[3]" />
+                      <Check
+                        v-if="selectedWaiterIds.includes(waiter.id)"
+                        class="w-3.5 h-3.5 stroke-[3]"
+                      />
                     </div>
 
                     <!-- Waiter Avatar -->
-                    <div class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center text-xs flex-shrink-0">
+                    <div
+                      class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold flex items-center justify-center text-xs flex-shrink-0"
+                    >
                       {{ getWaiterDisplayName(waiter).charAt(0).toUpperCase() }}
                     </div>
 
@@ -471,7 +534,11 @@ watch(
                         {{ getWaiterDisplayName(waiter) }}
                       </div>
                       <div class="text-[10px] text-slate-400 truncate">
-                        {{ waiter.user?.email || waiter.email || (waiter.section ? `Section: ${waiter.section}` : 'Active Waiter') }}
+                        {{
+                          waiter.user?.email ||
+                          waiter.email ||
+                          (waiter.section ? `Section: ${waiter.section}` : 'Active Waiter')
+                        }}
                       </div>
                     </div>
                   </div>
@@ -485,7 +552,9 @@ watch(
                     >
                       ⚡ {{ waiter.current_orders }} orders
                     </span>
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                    <span
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                    >
                       <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                       Active
                     </span>
@@ -495,9 +564,13 @@ watch(
             </div>
 
             <!-- Field 3: Active Assignment (Required Toggle) -->
-            <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex items-center justify-between gap-4">
+            <div
+              class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex items-center justify-between gap-4"
+            >
               <div>
-                <label class="block text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                <label
+                  class="block text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider"
+                >
                   Active Assignment <span class="text-rose-500">*</span>
                 </label>
                 <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
@@ -509,9 +582,11 @@ watch(
                 type="button"
                 @click="isActive = !isActive"
                 class="flex items-center gap-2 px-3 py-1.5 rounded-xl border transition cursor-pointer"
-                :class="isActive
-                  ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                  : 'border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-500'"
+                :class="
+                  isActive
+                    ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-500'
+                "
               >
                 <component :is="isActive ? ToggleRight : ToggleLeft" class="w-5 h-5" />
                 <span class="text-xs font-extrabold">{{ isActive ? 'Active' : 'Inactive' }}</span>
@@ -521,7 +596,9 @@ watch(
         </div>
 
         <!-- Modal Footer -->
-        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex-shrink-0">
+        <div
+          class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex-shrink-0"
+        >
           <button
             type="button"
             @click="handleClose"

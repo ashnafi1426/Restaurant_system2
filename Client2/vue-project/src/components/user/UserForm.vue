@@ -65,7 +65,7 @@ const populateForm = (data?: Record<string, any>) => {
 watch(
   () => props.initialData,
   (newData) => populateForm(newData),
-  { immediate: true }
+  { immediate: true },
 )
 
 const saveUser = () => {
@@ -145,7 +145,8 @@ const getInputClass = (fieldName: string) => [
 
     <div>
       <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900">
-        {{ languageStore.t('phone', 'Phone') }} <span class="text-slate-400 text-xs">({{ languageStore.t('optional', 'Optional') }})</span>
+        {{ languageStore.t('phone', 'Phone') }}
+        <span class="text-slate-400 text-xs">({{ languageStore.t('optional', 'Optional') }})</span>
       </label>
       <input
         v-model="form.phone"
@@ -203,7 +204,9 @@ const getInputClass = (fieldName: string) => [
         >
           {{ languageStore.t('active_user', 'Active User') }}
         </label>
-        <p class="text-xs text-slate-500 mt-0.5">{{ languageStore.t('inactive_user_hint', 'Inactive users cannot log in to the system') }}</p>
+        <p class="text-xs text-slate-500 mt-0.5">
+          {{ languageStore.t('inactive_user_hint', 'Inactive users cannot log in to the system') }}
+        </p>
       </div>
     </div>
 

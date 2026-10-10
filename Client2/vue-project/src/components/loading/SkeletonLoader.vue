@@ -13,7 +13,7 @@
     </div>
 
     <div v-if="type === 'list'" class="space-y-3">
-      <div v-for="i in (count || 5)" :key="i" class="bg-white rounded-lg p-4 shadow-sm animate-pulse">
+      <div v-for="i in count || 5" :key="i" class="bg-white rounded-lg p-4 shadow-sm animate-pulse">
         <div class="flex justify-between items-center">
           <div class="flex-1">
             <div class="h-4 bg-slate-200 rounded w-32 mb-2"></div>
@@ -26,7 +26,7 @@
 
     <div v-if="type === 'table'" class="bg-white rounded-lg p-4 shadow-sm">
       <div class="space-y-3">
-        <div v-for="i in (count || 6)" :key="i" class="animate-pulse">
+        <div v-for="i in count || 6" :key="i" class="animate-pulse">
           <div class="flex gap-4">
             <div class="h-12 bg-slate-200 rounded flex-1"></div>
             <div class="h-12 bg-slate-200 rounded flex-1"></div>
@@ -38,7 +38,7 @@
     </div>
 
     <div v-if="type === 'cards'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div v-for="i in (count || 4)" :key="i" class="bg-white rounded-lg p-6 shadow-sm animate-pulse">
+      <div v-for="i in count || 4" :key="i" class="bg-white rounded-lg p-6 shadow-sm animate-pulse">
         <div class="h-4 bg-slate-200 rounded w-32 mb-4"></div>
         <div class="space-y-2">
           <div class="h-3 bg-slate-100 rounded"></div>

@@ -44,7 +44,7 @@
           <h3 class="text-lg font-bold mb-4">Contact</h3>
           <ul class="space-y-2 text-sm">
             <li class="text-gray-400">📞 +1-800-HOTEL-1</li>
-            <li class="text-gray-400"> service@hotel.com</li>
+            <li class="text-gray-400">service@hotel.com</li>
             <li class="text-gray-400">📍 City Center, Country</li>
             <li class="flex gap-3 mt-4">
               <a href="#" class="text-teal-400 hover:text-teal-300 transition">📘</a>
@@ -59,7 +59,7 @@
       <div class="border-t border-gray-700 pt-8">
         <!-- Bottom Info -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div class="text-sm text-gray-400"> Safe & Secure Ordering</div>
+          <div class="text-sm text-gray-400">Safe & Secure Ordering</div>
           <div class="text-sm text-gray-400 text-center">🚚 Fast Delivery to Your Room</div>
           <div class="text-sm text-gray-400 text-right">⭐ Premium Quality Guaranteed</div>
         </div>

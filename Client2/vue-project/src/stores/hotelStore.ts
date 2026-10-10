@@ -32,7 +32,8 @@ export const useHotelStore = defineStore('hotel', {
     hotelName: (state): string => state.currentHotel?.name || 'Hotel Management',
     currency: (state): string => state.currentHotel?.currency || 'ETB',
     hasMultipleHotels: (state): boolean => state.availableHotels.length > 1,
-    isViewingAsPlatformAdmin: (state): boolean => Boolean(state.currentHotel?.is_viewing_as_platform_admin),
+    isViewingAsPlatformAdmin: (state): boolean =>
+      Boolean(state.currentHotel?.is_viewing_as_platform_admin),
   },
 
   actions: {
@@ -74,14 +75,15 @@ export const useHotelStore = defineStore('hotel', {
           try {
             const { useAuthStore } = await import('./auth')
             const authStore = useAuthStore()
-            
+
             authStore.setCurrentHotel(hotelData)
 
             if (response.data?.user) {
               authStore.setUser(response.data.user)
             } else {
               const existingUser = authStore.user || {}
-              const effectiveRole = hotelData.role || response.data.roles?.[0]?.slug || existingUser.role
+              const effectiveRole =
+                hotelData.role || response.data.roles?.[0]?.slug || existingUser.role
               const updatedUser = {
                 ...existingUser,
                 role: effectiveRole,
@@ -97,9 +99,11 @@ export const useHotelStore = defineStore('hotel', {
               console.error('[hotelStore] Failed to fetch current user after hotel switch:', err)
             }
 
-            window.dispatchEvent(new CustomEvent('hotel-switched', { 
-              detail: { hotelId, role: hotelData.role } 
-            }))
+            window.dispatchEvent(
+              new CustomEvent('hotel-switched', {
+                detail: { hotelId, role: hotelData.role },
+              }),
+            )
           } catch (err: any) {
             console.error('[hotelStore] Failed to sync auth state during hotel switch:', err)
           }
@@ -121,7 +125,7 @@ export const useHotelStore = defineStore('hotel', {
         if (response.data?.success && Array.isArray(response.data?.hotels)) {
           this.availableHotels = response.data.hotels
           localStorage.setItem('available_hotels', JSON.stringify(this.availableHotels))
-          
+
           if (!this.currentHotel && this.availableHotels.length > 0) {
             this.currentHotel = this.availableHotels[0]
             localStorage.setItem('current_hotel', JSON.stringify(this.currentHotel))

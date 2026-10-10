@@ -52,10 +52,14 @@ const chefName = computed(() => {
             <ChefHat class="w-6 h-6" />
           </div>
           <div class="min-w-0">
-            <h1 class="text-lg sm:text-xl md:text-2xl font-black text-slate-900 dark:text-white truncate">
+            <h1
+              class="text-lg sm:text-xl md:text-2xl font-black text-slate-900 dark:text-white truncate"
+            >
               Kitchen Command
             </h1>
-            <p class="mt-0.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400 hidden sm:block truncate font-medium">
+            <p
+              class="mt-0.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400 hidden sm:block truncate font-medium"
+            >
               Real-time order management for Main Restaurant & Room Service
             </p>
           </div>
@@ -72,16 +76,22 @@ const chefName = computed(() => {
           <Search class="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         </div>
 
-        <button class="relative rounded-xl p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition flex-shrink-0">
+        <button
+          class="relative rounded-xl p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition flex-shrink-0"
+        >
           <Bell class="h-5 w-5" />
           <span class="absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-500"></span>
         </button>
 
-        <button class="rounded-xl p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition hidden sm:block flex-shrink-0">
+        <button
+          class="rounded-xl p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition hidden sm:block flex-shrink-0"
+        >
           <Settings class="h-5 w-5" />
         </button>
 
-        <button class="rounded-xl p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition hidden sm:block flex-shrink-0">
+        <button
+          class="rounded-xl p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition hidden sm:block flex-shrink-0"
+        >
           <HelpCircle class="h-5 w-5" />
         </button>
 
@@ -94,7 +104,9 @@ const chefName = computed(() => {
             <ChefHat class="w-4 h-4" />
           </div>
           <div class="hidden text-right md:block min-w-0">
-            <p class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">{{ chefName }}</p>
+            <p class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+              {{ chefName }}
+            </p>
             <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Executive Chef</p>
           </div>
         </div>

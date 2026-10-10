@@ -22,13 +22,7 @@ export interface DeliveryTask {
     name: string
   }
   assignment_type: 'automatic' | 'manual'
-  status:
-    | 'assigned'
-    | 'accepted'
-    | 'picked_up'
-    | 'on_delivery'
-    | 'delivered'
-    | 'cancelled'
+  status: 'assigned' | 'accepted' | 'picked_up' | 'on_delivery' | 'delivered' | 'cancelled'
   assigned_at: string
   accepted_at: string | null
   picked_up_at: string | null
@@ -100,7 +94,7 @@ class DeliveryManagementService {
     deliveryId: string,
     newWaiterId: string,
     currentWaiterId: string,
-    reason?: string
+    reason?: string,
   ): Promise<DeliveryTask> {
     const response = await api.patch(`/manager/deliveries/${deliveryId}/reassign`, {
       waiter_id: newWaiterId,

@@ -51,7 +51,7 @@ export const getPublicReviews = async (
   menuItemId: string,
   page: number = 1,
   perPage: number = 10,
-  sort: 'recent' | 'helpful' = 'recent'
+  sort: 'recent' | 'helpful' = 'recent',
 ): Promise<PaginatedReviews> => {
   const response = await axios.get(`/menu-items/${menuItemId}/reviews`, {
     params: {
@@ -66,7 +66,7 @@ export const getPublicReviews = async (
 export const listReviewsForModeration = async (
   status?: 'pending' | 'approved' | 'rejected',
   page: number = 1,
-  perPage: number = 15
+  perPage: number = 15,
 ): Promise<PaginatedReviews> => {
   const response = await axios.get(`/admin/reviews`, {
     params: {
@@ -94,7 +94,7 @@ export const deleteReviewAsAdmin = async (reviewId: string): Promise<void> => {
 
 export const createResponse = async (
   reviewId: string,
-  data: CreateResponseRequest
+  data: CreateResponseRequest,
 ): Promise<{ id: string; response_text: string; responder_id: string }> => {
   const response = await axios.post(`/admin/reviews/${reviewId}/response`, data)
   return response.data.data
@@ -102,7 +102,7 @@ export const createResponse = async (
 
 export const updateResponse = async (
   responseId: string,
-  data: CreateResponseRequest
+  data: CreateResponseRequest,
 ): Promise<{ id: string; response_text: string }> => {
   const response = await axios.put(`/admin/responses/${responseId}`, data)
   return response.data.data
@@ -114,7 +114,7 @@ export const deleteResponse = async (responseId: string): Promise<void> => {
 
 export const voteHelpful = async (
   reviewId: string,
-  data: Partial<VoteRequest>
+  data: Partial<VoteRequest>,
 ): Promise<{ helpful_count: number; not_helpful_count: number }> => {
   const response = await axios.post(`/reviews/${reviewId}/vote`, {
     vote_type: 'helpful',
@@ -125,7 +125,7 @@ export const voteHelpful = async (
 
 export const voteNotHelpful = async (
   reviewId: string,
-  data: Partial<VoteRequest>
+  data: Partial<VoteRequest>,
 ): Promise<{ helpful_count: number; not_helpful_count: number }> => {
   const response = await axios.post(`/reviews/${reviewId}/vote`, {
     vote_type: 'not_helpful',
@@ -136,7 +136,7 @@ export const voteNotHelpful = async (
 
 export const getReviewNotifications = async (
   page: number = 1,
-  perPage: number = 10
+  perPage: number = 10,
 ): Promise<PaginatedReviews> => {
   const response = await axios.get(`/notifications/reviews`, {
     params: {
@@ -161,17 +161,23 @@ export const getMenuItemStats = async (menuItemId: string): Promise<ReviewStats>
     const response = await axios.get(`/menu-items/${menuItemId}/review-stats`)
     return response.data
   } catch (err: any) {
-    console.warn('[ReviewService] Main review stats endpoint failed, trying admin analytics fallback:', err)
+    console.warn(
+      '[ReviewService] Main review stats endpoint failed, trying admin analytics fallback:',
+      err,
+    )
     try {
       const response = await axios.get(`/admin/analytics/menu-items/${menuItemId}/review-stats`)
       return response.data
     } catch (fallbackErr: any) {
-      console.warn('[ReviewService] Admin analytics fallback failed, returning default stats:', fallbackErr)
+      console.warn(
+        '[ReviewService] Admin analytics fallback failed, returning default stats:',
+        fallbackErr,
+      )
       return {
         menu_item_id: menuItemId,
         total_reviews: 0,
         average_rating: 0,
-        rating_distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+        rating_distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
       }
     }
   }
@@ -179,7 +185,7 @@ export const getMenuItemStats = async (menuItemId: string): Promise<ReviewStats>
 
 export const getTopRatedItems = async (
   minReviews: number = 5,
-  limit: number = 10
+  limit: number = 10,
 ): Promise<TopRatedItem[]> => {
   const response = await axios.get(`/admin/analytics/top-rated`, {
     params: {
@@ -192,7 +198,7 @@ export const getTopRatedItems = async (
 
 export const getLowestRatedItems = async (
   minReviews: number = 5,
-  limit: number = 10
+  limit: number = 10,
 ): Promise<TopRatedItem[]> => {
   const response = await axios.get(`/admin/analytics/lowest-rated`, {
     params: {
@@ -208,7 +214,9 @@ export const getPendingReviewCount = async (): Promise<number> => {
   return response.data.pending_count ?? 0
 }
 
-export const getReviewTrends = async (period: 'daily' | 'weekly' | 'monthly' = 'daily'): Promise<ReviewTrend[]> => {
+export const getReviewTrends = async (
+  period: 'daily' | 'weekly' | 'monthly' = 'daily',
+): Promise<ReviewTrend[]> => {
   const response = await axios.get(`/admin/analytics/review-trends`, {
     params: { period },
   })

@@ -1,8 +1,15 @@
 <template>
   <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-lg p-12 text-center">
-    <h2 class="text-3xl font-bold text-white mb-4">{{ languageStore.t('ready_to_book', 'Ready to book?') }}</h2>
+    <h2 class="text-3xl font-bold text-white mb-4">
+      {{ languageStore.t('ready_to_book', 'Ready to book?') }}
+    </h2>
     <p class="text-blue-100 mb-8 text-lg">
-      {{ languageStore.t('ready_to_book_desc', 'Choose your perfect room and secure your stay with our hassle-free booking process') }}
+      {{
+        languageStore.t(
+          'ready_to_book_desc',
+          'Choose your perfect room and secure your stay with our hassle-free booking process',
+        )
+      }}
     </p>
     <button
       @click="scrollToRooms"

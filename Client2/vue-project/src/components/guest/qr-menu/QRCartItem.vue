@@ -16,7 +16,7 @@
           <p class="text-xs text-gray-500 mt-0.5">{{ item.description || 'ETB' }}</p>
           <p class="text-sm font-bold text-gray-900 mt-1">{{ formatPrice(item.price) }}</p>
         </div>
-        
+
         <!-- Remove/Delete Button -->
         <button
           @click="$emit('remove')"
@@ -33,7 +33,7 @@
           </svg>
         </button>
       </div>
-      
+
       <!-- Quantity Controls + Total Price (Inline) -->
       <div class="flex items-center justify-between mt-2">
         <!-- -  1  + Controls -->
@@ -45,9 +45,11 @@
           >
             −
           </button>
-          
-          <span class="text-lg font-bold text-gray-900 px-3 min-w-[2rem] text-center">{{ item.quantity }}</span>
-          
+
+          <span class="text-lg font-bold text-gray-900 px-3 min-w-[2rem] text-center">{{
+            item.quantity
+          }}</span>
+
           <button
             @click="$emit('increment')"
             class="w-8 h-8 flex items-center justify-center text-gray-700 hover:bg-gray-200 rounded transition-colors cursor-pointer font-bold text-lg"
@@ -57,7 +59,9 @@
           </button>
         </div>
         <!-- Item Total Price -->
-        <span class="text-base font-bold text-gray-900">{{ formatPrice(item.price * item.quantity) }}</span>
+        <span class="text-base font-bold text-gray-900">{{
+          formatPrice(item.price * item.quantity)
+        }}</span>
       </div>
     </div>
   </div>
@@ -75,7 +79,7 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  canOrder: true
+  canOrder: true,
 })
 
 defineEmits<{

@@ -62,7 +62,9 @@ class RestaurantService {
     return api.post('/guest/orders', orderData)
   }
 
-  async initializeWalkInSession(qrToken: string): Promise<AxiosResponse<{ data: SessionResponse }>> {
+  async initializeWalkInSession(
+    qrToken: string,
+  ): Promise<AxiosResponse<{ data: SessionResponse }>> {
     return api.post('/walk-in/session/initialize', {
       qr_token: qrToken,
     })

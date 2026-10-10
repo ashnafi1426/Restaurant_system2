@@ -115,24 +115,37 @@ Thank you for your booking!
 
 <template>
   <div class="w-full space-y-6 print:space-y-4">
-    <div class="bg-gradient-to-b from-emerald-50 to-white rounded-3xl shadow-2xl border-2 border-emerald-200 overflow-hidden print:border-0 print:shadow-none print:rounded-none">
-      <div class="bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-600 px-6 md:px-8 lg:px-10 py-8 md:py-12 text-center text-white">
+    <div
+      class="bg-gradient-to-b from-emerald-50 to-white rounded-3xl shadow-2xl border-2 border-emerald-200 overflow-hidden print:border-0 print:shadow-none print:rounded-none"
+    >
+      <div
+        class="bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-600 px-6 md:px-8 lg:px-10 py-8 md:py-12 text-center text-white"
+      >
         <div class="flex justify-center mb-4">
           <div class="relative">
-            <div class="absolute inset-0 bg-white/30 rounded-full animate-ping opacity-75" style="animation-duration: 2s;"></div>
+            <div
+              class="absolute inset-0 bg-white/30 rounded-full animate-ping opacity-75"
+              style="animation-duration: 2s"
+            ></div>
             <div class="relative p-3 bg-white/20 rounded-full">
               <CheckCircle class="w-12 h-12 md:w-16 md:h-16" />
             </div>
           </div>
         </div>
         <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-3">Booking Confirmed!</h1>
-        <p class="text-emerald-100 text-lg md:text-xl">Your reservation has been successfully created</p>
+        <p class="text-emerald-100 text-lg md:text-xl">
+          Your reservation has been successfully created
+        </p>
       </div>
 
       <div class="px-6 md:px-8 lg:px-10 py-8 md:py-12 space-y-8">
         <div class="bg-white border-2 border-emerald-200 rounded-2xl p-6 md:p-8">
-          <p class="text-sm text-slate-500 font-semibold uppercase tracking-wider mb-3">Booking Reference</p>
-          <div class="flex items-center gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-300 mb-4">
+          <p class="text-sm text-slate-500 font-semibold uppercase tracking-wider mb-3">
+            Booking Reference
+          </p>
+          <div
+            class="flex items-center gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-300 mb-4"
+          >
             <code class="font-mono text-xl md:text-2xl font-bold text-emerald-700 flex-1 break-all">
               {{ booking.booking_reference }}
             </code>
@@ -148,7 +161,8 @@ Thank you for your booking!
             </button>
           </div>
           <p class="text-sm text-slate-600">
-            Please keep this reference number safe. You'll need it to check your booking status or make changes.
+            Please keep this reference number safe. You'll need it to check your booking status or
+            make changes.
           </p>
         </div>
 
@@ -200,8 +214,14 @@ Thank you for your booking!
             </div>
             <div class="bg-orange-50 rounded-lg p-4 border-2 border-orange-200">
               <p class="text-xs text-orange-600 font-semibold uppercase mb-2">Duration</p>
-              <p class="text-lg font-bold text-slate-900">{{ booking.number_of_nights }} Night{{ booking.number_of_nights !== 1 ? 's' : '' }}</p>
-              <p class="text-xs text-slate-500">({{ booking.number_of_guests }} guest{{ booking.number_of_guests !== 1 ? 's' : '' }})</p>
+              <p class="text-lg font-bold text-slate-900">
+                {{ booking.number_of_nights }} Night{{ booking.number_of_nights !== 1 ? 's' : '' }}
+              </p>
+              <p class="text-xs text-slate-500">
+                ({{ booking.number_of_guests }} guest{{
+                  booking.number_of_guests !== 1 ? 's' : ''
+                }})
+              </p>
             </div>
             <div class="bg-red-50 rounded-lg p-4 border-2 border-red-200">
               <p class="text-xs text-red-600 font-semibold uppercase mb-2">Check-out</p>
@@ -230,7 +250,9 @@ Thank you for your booking!
           </div>
         </div>
 
-        <div class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl p-6 md:p-8">
+        <div
+          class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl p-6 md:p-8"
+        >
           <h2 class="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
             <DollarSign class="w-6 h-6 text-amber-600" />
             Booking Amount
@@ -238,10 +260,16 @@ Thank you for your booking!
           <div class="space-y-3 mb-6 pb-6 border-b-2 border-amber-200">
             <div class="flex justify-between items-center">
               <span class="text-slate-600">Room Rate</span>
-              <span class="font-semibold text-slate-900">ETB {{ Math.round(booking.total / booking.number_of_nights) }} / night</span>
+              <span class="font-semibold text-slate-900"
+                >ETB {{ Math.round(booking.total / booking.number_of_nights) }} / night</span
+              >
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-slate-600">{{ booking.number_of_nights }} Night{{ booking.number_of_nights !== 1 ? 's' : '' }}</span>
+              <span class="text-slate-600"
+                >{{ booking.number_of_nights }} Night{{
+                  booking.number_of_nights !== 1 ? 's' : ''
+                }}</span
+              >
               <span class="font-semibold text-slate-900">ETB {{ booking.total }}</span>
             </div>
           </div>
@@ -275,24 +303,42 @@ Thank you for your booking!
           <h2 class="text-2xl font-bold text-blue-900 mb-4">What's Next?</h2>
           <div class="space-y-4">
             <div class="flex gap-4">
-              <div class="flex-shrink-0 flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full font-bold">1</div>
+              <div
+                class="flex-shrink-0 flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full font-bold"
+              >
+                1
+              </div>
               <div>
                 <p class="font-semibold text-slate-900">Confirmation Email</p>
-                <p class="text-sm text-slate-600 mt-1">A confirmation has been sent to {{ booking.guest_email }}</p>
+                <p class="text-sm text-slate-600 mt-1">
+                  A confirmation has been sent to {{ booking.guest_email }}
+                </p>
               </div>
             </div>
             <div class="flex gap-4">
-              <div class="flex-shrink-0 flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full font-bold">2</div>
+              <div
+                class="flex-shrink-0 flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full font-bold"
+              >
+                2
+              </div>
               <div>
                 <p class="font-semibold text-slate-900">Check-in Instructions</p>
-                <p class="text-sm text-slate-600 mt-1">You'll receive check-in details 24 hours before arrival</p>
+                <p class="text-sm text-slate-600 mt-1">
+                  You'll receive check-in details 24 hours before arrival
+                </p>
               </div>
             </div>
             <div class="flex gap-4">
-              <div class="flex-shrink-0 flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full font-bold">3</div>
+              <div
+                class="flex-shrink-0 flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full font-bold"
+              >
+                3
+              </div>
               <div>
                 <p class="font-semibold text-slate-900">Early Check-in</p>
-                <p class="text-sm text-slate-600 mt-1">Contact the hotel to request early check-in availability</p>
+                <p class="text-sm text-slate-600 mt-1">
+                  Contact the hotel to request early check-in availability
+                </p>
               </div>
             </div>
           </div>
@@ -300,7 +346,10 @@ Thank you for your booking!
 
         <div class="bg-slate-100 rounded-lg p-4 border border-slate-300 text-sm text-slate-700">
           <p class="font-semibold mb-2">Cancellation Policy</p>
-          <p>Bookings can be cancelled up to 48 hours before check-in for a full refund. Late cancellations may incur charges.</p>
+          <p>
+            Bookings can be cancelled up to 48 hours before check-in for a full refund. Late
+            cancellations may incur charges.
+          </p>
         </div>
       </div>
     </div>

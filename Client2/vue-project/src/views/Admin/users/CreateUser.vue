@@ -30,7 +30,9 @@ const createUser = async (data: User) => {
   <DashboardLayout>
     <div class="w-full px-4 sm:px-0">
       <!-- Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3 sm:gap-0">
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3 sm:gap-0"
+      >
         <div>
           <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Create User</h1>
           <p class="text-gray-500 text-sm sm:text-base mt-1">Add a new system user.</p>
@@ -56,10 +58,7 @@ const createUser = async (data: User) => {
           </div>
 
           <!-- Error Summary -->
-          <div
-            v-if="hasErrors"
-            class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg"
-          >
+          <div v-if="hasErrors" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <h3 class="text-red-800 font-semibold mb-2 text-sm sm:text-base">
               Please fix the following errors:
             </h3>

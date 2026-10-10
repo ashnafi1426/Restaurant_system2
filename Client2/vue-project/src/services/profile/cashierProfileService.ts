@@ -62,7 +62,7 @@ export const cashierProfileService = {
     const formData = new FormData()
     formData.append('photo', file)
     const response = await axios.post('/cashier/profile/photo', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
     })
     return response.data.data
   },
@@ -78,5 +78,5 @@ export const cashierProfileService = {
 
   async updateStatus(status: 'active' | 'on_break' | 'off_duty'): Promise<void> {
     await axios.post('/cashier/profile/status', { status })
-  }
+  },
 }

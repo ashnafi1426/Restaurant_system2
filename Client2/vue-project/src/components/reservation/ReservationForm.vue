@@ -14,12 +14,15 @@ interface Room {
   floor?: number
   status?: string
   description?: string
-  room_type?: {
-    id?: string | number
-    name?: string
-    capacity?: number
-    base_price_per_night?: number
-  } | string | null
+  room_type?:
+    | {
+        id?: string | number
+        name?: string
+        capacity?: number
+        base_price_per_night?: number
+      }
+    | string
+    | null
 }
 
 interface Props {
@@ -143,7 +146,7 @@ const nights = computed(() => {
 
 const selectedRoom = computed(() => {
   if (!form.value.room_id) return null
-  return props.rooms.find(r => r.id === form.value.room_id)
+  return props.rooms.find((r) => r.id === form.value.room_id)
 })
 
 const pricePerNight = computed(() => {
@@ -203,7 +206,11 @@ const checkRoomAvailability = async () => {
     })
     availabilityStatus.value = {
       available: Boolean(res.available),
-      message: res.message || (res.available ? 'Room is available for selected dates.' : 'Room is already booked for selected dates.'),
+      message:
+        res.message ||
+        (res.available
+          ? 'Room is available for selected dates.'
+          : 'Room is already booked for selected dates.'),
     }
   } catch (err: any) {
     console.error('[ReservationForm] Check room availability error:', err)
@@ -220,7 +227,7 @@ watch(
   () => [form.value.room_id, form.value.check_in_date, form.value.check_out_date],
   () => {
     checkRoomAvailability()
-  }
+  },
 )
 
 function openPaymentDialog() {
@@ -250,7 +257,9 @@ function openPaymentDialog() {
   }
 
   if (isCapacityExceeded.value) {
-    alert(`Selected room maximum capacity is ${roomCapacity.value} guest(s). Please choose another room or reduce number of guests.`)
+    alert(
+      `Selected room maximum capacity is ${roomCapacity.value} guest(s). Please choose another room or reduce number of guests.`,
+    )
     return
   }
 
@@ -303,7 +312,9 @@ const bookDirectly = async () => {
     }
     const response = await api.post('/reservations', payload)
     if (response.data) {
-      alert('✓ Reservation created and automatically confirmed! Confirmation email sent to the guest.')
+      alert(
+        '✓ Reservation created and automatically confirmed! Confirmation email sent to the guest.',
+      )
       window.location.href = '/reservations'
     }
   } catch (error: any) {
@@ -323,21 +334,18 @@ const proceedToPayment = async () => {
   paymentLoading.value = true
 
   try {
-    const paymentResponse = await api.post(
-      '/reservation-payments/initialize',
-      {
-        room_id: form.value.room_id,
-        guest_id: form.value.guest_id,
-        check_in_date: form.value.check_in_date,
-        check_out_date: form.value.check_out_date,
-        number_of_guests: form.value.number_of_guests,
-        special_requests: form.value.special_requests,
-        first_name: newGuestForm.value.first_name,
-        last_name: newGuestForm.value.last_name,
-        email: newGuestForm.value.email,
-        phone: newGuestForm.value.phone,
-      }
-    )
+    const paymentResponse = await api.post('/reservation-payments/initialize', {
+      room_id: form.value.room_id,
+      guest_id: form.value.guest_id,
+      check_in_date: form.value.check_in_date,
+      check_out_date: form.value.check_out_date,
+      number_of_guests: form.value.number_of_guests,
+      special_requests: form.value.special_requests,
+      first_name: newGuestForm.value.first_name,
+      last_name: newGuestForm.value.last_name,
+      email: newGuestForm.value.email,
+      phone: newGuestForm.value.phone,
+    })
 
     if (paymentResponse.data.success && paymentResponse.data.checkout_url) {
       const reservationData = {
@@ -356,7 +364,7 @@ const proceedToPayment = async () => {
         total_amount: paymentResponse.data.amount,
         timestamp: new Date().toISOString(),
       }
-      
+
       sessionStorage.setItem('reservationPaymentData', JSON.stringify(reservationData))
 
       showPaymentDialog.value = false
@@ -376,7 +384,7 @@ const proceedToPayment = async () => {
     } else if (error.message) {
       message = error.message
     }
-    
+
     alert('Payment initialization failed: ' + message)
     paymentLoading.value = false
   }
@@ -386,7 +394,11 @@ async function registerGuest() {
   registrationError.value = ''
   registrationSuccess.value = ''
 
-  if (!newGuestForm.value.first_name || !newGuestForm.value.last_name || !newGuestForm.value.phone) {
+  if (
+    !newGuestForm.value.first_name ||
+    !newGuestForm.value.last_name ||
+    !newGuestForm.value.phone
+  ) {
     registrationError.value = 'First name, last name, and phone are required'
     return
   }
@@ -410,7 +422,10 @@ async function registerGuest() {
     }, 2000)
   } catch (error: any) {
     console.error('[ReservationForm] Guest registration error:', error)
-    registrationError.value = error.response?.data?.message || error.message || 'Failed to register guest. Please try again.'
+    registrationError.value =
+      error.response?.data?.message ||
+      error.message ||
+      'Failed to register guest. Please try again.'
   }
 }
 </script>
@@ -420,12 +435,20 @@ async function registerGuest() {
     class="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sm:p-5 md:p-6 space-y-5 sm:space-y-6"
   >
     <div>
-      <h2 class="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900 dark:text-white">{{ languageStore.t('reservation_form', 'Reservation Form') }}</h2>
-      <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('complete_booking_details', 'Complete your booking details') }}</p>
+      <h2 class="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900 dark:text-white">
+        {{ languageStore.t('reservation_form', 'Reservation Form') }}
+      </h2>
+      <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+        {{ languageStore.t('complete_booking_details', 'Complete your booking details') }}
+      </p>
     </div>
 
-    <div class="border-2 border-blue-300 dark:border-blue-700/60 bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 sm:p-6">
-      <h3 class="text-base sm:text-lg font-semibold text-slate-900 dark:text-white mb-4">{{ languageStore.t('guest_information', 'Guest Information') }}</h3>
+    <div
+      class="border-2 border-blue-300 dark:border-blue-700/60 bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 sm:p-6"
+    >
+      <h3 class="text-base sm:text-lg font-semibold text-slate-900 dark:text-white mb-4">
+        {{ languageStore.t('guest_information', 'Guest Information') }}
+      </h3>
 
       <div
         v-if="registrationError"
@@ -444,7 +467,9 @@ async function registerGuest() {
       <div class="space-y-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
-            <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label
+              class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+            >
               {{ languageStore.t('first_name', 'First Name') }} <span class="text-red-500">*</span>
             </label>
             <input
@@ -455,7 +480,9 @@ async function registerGuest() {
             />
           </div>
           <div>
-            <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label
+              class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+            >
               {{ languageStore.t('last_name', 'Last Name') }} <span class="text-red-500">*</span>
             </label>
             <input
@@ -469,8 +496,13 @@ async function registerGuest() {
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
-            <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-              {{ languageStore.t('email', 'Email') }} <span class="text-slate-500 text-xs">({{ languageStore.t('optional', 'Optional') }})</span>
+            <label
+              class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+            >
+              {{ languageStore.t('email', 'Email') }}
+              <span class="text-slate-500 text-xs"
+                >({{ languageStore.t('optional', 'Optional') }})</span
+              >
             </label>
             <input
               v-model="newGuestForm.email"
@@ -480,7 +512,9 @@ async function registerGuest() {
             />
           </div>
           <div>
-            <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label
+              class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+            >
               {{ languageStore.t('phone', 'Phone') }} <span class="text-red-500">*</span>
             </label>
             <input
@@ -489,7 +523,9 @@ async function registerGuest() {
               placeholder="+251912345678"
               class="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
             />
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Use format: +251912345678 or 0912345678</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Use format: +251912345678 or 0912345678
+            </p>
           </div>
         </div>
 
@@ -503,12 +539,19 @@ async function registerGuest() {
       </div>
 
       <p class="mt-4 text-xs sm:text-sm text-slate-600 dark:text-slate-400 text-center">
-        {{ languageStore.t('info_helps_service', 'Your information helps us provide better service during your stay') }}
+        {{
+          languageStore.t(
+            'info_helps_service',
+            'Your information helps us provide better service during your stay',
+          )
+        }}
       </p>
     </div>
 
     <div class="relative">
-      <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+      <label
+        class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2"
+      >
         {{ languageStore.t('room', 'Room') }} <span class="text-red-500">*</span>
       </label>
 
@@ -521,12 +564,13 @@ async function registerGuest() {
         :class="{ 'border-red-500 ring-2 ring-red-200': !form.room_id && form.room_id !== '' }"
       />
 
-      <div v-if="form.room_id && !showRoomDropdown" class="text-xs text-slate-600 dark:text-slate-400 mt-1">
+      <div
+        v-if="form.room_id && !showRoomDropdown"
+        class="text-xs text-slate-600 dark:text-slate-400 mt-1"
+      >
         ✓ {{ languageStore.t('selected', 'Selected') }}:
         {{
-          selectedRoom
-            ? formatRoomDisplay(selectedRoom)
-            : languageStore.t('loading', 'Loading...')
+          selectedRoom ? formatRoomDisplay(selectedRoom) : languageStore.t('loading', 'Loading...')
         }}
       </div>
 
@@ -548,21 +592,31 @@ async function registerGuest() {
           class="p-2 sm:p-3 hover:bg-blue-50 dark:hover:bg-slate-800 cursor-pointer border-b border-slate-100 dark:border-slate-800 last:border-b-0 text-xs sm:text-sm transition duration-150"
           :class="{ 'bg-blue-100 dark:bg-slate-800': form.room_id === room.id }"
         >
-          <div class="font-medium text-slate-900 dark:text-white">{{ languageStore.t('room', 'Room') }} {{ room.room_number }}</div>
+          <div class="font-medium text-slate-900 dark:text-white">
+            {{ languageStore.t('room', 'Room') }} {{ room.room_number }}
+          </div>
           <div class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-            {{ typeof room.room_type === 'object' && room.room_type ? room.room_type.name : (room.room_type || 'Standard') }}
+            {{
+              typeof room.room_type === 'object' && room.room_type
+                ? room.room_type.name
+                : room.room_type || 'Standard'
+            }}
             <template v-if="typeof room.room_type === 'object' && room.room_type?.capacity">
               - {{ room.room_type.capacity }} {{ languageStore.t('guests', 'guests') }}
             </template>
           </div>
-          <div class="text-xs text-slate-500 dark:text-slate-400">{{ formatRoomDisplay(room) }}</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400">
+            {{ formatRoomDisplay(room) }}
+          </div>
         </div>
       </div>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
       <div>
-        <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+        <label
+          class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2"
+        >
           {{ languageStore.t('check_in', 'Check In') }} <span class="text-red-500">*</span>
         </label>
         <input
@@ -577,7 +631,9 @@ async function registerGuest() {
       </div>
 
       <div>
-        <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+        <label
+          class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2"
+        >
           {{ languageStore.t('check_out', 'Check Out') }} <span class="text-red-500">*</span>
         </label>
         <input
@@ -593,13 +649,28 @@ async function registerGuest() {
     </div>
 
     <div v-if="isCheckingAvailability || availabilityStatus" class="text-xs sm:text-sm font-medium">
-      <span v-if="isCheckingAvailability" class="text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
-        <span class="animate-spin">⏳</span> {{ languageStore.t('checking_availability', 'Checking room availability for selected dates...') }}
+      <span
+        v-if="isCheckingAvailability"
+        class="text-blue-600 dark:text-blue-400 flex items-center gap-1.5"
+      >
+        <span class="animate-spin">⏳</span>
+        {{
+          languageStore.t(
+            'checking_availability',
+            'Checking room availability for selected dates...',
+          )
+        }}
       </span>
-      <span v-else-if="availabilityStatus?.available" class="text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 px-3 py-1.5 rounded-lg">
+      <span
+        v-else-if="availabilityStatus?.available"
+        class="text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 px-3 py-1.5 rounded-lg"
+      >
         ✓ {{ availabilityStatus.message }}
       </span>
-      <span v-else-if="availabilityStatus && !availabilityStatus.available" class="text-rose-700 dark:text-rose-300 flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 px-3 py-1.5 rounded-lg">
+      <span
+        v-else-if="availabilityStatus && !availabilityStatus.available"
+        class="text-rose-700 dark:text-rose-300 flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 px-3 py-1.5 rounded-lg"
+      >
         ✗ {{ availabilityStatus.message }}
       </span>
     </div>
@@ -607,9 +678,13 @@ async function registerGuest() {
     <div>
       <div class="flex justify-between items-center mb-1.5 sm:mb-2">
         <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
-          {{ languageStore.t('number_of_guests', 'Number of Guests') }} <span class="text-red-500">*</span>
+          {{ languageStore.t('number_of_guests', 'Number of Guests') }}
+          <span class="text-red-500">*</span>
         </label>
-        <span v-if="selectedRoom && roomCapacity < 90" class="text-xs text-slate-500 dark:text-slate-400">
+        <span
+          v-if="selectedRoom && roomCapacity < 90"
+          class="text-xs text-slate-500 dark:text-slate-400"
+        >
           Max Capacity: {{ roomCapacity }} {{ languageStore.t('guests', 'guests') }}
         </span>
       </div>
@@ -621,20 +696,36 @@ async function registerGuest() {
         min="1"
         max="99"
       />
-      <p v-if="isCapacityExceeded" class="text-rose-600 dark:text-rose-400 text-xs sm:text-sm mt-1 font-medium">
-        {{ languageStore.t('room_capacity_exceeded', `Room capacity exceeded (maximum ${roomCapacity} guests for this room).`) }}
+      <p
+        v-if="isCapacityExceeded"
+        class="text-rose-600 dark:text-rose-400 text-xs sm:text-sm mt-1 font-medium"
+      >
+        {{
+          languageStore.t(
+            'room_capacity_exceeded',
+            `Room capacity exceeded (maximum ${roomCapacity} guests for this room).`,
+          )
+        }}
       </p>
     </div>
 
     <div>
-      <label class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
-        {{ languageStore.t('special_requests', 'Special Requests') }} <span class="text-slate-500 text-xs">({{ languageStore.t('optional', 'Optional') }})</span>
+      <label
+        class="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2"
+      >
+        {{ languageStore.t('special_requests', 'Special Requests') }}
+        <span class="text-slate-500 text-xs">({{ languageStore.t('optional', 'Optional') }})</span>
       </label>
       <textarea
         v-model="form.special_requests"
         rows="3"
         class="w-full border border-slate-300 dark:border-slate-700 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 resize-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-        :placeholder="languageStore.t('special_requests_placeholder', 'Any special requirements or preferences...')"
+        :placeholder="
+          languageStore.t(
+            'special_requests_placeholder',
+            'Any special requirements or preferences...',
+          )
+        "
       ></textarea>
     </div>
 
@@ -642,21 +733,36 @@ async function registerGuest() {
       class="bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-indigo-950/30 p-3 sm:p-4 rounded-lg border border-blue-200 dark:border-blue-800/50 text-xs sm:text-sm"
     >
       <div class="flex justify-between items-center">
-        <span class="text-slate-700 dark:text-slate-300 font-medium">{{ languageStore.t('total_nights', 'Total Nights') }}:</span>
+        <span class="text-slate-700 dark:text-slate-300 font-medium"
+          >{{ languageStore.t('total_nights', 'Total Nights') }}:</span
+        >
         <span class="text-lg sm:text-xl font-bold text-blue-600 dark:text-blue-400"
-          >{{ nights }} {{ nights === 1 ? languageStore.t('night', 'night') : languageStore.t('nights', 'nights') }}</span
+          >{{ nights }}
+          {{
+            nights === 1 ? languageStore.t('night', 'night') : languageStore.t('nights', 'nights')
+          }}</span
         >
       </div>
     </div>
 
     <div
-      v-if="form.room_id && form.check_in_date && form.check_out_date && isValidDateRange && nights > 0"
+      v-if="
+        form.room_id && form.check_in_date && form.check_out_date && isValidDateRange && nights > 0
+      "
       class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-emerald-950/30 dark:to-teal-950/30 p-4 sm:p-5 rounded-lg border border-green-200 dark:border-emerald-800/50"
     >
-      <h3 class="font-semibold text-slate-900 dark:text-white text-sm mb-3">{{ languageStore.t('price_breakdown', 'Price Breakdown') }}</h3>
+      <h3 class="font-semibold text-slate-900 dark:text-white text-sm mb-3">
+        {{ languageStore.t('price_breakdown', 'Price Breakdown') }}
+      </h3>
       <div class="space-y-2 text-xs sm:text-sm">
         <div class="flex justify-between text-slate-700 dark:text-slate-300">
-          <span>{{ nights }} {{ nights === 1 ? languageStore.t('night', 'night') : languageStore.t('nights', 'nights') }} × {{ pricePerNight }} ETB</span>
+          <span
+            >{{ nights }}
+            {{
+              nights === 1 ? languageStore.t('night', 'night') : languageStore.t('nights', 'nights')
+            }}
+            × {{ pricePerNight }} ETB</span
+          >
           <span class="font-medium">{{ subtotal.toFixed(2) }} ETB</span>
         </div>
         <div class="flex justify-between text-slate-700 dark:text-slate-300">
@@ -664,11 +770,23 @@ async function registerGuest() {
           <span class="font-medium">{{ taxAmount.toFixed(2) }} ETB</span>
         </div>
         <div class="border-t border-green-200 dark:border-emerald-800/50 pt-2 flex justify-between">
-          <span class="font-semibold text-slate-900 dark:text-white">{{ languageStore.t('total_amount', 'Total Amount') }}</span>
-          <span class="text-lg font-bold text-green-600 dark:text-emerald-400">{{ totalAmount.toFixed(2) }} ETB</span>
+          <span class="font-semibold text-slate-900 dark:text-white">{{
+            languageStore.t('total_amount', 'Total Amount')
+          }}</span>
+          <span class="text-lg font-bold text-green-600 dark:text-emerald-400"
+            >{{ totalAmount.toFixed(2) }} ETB</span
+          >
         </div>
       </div>
-      <p class="text-xs text-slate-500 dark:text-slate-400 mt-3">💳 {{ languageStore.t('chapa_secure_msg', 'Your payment is secure and processed through Chapa payment gateway') }}</p>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-3">
+        💳
+        {{
+          languageStore.t(
+            'chapa_secure_msg',
+            'Your payment is secure and processed through Chapa payment gateway',
+          )
+        }}
+      </p>
     </div>
 
     <div class="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
@@ -684,7 +802,16 @@ async function registerGuest() {
       <button
         type="button"
         @click="bookDirectly"
-        :disabled="directBookingLoading || loading || !isValidDateRange || isPastDate || !form.guest_id || !form.room_id || isCapacityExceeded || (availabilityStatus !== null && !availabilityStatus.available)"
+        :disabled="
+          directBookingLoading ||
+          loading ||
+          !isValidDateRange ||
+          isPastDate ||
+          !form.guest_id ||
+          !form.room_id ||
+          isCapacityExceeded ||
+          (availabilityStatus !== null && !availabilityStatus.available)
+        "
         class="px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 shadow-sm"
       >
         <span v-if="directBookingLoading" class="animate-spin mr-1">⌛</span>
@@ -695,7 +822,16 @@ async function registerGuest() {
       <button
         type="button"
         @click="openPaymentDialog"
-        :disabled="loading || directBookingLoading || !isValidDateRange || isPastDate || !form.guest_id || !form.room_id || isCapacityExceeded || (availabilityStatus !== null && !availabilityStatus.available)"
+        :disabled="
+          loading ||
+          directBookingLoading ||
+          !isValidDateRange ||
+          isPastDate ||
+          !form.guest_id ||
+          !form.room_id ||
+          isCapacityExceeded ||
+          (availabilityStatus !== null && !availabilityStatus.available)
+        "
         class="px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200 cursor-pointer flex items-center justify-center gap-1.5"
       >
         <span v-if="loading" class="inline-flex items-center gap-2">
@@ -706,12 +842,29 @@ async function registerGuest() {
       </button>
     </div>
 
-    <div v-if="showPaymentDialog" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 overflow-hidden" @click.self="closePaymentDialog">
-      <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200">
-        <div class="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-5 py-4 text-white flex items-center justify-between flex-shrink-0">
+    <div
+      v-if="showPaymentDialog"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 overflow-hidden"
+      @click.self="closePaymentDialog"
+    >
+      <div
+        class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200"
+      >
+        <div
+          class="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-5 py-4 text-white flex items-center justify-between flex-shrink-0"
+        >
           <div>
-            <h3 class="text-lg sm:text-xl font-bold">{{ languageStore.t('payment_confirmation', 'Payment Confirmation') }}</h3>
-            <p class="text-xs text-blue-100">{{ languageStore.t('complete_booking_details', 'Review your booking details before payment') }}</p>
+            <h3 class="text-lg sm:text-xl font-bold">
+              {{ languageStore.t('payment_confirmation', 'Payment Confirmation') }}
+            </h3>
+            <p class="text-xs text-blue-100">
+              {{
+                languageStore.t(
+                  'complete_booking_details',
+                  'Review your booking details before payment',
+                )
+              }}
+            </p>
           </div>
           <button
             @click="closePaymentDialog"
@@ -723,55 +876,119 @@ async function registerGuest() {
         </div>
 
         <div class="p-5 space-y-3.5 overflow-y-auto flex-1 text-slate-800 dark:text-slate-200">
-          <div class="space-y-2.5 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
-            <h4 class="text-xs uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">{{ languageStore.t('booking_summary', 'Booking Summary') }}</h4>
-            
+          <div
+            class="space-y-2.5 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60"
+          >
+            <h4
+              class="text-xs uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400"
+            >
+              {{ languageStore.t('booking_summary', 'Booking Summary') }}
+            </h4>
+
             <div class="flex justify-between items-start text-sm">
-              <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('room', 'Room') }}:</span>
-              <span class="font-bold text-slate-900 dark:text-white">#{{ selectedRoom?.room_number || 'N/A' }}</span>
+              <span class="text-slate-600 dark:text-slate-400"
+                >{{ languageStore.t('room', 'Room') }}:</span
+              >
+              <span class="font-bold text-slate-900 dark:text-white"
+                >#{{ selectedRoom?.room_number || 'N/A' }}</span
+              >
             </div>
 
             <div class="flex justify-between items-start text-sm">
-              <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('check_in', 'Check-in') }}:</span>
-              <span class="font-medium text-slate-900 dark:text-white">{{ form.check_in_date }}</span>
+              <span class="text-slate-600 dark:text-slate-400"
+                >{{ languageStore.t('check_in', 'Check-in') }}:</span
+              >
+              <span class="font-medium text-slate-900 dark:text-white">{{
+                form.check_in_date
+              }}</span>
             </div>
 
             <div class="flex justify-between items-start text-sm">
-              <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('check_out', 'Check-out') }}:</span>
-              <span class="font-medium text-slate-900 dark:text-white">{{ form.check_out_date }}</span>
+              <span class="text-slate-600 dark:text-slate-400"
+                >{{ languageStore.t('check_out', 'Check-out') }}:</span
+              >
+              <span class="font-medium text-slate-900 dark:text-white">{{
+                form.check_out_date
+              }}</span>
             </div>
 
-            <div class="flex justify-between items-start text-sm pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
-              <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('stay_history', 'Stay') }}:</span>
-              <span class="font-semibold text-slate-900 dark:text-white">{{ nights }} {{ nights > 1 ? languageStore.t('nights', 'Nights') : languageStore.t('night', 'Night') }} • {{ form.number_of_guests }} {{ form.number_of_guests > 1 ? languageStore.t('guests', 'Guests') : languageStore.t('guest', 'Guest') }}</span>
+            <div
+              class="flex justify-between items-start text-sm pt-1 border-t border-slate-200/60 dark:border-slate-700/60"
+            >
+              <span class="text-slate-600 dark:text-slate-400"
+                >{{ languageStore.t('stay_history', 'Stay') }}:</span
+              >
+              <span class="font-semibold text-slate-900 dark:text-white"
+                >{{ nights }}
+                {{
+                  nights > 1
+                    ? languageStore.t('nights', 'Nights')
+                    : languageStore.t('night', 'Night')
+                }}
+                • {{ form.number_of_guests }}
+                {{
+                  form.number_of_guests > 1
+                    ? languageStore.t('guests', 'Guests')
+                    : languageStore.t('guest', 'Guest')
+                }}</span
+              >
             </div>
           </div>
 
-          <div class="space-y-2 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
-            <h4 class="text-xs uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">{{ languageStore.t('price_breakdown', 'Price Breakdown') }}</h4>
+          <div
+            class="space-y-2 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60"
+          >
+            <h4
+              class="text-xs uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400"
+            >
+              {{ languageStore.t('price_breakdown', 'Price Breakdown') }}
+            </h4>
 
             <div class="flex justify-between text-sm">
-              <span class="text-slate-600 dark:text-slate-400">{{ nights }} {{ languageStore.t('nights', 'nights') }} × {{ pricePerNight }} ETB</span>
-              <span class="font-semibold text-slate-900 dark:text-white">{{ subtotal.toFixed(2) }} ETB</span>
+              <span class="text-slate-600 dark:text-slate-400"
+                >{{ nights }} {{ languageStore.t('nights', 'nights') }} ×
+                {{ pricePerNight }} ETB</span
+              >
+              <span class="font-semibold text-slate-900 dark:text-white"
+                >{{ subtotal.toFixed(2) }} ETB</span
+              >
             </div>
 
             <div class="flex justify-between text-sm">
-              <span class="text-slate-600 dark:text-slate-400">{{ languageStore.t('tax', 'Tax') }} (15%)</span>
-              <span class="font-medium text-slate-900 dark:text-white">{{ taxAmount.toFixed(2) }} ETB</span>
+              <span class="text-slate-600 dark:text-slate-400"
+                >{{ languageStore.t('tax', 'Tax') }} (15%)</span
+              >
+              <span class="font-medium text-slate-900 dark:text-white"
+                >{{ taxAmount.toFixed(2) }} ETB</span
+              >
             </div>
 
-            <div class="flex justify-between text-base font-extrabold pt-2 border-t border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white">
+            <div
+              class="flex justify-between text-base font-extrabold pt-2 border-t border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
+            >
               <span>{{ languageStore.t('total_amount', 'Total Amount') }}:</span>
-              <span class="text-blue-600 dark:text-blue-400 text-lg">{{ totalAmount.toFixed(2) }} ETB</span>
+              <span class="text-blue-600 dark:text-blue-400 text-lg"
+                >{{ totalAmount.toFixed(2) }} ETB</span
+              >
             </div>
           </div>
 
-          <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300">
-            ✓ {{ languageStore.t('chapa_secure_msg', 'Your payment is secure and processed through Chapa payment gateway') }}
+          <div
+            class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 rounded-xl p-3 text-xs text-blue-800 dark:text-blue-300"
+          >
+            ✓
+            {{
+              languageStore.t(
+                'chapa_secure_msg',
+                'Your payment is secure and processed through Chapa payment gateway',
+              )
+            }}
           </div>
         </div>
 
-        <div class="bg-slate-50 dark:bg-slate-800/90 px-5 py-3.5 border-t border-slate-200 dark:border-slate-700 flex gap-3 flex-shrink-0 shadow-lg">
+        <div
+          class="bg-slate-50 dark:bg-slate-800/90 px-5 py-3.5 border-t border-slate-200 dark:border-slate-700 flex gap-3 flex-shrink-0 shadow-lg"
+        >
           <button
             @click="closePaymentDialog"
             :disabled="paymentLoading"
@@ -787,7 +1004,12 @@ async function registerGuest() {
           >
             <span v-if="paymentLoading" class="animate-spin">⌛</span>
             <span v-if="paymentLoading">{{ languageStore.t('processing', 'Processing...') }}</span>
-            <span v-else>💳 {{ languageStore.t('pay_now', 'Pay Now') }} ({{ totalAmount.toFixed(2) }} ETB)</span>
+            <span v-else
+              >💳 {{ languageStore.t('pay_now', 'Pay Now') }} ({{
+                totalAmount.toFixed(2)
+              }}
+              ETB)</span
+            >
           </button>
         </div>
       </div>

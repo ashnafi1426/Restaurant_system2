@@ -67,7 +67,10 @@ const availableReservations = computed(() => {
 })
 
 const totalCheckIns = computed(() => store.statistics.total_check_ins || store.checkIns.length || 0)
-const activeGuestCount = computed(() => store.statistics.active_guests || store.checkIns.filter((c: any) => !c.checked_out_at).length)
+const activeGuestCount = computed(
+  () =>
+    store.statistics.active_guests || store.checkIns.filter((c: any) => !c.checked_out_at).length,
+)
 const checkedOutCount = computed(() => {
   const total = store.statistics.total_check_ins || store.checkIns.length
   const active = activeGuestCount.value
@@ -114,7 +117,13 @@ const filteredCheckIns = computed(() => {
       const resNumber = (c.reservation?.reservation_number || '').toLowerCase()
       const email = (c.guest?.email || '').toLowerCase()
       const phone = String(c.guest?.phone || '').toLowerCase()
-      return guestName.includes(q) || roomNumber.includes(q) || resNumber.includes(q) || email.includes(q) || phone.includes(q)
+      return (
+        guestName.includes(q) ||
+        roomNumber.includes(q) ||
+        resNumber.includes(q) ||
+        email.includes(q) ||
+        phone.includes(q)
+      )
     })
   }
 
@@ -126,7 +135,11 @@ const filteredCheckIns = computed(() => {
 
   if (filterRoom.value.trim()) {
     const rQuery = filterRoom.value.toLowerCase().trim()
-    list = list.filter((c: any) => String(c.room?.room_number || '').toLowerCase().includes(rQuery))
+    list = list.filter((c: any) =>
+      String(c.room?.room_number || '')
+        .toLowerCase()
+        .includes(rQuery),
+    )
   }
 
   return list
@@ -282,9 +295,12 @@ onMounted(async () => {
   await Promise.all([loadCheckIns(), loadReservations()])
 })
 
-watch(() => hotelStore.hotelId, async () => {
-  await Promise.all([loadCheckIns(), loadReservations()])
-})
+watch(
+  () => hotelStore.hotelId,
+  async () => {
+    await Promise.all([loadCheckIns(), loadReservations()])
+  },
+)
 </script>
 
 <template>
@@ -301,29 +317,50 @@ watch(() => hotelStore.hotelId, async () => {
       />
 
       <!-- Toast Notification -->
-      <div v-if="toastMessage" class="fixed bottom-6 right-6 z-50 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-slate-800 text-xs font-bold">
+      <div
+        v-if="toastMessage"
+        class="fixed bottom-6 right-6 z-50 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-slate-800 text-xs font-bold"
+      >
         <CheckCircle2 class="w-4 h-4 text-emerald-500" />
         <span>{{ toastMessage }}</span>
       </div>
 
       <!-- Header Section -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs">
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
+      >
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-md flex-shrink-0 text-white">
+          <div
+            class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-md flex-shrink-0 text-white"
+          >
             <LogIn class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{{ languageStore.t('guest_checkin_mgmt', 'Guest Check-In Management') }}</h1>
-              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                {{ languageStore.t('guest_checkin_mgmt', 'Guest Check-In Management') }}
+              </h1>
+              <span
+                v-if="hotelStore.hotelName"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
+              >
                 <Building2 class="w-3 h-3" />
                 {{ hotelStore.hotelName }}
               </span>
-              <span class="text-[10px] uppercase font-black bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-md border border-blue-500/20">
+              <span
+                class="text-[10px] uppercase font-black bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-md border border-blue-500/20"
+              >
                 {{ userRoleName }}
               </span>
             </div>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('track_guest_arrivals', 'Track guest arrivals, manage check-ins, and monitor room occupancy.') }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {{
+                languageStore.t(
+                  'track_guest_arrivals',
+                  'Track guest arrivals, manage check-ins, and monitor room occupancy.',
+                )
+              }}
+            </p>
           </div>
         </div>
       </div>
@@ -331,10 +368,18 @@ watch(() => hotelStore.hotelId, async () => {
       <!-- Statistics Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <!-- Total Check-Ins -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div
+          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+        >
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('total_checkins', 'Total Check-Ins') }}</p>
-            <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ totalCheckIns }}</h3>
+            <p
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+            >
+              {{ languageStore.t('total_checkins', 'Total Check-Ins') }}
+            </p>
+            <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1">
+              {{ totalCheckIns }}
+            </h3>
           </div>
           <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
             <LogIn class="w-5 h-5" />
@@ -342,10 +387,18 @@ watch(() => hotelStore.hotelId, async () => {
         </div>
 
         <!-- Active In-House Guests -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div
+          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+        >
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('in_house_guests', 'In-House Guests') }}</p>
-            <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ activeGuestCount }}</h3>
+            <p
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+            >
+              {{ languageStore.t('in_house_guests', 'In-House Guests') }}
+            </p>
+            <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+              {{ activeGuestCount }}
+            </h3>
           </div>
           <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
             <UserCheck class="w-5 h-5" />
@@ -353,10 +406,18 @@ watch(() => hotelStore.hotelId, async () => {
         </div>
 
         <!-- Checked Out -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div
+          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+        >
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ languageStore.t('checked_out', 'Checked Out') }}</p>
-            <h3 class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">{{ checkedOutCount }}</h3>
+            <p
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+            >
+              {{ languageStore.t('checked_out', 'Checked Out') }}
+            </p>
+            <h3 class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">
+              {{ checkedOutCount }}
+            </h3>
           </div>
           <div class="p-3 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
             <LogOut class="w-5 h-5" />
@@ -372,11 +433,18 @@ watch(() => hotelStore.hotelId, async () => {
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
           <!-- Search Input -->
           <div class="relative flex-1">
-            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <Search
+              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+            />
             <input
               v-model="searchQuery"
               type="text"
-              :placeholder="languageStore.t('search_checkin_ph', 'Search by guest name, room #, reservation, email, phone...')"
+              :placeholder="
+                languageStore.t(
+                  'search_checkin_ph',
+                  'Search by guest name, room #, reservation, email, phone...',
+                )
+              "
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />
           </div>
@@ -389,11 +457,15 @@ watch(() => hotelStore.hotelId, async () => {
             :class="[
               isFilterOpen
                 ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
-                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{ isFilterOpen ? languageStore.t('hide_filter', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
+            <span>{{
+              isFilterOpen
+                ? languageStore.t('hide_filter', 'Hide Filter')
+                : languageStore.t('filter', 'Filter')
+            }}</span>
           </button>
         </div>
 
@@ -456,8 +528,12 @@ watch(() => hotelStore.hotelId, async () => {
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
                 <option value="all">{{ languageStore.t('all_records', 'All Records') }}</option>
-                <option value="active">{{ languageStore.t('active_in_house', 'Active In-House Only') }}</option>
-                <option value="checked_out">{{ languageStore.t('checked_out', 'Checked Out') }}</option>
+                <option value="active">
+                  {{ languageStore.t('active_in_house', 'Active In-House Only') }}
+                </option>
+                <option value="checked_out">
+                  {{ languageStore.t('checked_out', 'Checked Out') }}
+                </option>
               </select>
             </div>
 
@@ -490,19 +566,37 @@ watch(() => hotelStore.hotelId, async () => {
       </Transition>
 
       <!-- Check-In Records Table Container -->
-      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
+      <div
+        class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
+      >
         <!-- Desktop Table View -->
         <div class="hidden md:block overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
-            <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+            <thead
+              class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
+            >
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-                <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('Guest', 'Guest') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('Room & Type', 'Room & Type') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('Reservation #', 'Reservation #') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('Checked In', 'Checked In') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('Expected Check Out', 'Expected Check Out') }}</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('Status', 'Status') }}</th>
-                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">{{ languageStore.t('Actions', 'Actions') }}</th>
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">
+                  {{ languageStore.t('Guest', 'Guest') }}
+                </th>
+                <th class="py-3 px-4 whitespace-nowrap">
+                  {{ languageStore.t('Room & Type', 'Room & Type') }}
+                </th>
+                <th class="py-3 px-4 whitespace-nowrap">
+                  {{ languageStore.t('Reservation #', 'Reservation #') }}
+                </th>
+                <th class="py-3 px-4 whitespace-nowrap">
+                  {{ languageStore.t('Checked In', 'Checked In') }}
+                </th>
+                <th class="py-3 px-4 whitespace-nowrap">
+                  {{ languageStore.t('Expected Check Out', 'Expected Check Out') }}
+                </th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">
+                  {{ languageStore.t('Status', 'Status') }}
+                </th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">
+                  {{ languageStore.t('Actions', 'Actions') }}
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
@@ -511,7 +605,9 @@ watch(() => hotelStore.hotelId, async () => {
                 <td colspan="7" class="px-6 py-20 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
                     <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_checkin_records', 'Loading check-in records...') }}</span>
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{
+                      languageStore.t('loading_checkin_records', 'Loading check-in records...')
+                    }}</span>
                   </div>
                 </td>
               </tr>
@@ -523,136 +619,186 @@ watch(() => hotelStore.hotelId, async () => {
                   :key="checkIn.id"
                   class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
                 >
-                <!-- Guest -->
-                <td class="py-3 px-4 pl-5 whitespace-nowrap">
-                  <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 font-black flex items-center justify-center text-xs border border-blue-500/20 flex-shrink-0">
-                      {{ getGuestInitials(checkIn.guest) }}
-                    </div>
-                    <div>
-                      <div class="font-bold text-slate-900 dark:text-white">
-                        {{ getGuestName(checkIn.guest) }}
+                  <!-- Guest -->
+                  <td class="py-3 px-4 pl-5 whitespace-nowrap">
+                    <div class="flex items-center gap-2.5">
+                      <div
+                        class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 font-black flex items-center justify-center text-xs border border-blue-500/20 flex-shrink-0"
+                      >
+                        {{ getGuestInitials(checkIn.guest) }}
                       </div>
-                      <div class="text-[10px] text-slate-400 font-medium">
-                        {{ checkIn.guest?.email || checkIn.guest?.phone || 'No contact' }}
+                      <div>
+                        <div class="font-bold text-slate-900 dark:text-white">
+                          {{ getGuestName(checkIn.guest) }}
+                        </div>
+                        <div class="text-[10px] text-slate-400 font-medium">
+                          {{ checkIn.guest?.email || checkIn.guest?.phone || 'No contact' }}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </td>
+                  </td>
 
-                <!-- Room & Type -->
-                <td class="py-3 px-4 whitespace-nowrap">
-                  <div class="flex items-center gap-2">
-                    <span class="font-black text-slate-900 dark:text-white font-mono text-xs sm:text-sm">
-                      Room {{ checkIn.room?.room_number || 'N/A' }}
+                  <!-- Room & Type -->
+                  <td class="py-3 px-4 whitespace-nowrap">
+                    <div class="flex items-center gap-2">
+                      <span
+                        class="font-black text-slate-900 dark:text-white font-mono text-xs sm:text-sm"
+                      >
+                        Room {{ checkIn.room?.room_number || 'N/A' }}
+                      </span>
+                      <span
+                        v-if="checkIn.room?.room_type?.name"
+                        class="text-[10px] text-slate-400 font-medium"
+                      >
+                        ({{ checkIn.room.room_type.name }})
+                      </span>
+                    </div>
+                  </td>
+
+                  <!-- Reservation # -->
+                  <td class="py-3 px-4 whitespace-nowrap">
+                    <span
+                      class="font-mono text-xs font-semibold text-slate-700 dark:text-slate-300"
+                    >
+                      {{ checkIn.reservation?.reservation_number || `#${checkIn.id.slice(-6)}` }}
                     </span>
-                    <span v-if="checkIn.room?.room_type?.name" class="text-[10px] text-slate-400 font-medium">
-                      ({{ checkIn.room.room_type.name }})
+                  </td>
+
+                  <!-- Checked In -->
+                  <td class="py-3 px-4 whitespace-nowrap">
+                    <div class="font-medium text-slate-800 dark:text-slate-200">
+                      {{ formatDate(checkIn.checked_in_at) }}
+                    </div>
+                  </td>
+
+                  <!-- Expected Check Out -->
+                  <td class="py-3 px-4 whitespace-nowrap">
+                    <div class="font-medium text-slate-800 dark:text-slate-200">
+                      {{ formatDate(checkIn.expected_check_out_at) }}
+                    </div>
+                  </td>
+
+                  <!-- Status -->
+                  <td class="py-3 px-4 text-center whitespace-nowrap">
+                    <span
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
+                      :class="
+                        !checkIn.checked_out_at
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                          : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                      "
+                    >
+                      {{
+                        !checkIn.checked_out_at
+                          ? languageStore.t('In House', 'In House')
+                          : languageStore.t('checked_out', 'Checked Out')
+                      }}
                     </span>
-                  </div>
-                </td>
+                  </td>
 
-                <!-- Reservation # -->
-                <td class="py-3 px-4 whitespace-nowrap">
-                  <span class="font-mono text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    {{ checkIn.reservation?.reservation_number || `#${checkIn.id.slice(-6)}` }}
-                  </span>
-                </td>
+                  <!-- Actions -->
+                  <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
+                    <div class="flex items-center justify-end gap-1">
+                      <!-- Check-out button -->
+                      <button
+                        v-if="!checkIn.checked_out_at"
+                        @click="handleCheckout(checkIn)"
+                        class="p-1.5 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg transition cursor-pointer"
+                        :title="languageStore.t('Check Out', 'Check Out Guest')"
+                      >
+                        <LogOut class="w-3.5 h-3.5" />
+                      </button>
 
-                <!-- Checked In -->
-                <td class="py-3 px-4 whitespace-nowrap">
-                  <div class="font-medium text-slate-800 dark:text-slate-200">
-                    {{ formatDate(checkIn.checked_in_at) }}
-                  </div>
-                </td>
+                      <!-- Delete button -->
+                      <button
+                        @click="handleDelete(checkIn)"
+                        class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
+                        :title="languageStore.t('Delete', 'Delete Record')"
+                      >
+                        <Trash2 class="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
 
-                <!-- Expected Check Out -->
-                <td class="py-3 px-4 whitespace-nowrap">
-                  <div class="font-medium text-slate-800 dark:text-slate-200">
-                    {{ formatDate(checkIn.expected_check_out_at) }}
-                  </div>
-                </td>
-
-                <!-- Status -->
-                <td class="py-3 px-4 text-center whitespace-nowrap">
-                  <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
-                    :class="!checkIn.checked_out_at ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700'"
+                <!-- Empty State -->
+                <tr v-if="paginatedCheckIns.length === 0">
+                  <td
+                    colspan="7"
+                    class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
                   >
-                    {{ !checkIn.checked_out_at ? languageStore.t('In House', 'In House') : languageStore.t('checked_out', 'Checked Out') }}
-                  </span>
-                </td>
-
-                <!-- Actions -->
-                <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
-                  <div class="flex items-center justify-end gap-1">
-                    <!-- Check-out button -->
-                    <button
-                      v-if="!checkIn.checked_out_at"
-                      @click="handleCheckout(checkIn)"
-                      class="p-1.5 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg transition cursor-pointer"
-                      :title="languageStore.t('Check Out', 'Check Out Guest')"
-                    >
-                      <LogOut class="w-3.5 h-3.5" />
-                    </button>
-
-                    <!-- Delete button -->
-                    <button
-                      @click="handleDelete(checkIn)"
-                      class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
-                      :title="languageStore.t('Delete', 'Delete Record')"
-                    >
-                      <Trash2 class="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-
-              <!-- Empty State -->
-              <tr v-if="paginatedCheckIns.length === 0">
-                <td colspan="7" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                  {{ languageStore.t('no_checkin_records', 'No check-in records found matching your criteria.') }}
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Mobile View -->
-      <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-        <div v-if="store.loading" class="py-16 text-center flex flex-col items-center justify-center gap-3">
-          <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-          <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_checkin_records', 'Loading check-in records...') }}</span>
+                    {{
+                      languageStore.t(
+                        'no_checkin_records',
+                        'No check-in records found matching your criteria.',
+                      )
+                    }}
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
         </div>
-        <template v-else>
+
+        <!-- Mobile View -->
+        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
           <div
-            v-for="checkIn in paginatedCheckIns"
-            :key="checkIn.id"
-            class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
+            v-if="store.loading"
+            class="py-16 text-center flex flex-col items-center justify-center gap-3"
           >
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-slate-900 dark:text-white text-sm">
-                {{ getGuestName(checkIn.guest) }}
-              </span>
-              <span
-                class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
-                :class="!checkIn.checked_out_at ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-100 text-slate-500'"
-              >
-                {{ !checkIn.checked_out_at ? languageStore.t('In House', 'In House') : languageStore.t('checked_out', 'Checked Out') }}
-              </span>
-            </div>
-            <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-              <span>Room {{ checkIn.room?.room_number || 'N/A' }}</span>
-              <span>In: {{ formatDate(checkIn.checked_in_at) }}</span>
-            </div>
-            <div class="flex items-center justify-end gap-3 pt-1 border-t border-slate-100 dark:border-slate-800 text-xs font-bold">
-              <button v-if="!checkIn.checked_out_at" @click="handleCheckout(checkIn)" class="text-purple-600">{{ languageStore.t('Check Out', 'Check Out') }}</button>
-              <button @click="handleDelete(checkIn)" class="text-rose-600">{{ languageStore.t('Delete', 'Delete') }}</button>
-            </div>
+            <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{
+              languageStore.t('loading_checkin_records', 'Loading check-in records...')
+            }}</span>
           </div>
-        </template>
-      </div>
+          <template v-else>
+            <div
+              v-for="checkIn in paginatedCheckIns"
+              :key="checkIn.id"
+              class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
+            >
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-900 dark:text-white text-sm">
+                  {{ getGuestName(checkIn.guest) }}
+                </span>
+                <span
+                  class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
+                  :class="
+                    !checkIn.checked_out_at
+                      ? 'bg-emerald-500/10 text-emerald-600'
+                      : 'bg-slate-100 text-slate-500'
+                  "
+                >
+                  {{
+                    !checkIn.checked_out_at
+                      ? languageStore.t('In House', 'In House')
+                      : languageStore.t('checked_out', 'Checked Out')
+                  }}
+                </span>
+              </div>
+              <div
+                class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400"
+              >
+                <span>Room {{ checkIn.room?.room_number || 'N/A' }}</span>
+                <span>In: {{ formatDate(checkIn.checked_in_at) }}</span>
+              </div>
+              <div
+                class="flex items-center justify-end gap-3 pt-1 border-t border-slate-100 dark:border-slate-800 text-xs font-bold"
+              >
+                <button
+                  v-if="!checkIn.checked_out_at"
+                  @click="handleCheckout(checkIn)"
+                  class="text-purple-600"
+                >
+                  {{ languageStore.t('Check Out', 'Check Out') }}
+                </button>
+                <button @click="handleDelete(checkIn)" class="text-rose-600">
+                  {{ languageStore.t('Delete', 'Delete') }}
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
 
         <!-- Pagination Footer -->
         <div
@@ -660,14 +806,20 @@ watch(() => hotelStore.hotelId, async () => {
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
           <div class="text-slate-500 dark:text-slate-400 font-medium">
-            {{ languageStore.t('Showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ totalRecords }}</span> {{ languageStore.t('records', 'records') }}
+            {{ languageStore.t('Showing', 'Showing') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
+            {{ languageStore.t('to', 'to') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span>
+            {{ languageStore.t('of', 'of') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ totalRecords }}</span>
+            {{ languageStore.t('records', 'records') }}
           </div>
 
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="flex items-center gap-1.5">
-              <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('Per page:', 'Per page:') }}</span>
+              <span class="text-slate-500 dark:text-slate-400 font-medium">{{
+                languageStore.t('Per page:', 'Per page:')
+              }}</span>
               <select
                 :value="perPage"
                 @change="changePerPage"
@@ -697,7 +849,7 @@ watch(() => hotelStore.hotelId, async () => {
                 :class="[
                   currentPage === page
                     ? 'bg-blue-600 text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
                 ]"
               >
                 {{ page }}

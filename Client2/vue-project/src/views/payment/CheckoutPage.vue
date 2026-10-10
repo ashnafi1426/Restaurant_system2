@@ -31,15 +31,11 @@
 
           <form @submit.prevent="submitPayment" class="space-y-6">
             <div class="border-b pb-6">
-              <h2 class="text-lg font-semibold text-slate-900 mb-4">
-                Customer Information
-              </h2>
+              <h2 class="text-lg font-semibold text-slate-900 mb-4">Customer Information</h2>
 
               <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-2">
-                    First Name
-                  </label>
+                  <label class="block text-sm font-medium text-slate-700 mb-2"> First Name </label>
                   <input
                     v-model="formData.first_name"
                     type="text"
@@ -49,9 +45,7 @@
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-2">
-                    Last Name
-                  </label>
+                  <label class="block text-sm font-medium text-slate-700 mb-2"> Last Name </label>
                   <input
                     v-model="formData.last_name"
                     type="text"
@@ -91,13 +85,9 @@
             </div>
 
             <div class="border-b pb-6">
-              <h2 class="text-lg font-semibold text-slate-900 mb-4">
-                Payment Amount
-              </h2>
+              <h2 class="text-lg font-semibold text-slate-900 mb-4">Payment Amount</h2>
 
-              <div
-                class="bg-slate-50 rounded-lg p-6 flex items-center justify-between"
-              >
+              <div class="bg-slate-50 rounded-lg p-6 flex items-center justify-between">
                 <div>
                   <p class="text-slate-600 text-sm mb-1">Total Amount</p>
                   <p class="text-3xl font-bold text-slate-900">
@@ -111,9 +101,7 @@
               </div>
 
               <div class="mt-4">
-                <label class="block text-sm font-medium text-slate-700 mb-2">
-                  Amount (ETB)
-                </label>
+                <label class="block text-sm font-medium text-slate-700 mb-2"> Amount (ETB) </label>
                 <input
                   v-model.number="formData.amount"
                   type="number"
@@ -137,15 +125,12 @@
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
-                  <path
-                    d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM9 12a6 6 0 11-12 0 6 6 0 0112 0z"
-                  />
+                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM9 12a6 6 0 11-12 0 6 6 0 0112 0z" />
                 </svg>
                 <div>
                   <h3 class="font-semibold text-blue-900">Secure Payment</h3>
                   <p class="text-blue-700 text-sm mt-1">
-                    Your payment will be processed securely through Chapa Payment
-                    Gateway
+                    Your payment will be processed securely through Chapa Payment Gateway
                   </p>
                 </div>
               </div>
@@ -170,8 +155,8 @@
             </div>
 
             <p class="text-center text-xs text-slate-500">
-              🔒 Your payment information is encrypted and secure. We never store your
-              credit card details.
+              🔒 Your payment information is encrypted and secure. We never store your credit card
+              details.
             </p>
           </form>
         </div>
@@ -203,19 +188,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { usePaymentStore } from '@/stores/paymentStore';
-import paymentService from '@/services/paymentService';
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { usePaymentStore } from '@/stores/paymentStore'
+import paymentService from '@/services/paymentService'
 
-const router = useRouter();
-const route = useRoute();
-const paymentStore = usePaymentStore();
+const router = useRouter()
+const route = useRoute()
+const paymentStore = usePaymentStore()
 
-const isLoading = ref(true);
-const error = ref<string | null>(null);
+const isLoading = ref(true)
+const error = ref<string | null>(null)
 
-const bookingSessionData = JSON.parse(sessionStorage.getItem('booking_session') || '{}');
+const bookingSessionData = JSON.parse(sessionStorage.getItem('booking_session') || '{}')
 
 const formData = ref({
   first_name: bookingSessionData.first_name || '',
@@ -223,20 +208,20 @@ const formData = ref({
   email: bookingSessionData.email || '',
   phone: bookingSessionData.phone || '',
   amount: bookingSessionData.price_breakdown?.total || 0,
-});
+})
 
 onMounted(async () => {
   try {
-    const paymentId = route.query.payment_id as string;
-    const txRef = route.query.tx_ref as string;
-    let checkoutUrl = route.query.checkout_url as string;
+    const paymentId = route.query.payment_id as string
+    const txRef = route.query.tx_ref as string
+    let checkoutUrl = route.query.checkout_url as string
 
     if (!checkoutUrl) {
-      checkoutUrl = sessionStorage.getItem('chapa_checkout_url') || '';
+      checkoutUrl = sessionStorage.getItem('chapa_checkout_url') || ''
     }
 
     if (!txRef) {
-      throw new Error('Missing transaction reference. Please try again from the booking form.');
+      throw new Error('Missing transaction reference. Please try again from the booking form.')
     }
 
     const payment = {
@@ -244,33 +229,32 @@ onMounted(async () => {
       tx_ref: txRef,
       checkout_url: checkoutUrl || '',
       amount: bookingSessionData?.price_breakdown?.total || 0,
-    };
-    
-    paymentStore.setCurrentPayment(payment);
-    
-    formData.value.amount = bookingSessionData?.price_breakdown?.total || 0;
-    
-    isLoading.value = false;
+    }
 
+    paymentStore.setCurrentPayment(payment)
+
+    formData.value.amount = bookingSessionData?.price_breakdown?.total || 0
+
+    isLoading.value = false
   } catch (err: any) {
-    console.error('[CheckoutPage] Failed to initialize checkout:', err);
-    error.value = err.message || 'Failed to process payment';
-    isLoading.value = false;
+    console.error('[CheckoutPage] Failed to initialize checkout:', err)
+    error.value = err.message || 'Failed to process payment'
+    isLoading.value = false
   }
-});
+})
 
 function submitPayment(): void {
   try {
-    const checkoutUrl = paymentStore.currentCheckoutUrl;
-    
+    const checkoutUrl = paymentStore.currentCheckoutUrl
+
     if (!checkoutUrl) {
-      throw new Error('Checkout URL not available. Please try again or refresh the page.');
+      throw new Error('Checkout URL not available. Please try again or refresh the page.')
     }
 
-    window.location.href = checkoutUrl;
+    window.location.href = checkoutUrl
   } catch (err: any) {
-    console.error('[CheckoutPage] Failed to proceed to payment:', err);
-    error.value = err.message || 'Failed to proceed to payment';
+    console.error('[CheckoutPage] Failed to proceed to payment:', err)
+    error.value = err.message || 'Failed to proceed to payment'
   }
 }
 
@@ -278,7 +262,7 @@ function formatAmount(amount: number): string {
   return new Intl.NumberFormat('en-ET', {
     style: 'currency',
     currency: 'ETB',
-  }).format(amount);
+  }).format(amount)
 }
 </script>
 

@@ -138,7 +138,7 @@ export const useCashierStore = defineStore('cashier', () => {
   async function fetchReport(
     fetcher: (filters?: ReportFilters) => Promise<{ success: boolean; data?: any }>,
     filters?: ReportFilters,
-    fallbackError = 'Failed to fetch report'
+    fallbackError = 'Failed to fetch report',
   ) {
     try {
       loading.value = true
@@ -237,7 +237,12 @@ export const useCashierStore = defineStore('cashier', () => {
     }
   }
 
-  async function fetchOrders(filters?: { filter?: string; search?: string; page?: number; per_page?: number }) {
+  async function fetchOrders(filters?: {
+    filter?: string
+    search?: string
+    page?: number
+    per_page?: number
+  }) {
     try {
       const params = {
         page: filters?.page ?? orderPagination.value.current_page,
@@ -264,16 +269,15 @@ export const useCashierStore = defineStore('cashier', () => {
     }
   }
 
-  async function clearOrder(id: string, payload?: { mark_as_paid?: boolean; payment_method?: string }) {
+  async function clearOrder(
+    id: string,
+    payload?: { mark_as_paid?: boolean; payment_method?: string },
+  ) {
     try {
       loading.value = true
       const response = await cashierService.clearOrder(id, payload)
       if (response.success) {
-        await Promise.all([
-          fetchOrders(),
-          fetchDashboardStats(),
-          fetchRecentPayments(),
-        ])
+        await Promise.all([fetchOrders(), fetchDashboardStats(), fetchRecentPayments()])
         return response
       }
       throw new Error(response.message || 'Failed to clear order')

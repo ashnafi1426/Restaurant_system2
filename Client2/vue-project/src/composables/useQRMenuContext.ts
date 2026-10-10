@@ -29,7 +29,9 @@ export function useQRMenuContext() {
       if (result.context === 'room') {
         const isCheckedIn = result.data.is_checked_in === true || result.data.can_order === true
         const resStatus = result.data.reservation_status || (isCheckedIn ? 'checked_in' : 'none')
-        const eligMsg = result.data.eligibility_message || (isCheckedIn ? '' : 'Only checked-in guests can place room-service orders.')
+        const eligMsg =
+          result.data.eligibility_message ||
+          (isCheckedIn ? '' : 'Only checked-in guests can place room-service orders.')
 
         canOrderRoomService.value = isCheckedIn
         eligibilityMessage.value = eligMsg
@@ -39,7 +41,10 @@ export function useQRMenuContext() {
         if (result.data.hotel_id) {
           localStorage.setItem('hotel_id', result.data.hotel_id)
           localStorage.setItem('active_hotel_id', result.data.hotel_id)
-          console.log('[useQRMenuContext] Stored hotel_id from QR resolution:', result.data.hotel_id)
+          console.log(
+            '[useQRMenuContext] Stored hotel_id from QR resolution:',
+            result.data.hotel_id,
+          )
         }
 
         orderContext.value = {
@@ -53,7 +58,7 @@ export function useQRMenuContext() {
           eligibilityMessage: eligMsg,
         }
         roomNumber.value = result.data.room_number || '101'
-        
+
         if (result.data.guest) {
           guestName.value = result.data.guest.guest_name
           guestEmail.value = result.data.guest.guest_email || 'guest@hotel.com'
@@ -72,7 +77,10 @@ export function useQRMenuContext() {
         if (result.data.hotel_id) {
           localStorage.setItem('hotel_id', result.data.hotel_id)
           localStorage.setItem('active_hotel_id', result.data.hotel_id)
-          console.log('[useQRMenuContext] Stored hotel_id from table QR resolution:', result.data.hotel_id)
+          console.log(
+            '[useQRMenuContext] Stored hotel_id from table QR resolution:',
+            result.data.hotel_id,
+          )
         }
 
         orderContext.value = {
@@ -97,7 +105,7 @@ export function useQRMenuContext() {
     } catch (error: any) {
       console.error('[useQRMenuContext] Failed to detect order context:', error)
       contextError.value = error.message || 'Failed to load menu'
-      
+
       // Fallback to table context if QR resolution fails
       if (!orderContext.value || !orderContext.value.type) {
         orderContext.value = {

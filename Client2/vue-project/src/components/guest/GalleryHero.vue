@@ -25,7 +25,9 @@ function goToReservation() {
 </script>
 
 <template>
-  <section class="relative min-h-[500px] overflow-hidden sm:h-[450px] md:h-[550px] lg:h-[600px] bg-slate-950 font-sans pt-16">
+  <section
+    class="relative min-h-[500px] overflow-hidden sm:h-[450px] md:h-[550px] lg:h-[600px] bg-slate-950 font-sans pt-16"
+  >
     <!-- Background Image -->
     <img
       src="/images/gallery/luxury-suite.jpg"
@@ -34,7 +36,9 @@ function goToReservation() {
     />
 
     <!-- Dark Overlay -->
-    <div class="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/70 to-slate-950/40" />
+    <div
+      class="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/70 to-slate-950/40"
+    />
 
     <!-- Decorative Gradient -->
     <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
@@ -44,7 +48,9 @@ function goToReservation() {
       class="relative z-10 mx-auto flex h-full max-w-7xl items-center px-4 sm:px-6 py-12 sm:py-0"
     >
       <div class="max-w-3xl w-full space-y-4">
-        <span class="inline-block px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30">
+        <span
+          class="inline-block px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30"
+        >
           {{ guestHotelStore.hotelName }} • {{ languageStore.t('gallery', 'Visual Showcase') }}
         </span>
 
@@ -62,7 +68,14 @@ function goToReservation() {
         <p
           class="max-w-2xl text-xs sm:text-sm md:text-base leading-relaxed text-slate-200 font-medium"
         >
-          {{ languageStore.t('gallery_hero_desc', 'Discover our luxurious suites, elegant dining rooms, spa center, and world-class guest facilities at ' + guestHotelStore.hotelName + ' before your stay.') }}
+          {{
+            languageStore.t(
+              'gallery_hero_desc',
+              'Discover our luxurious suites, elegant dining rooms, spa center, and world-class guest facilities at ' +
+                guestHotelStore.hotelName +
+                ' before your stay.',
+            )
+          }}
         </p>
 
         <!-- Buttons -->
@@ -86,22 +99,30 @@ function goToReservation() {
         <div class="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6">
           <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800">
             <h3 class="text-xl sm:text-2xl font-black text-amber-400">{{ roomCount }}</h3>
-            <p class="mt-0.5 text-[10px] sm:text-xs font-bold text-slate-300 uppercase">{{ languageStore.t('luxury_rooms', 'Luxury Rooms') }}</p>
+            <p class="mt-0.5 text-[10px] sm:text-xs font-bold text-slate-300 uppercase">
+              {{ languageStore.t('luxury_rooms', 'Luxury Rooms') }}
+            </p>
           </div>
 
           <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800">
             <h3 class="text-xl sm:text-2xl font-black text-amber-400">5★</h3>
-            <p class="mt-0.5 text-[10px] sm:text-xs font-bold text-slate-300 uppercase">{{ languageStore.t('hotel_rating', 'Hotel Rating') }}</p>
+            <p class="mt-0.5 text-[10px] sm:text-xs font-bold text-slate-300 uppercase">
+              {{ languageStore.t('hotel_rating', 'Hotel Rating') }}
+            </p>
           </div>
 
           <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800">
             <h3 class="text-xl sm:text-2xl font-black text-amber-400">20+</h3>
-            <p class="mt-0.5 text-[10px] sm:text-xs font-bold text-slate-300 uppercase">{{ languageStore.t('premium_facilities', 'Facilities') }}</p>
+            <p class="mt-0.5 text-[10px] sm:text-xs font-bold text-slate-300 uppercase">
+              {{ languageStore.t('premium_facilities', 'Facilities') }}
+            </p>
           </div>
 
           <div class="p-3 rounded-2xl bg-slate-900/70 border border-slate-800">
             <h3 class="text-xl sm:text-2xl font-black text-amber-400">15K+</h3>
-            <p class="mt-0.5 text-[10px] sm:text-xs font-bold text-slate-300 uppercase">{{ languageStore.t('happy_guests', 'Happy Guests') }}</p>
+            <p class="mt-0.5 text-[10px] sm:text-xs font-bold text-slate-300 uppercase">
+              {{ languageStore.t('happy_guests', 'Happy Guests') }}
+            </p>
           </div>
         </div>
       </div>

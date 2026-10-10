@@ -1,5 +1,7 @@
 <template>
-  <aside class="category-sidebar bg-white dark:bg-slate-900 flex flex-col h-full font-sans transition-colors p-2 space-y-3">
+  <aside
+    class="category-sidebar bg-white dark:bg-slate-900 flex flex-col h-full font-sans transition-colors p-2 space-y-3"
+  >
     <!-- Categories List (100% Dynamic Real Data From Backend) -->
     <nav class="flex-1 space-y-1.5 overflow-y-auto pr-1 max-h-full">
       <button
@@ -10,15 +12,20 @@
           'w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 text-left cursor-pointer',
           isCategoryActive(category)
             ? 'bg-[#c29353] text-white shadow-sm font-black'
-            : 'bg-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+            : 'bg-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800',
         ]"
       >
         <!-- Left: Icon & Category Name -->
         <div class="flex items-center gap-2.5 min-w-0 flex-1">
-          <div class="flex items-center justify-center flex-shrink-0 text-slate-500 dark:text-slate-400 group-hover:text-slate-700" :class="{ '!text-white': isCategoryActive(category) }">
+          <div
+            class="flex items-center justify-center flex-shrink-0 text-slate-500 dark:text-slate-400 group-hover:text-slate-700"
+            :class="{ '!text-white': isCategoryActive(category) }"
+          >
             <component :is="getCategoryIcon(category)" class="w-4 h-4" />
           </div>
-          <span class="truncate font-semibold">{{ languageStore.t(category.name, category.name) }}</span>
+          <span class="truncate font-semibold">{{
+            languageStore.t(category.name, category.name)
+          }}</span>
         </div>
 
         <!-- Right: Count Badge -->
@@ -28,7 +35,7 @@
             'px-2 py-0.5 rounded-full text-[10px] font-black tracking-wider transition-colors',
             selectedCategory === category.id
               ? 'bg-white/20 text-white'
-              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
           ]"
         >
           {{ category.count }}
@@ -128,10 +135,18 @@ const getIconComponent = (iconKey?: string | null) => {
 const getCategoryIcon = (category: any) => {
   if (!category) return Grid
 
-  const name = String(category.name || '').toLowerCase().trim()
-  const slug = String(category.slug || '').toLowerCase().trim()
-  const icon = String(category.icon || '').toLowerCase().trim()
-  const id = String(category.id || '').toLowerCase().trim()
+  const name = String(category.name || '')
+    .toLowerCase()
+    .trim()
+  const slug = String(category.slug || '')
+    .toLowerCase()
+    .trim()
+  const icon = String(category.icon || '')
+    .toLowerCase()
+    .trim()
+  const id = String(category.id || '')
+    .toLowerCase()
+    .trim()
 
   // "All Categories" is always the Grid icon
   if (category.id === null || name === 'all categories' || slug === 'all' || name === 'all') {
@@ -147,37 +162,103 @@ const getCategoryIcon = (category: any) => {
   // Check name, slug, and id keywords
   const text = `${slug} ${name} ${id} ${icon}`
 
-  if (text.includes('break') || text.includes('egg') || text.includes('morn') || text.includes('pancake') || text.includes('toast') || text.includes('clock')) {
+  if (
+    text.includes('break') ||
+    text.includes('egg') ||
+    text.includes('morn') ||
+    text.includes('pancake') ||
+    text.includes('toast') ||
+    text.includes('clock')
+  ) {
     return Clock
   }
-  if (text.includes('soup') || text.includes('broth') || text.includes('stew') || text.includes('ramen') || text.includes('chowder')) {
+  if (
+    text.includes('soup') ||
+    text.includes('broth') ||
+    text.includes('stew') ||
+    text.includes('ramen') ||
+    text.includes('chowder')
+  ) {
     return Soup
   }
-  if (text.includes('appetiz') || text.includes('starter') || text.includes('snack') || text.includes('finger') || text.includes('leaf') || text.includes('bruschetta')) {
+  if (
+    text.includes('appetiz') ||
+    text.includes('starter') ||
+    text.includes('snack') ||
+    text.includes('finger') ||
+    text.includes('leaf') ||
+    text.includes('bruschetta')
+  ) {
     return Leaf
   }
   if (text.includes('salad') || text.includes('green') || text.includes('veg')) {
     return Salad
   }
-  if (text.includes('sandw') || text.includes('burger') || text.includes('wrap') || text.includes('sub') || text.includes('panini')) {
+  if (
+    text.includes('sandw') ||
+    text.includes('burger') ||
+    text.includes('wrap') ||
+    text.includes('sub') ||
+    text.includes('panini')
+  ) {
     return Sandwich
   }
-  if (text.includes('pasta') || text.includes('noodl') || text.includes('spaghetti') || text.includes('layer') || text.includes('lasagna')) {
+  if (
+    text.includes('pasta') ||
+    text.includes('noodl') ||
+    text.includes('spaghetti') ||
+    text.includes('layer') ||
+    text.includes('lasagna')
+  ) {
     return Layers
   }
   if (text.includes('pizza') || text.includes('pie') || text.includes('calzone')) {
     return Pizza
   }
-  if (text.includes('dessert') || text.includes('cake') || text.includes('sweet') || text.includes('pastry') || text.includes('ice cream') || text.includes('chocolate') || text.includes('pudding')) {
+  if (
+    text.includes('dessert') ||
+    text.includes('cake') ||
+    text.includes('sweet') ||
+    text.includes('pastry') ||
+    text.includes('ice cream') ||
+    text.includes('chocolate') ||
+    text.includes('pudding')
+  ) {
     return Cake
   }
-  if (text.includes('bev') || text.includes('drink') || text.includes('wine') || text.includes('beer') || text.includes('cocktail') || text.includes('bar') || text.includes('juice') || text.includes('smoothie')) {
+  if (
+    text.includes('bev') ||
+    text.includes('drink') ||
+    text.includes('wine') ||
+    text.includes('beer') ||
+    text.includes('cocktail') ||
+    text.includes('bar') ||
+    text.includes('juice') ||
+    text.includes('smoothie')
+  ) {
     return Wine
   }
-  if (text.includes('coffee') || text.includes('tea') || text.includes('latte') || text.includes('cappuccino') || text.includes('cafe')) {
+  if (
+    text.includes('coffee') ||
+    text.includes('tea') ||
+    text.includes('latte') ||
+    text.includes('cappuccino') ||
+    text.includes('cafe')
+  ) {
     return Coffee
   }
-  if (text.includes('main') || text.includes('dinner') || text.includes('lunch') || text.includes('entree') || text.includes('steak') || text.includes('grill') || text.includes('meat') || text.includes('seafood') || text.includes('fish') || text.includes('chicken')) {
+  if (
+    text.includes('main') ||
+    text.includes('dinner') ||
+    text.includes('lunch') ||
+    text.includes('entree') ||
+    text.includes('steak') ||
+    text.includes('grill') ||
+    text.includes('meat') ||
+    text.includes('seafood') ||
+    text.includes('fish') ||
+    text.includes('chicken')
+  ) {
     return UtensilsCrossed
   }
 
@@ -197,8 +278,12 @@ watch(
 
 function isCategoryActive(cat: any): boolean {
   if (!cat) return false
-  const catName = String(cat.name || '').toLowerCase().trim()
-  const catSlug = String(cat.slug || '').toLowerCase().trim()
+  const catName = String(cat.name || '')
+    .toLowerCase()
+    .trim()
+  const catSlug = String(cat.slug || '')
+    .toLowerCase()
+    .trim()
   const catId = cat.id !== undefined && cat.id !== null ? String(cat.id).toLowerCase().trim() : null
 
   const selected = selectedCategory.value
@@ -226,7 +311,7 @@ const selectCategory = (cat: any) => {
       categoryId = cat.slug || cat.id || cat.name
     }
   } else {
-    categoryId = (cat === 'All Categories' || cat === 'all') ? null : cat
+    categoryId = cat === 'All Categories' || cat === 'all' ? null : cat
   }
 
   selectedCategory.value = categoryId

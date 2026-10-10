@@ -17,20 +17,31 @@
             <button @click="loadQRCode" class="btn btn-small">Retry Load</button>
           </div>
         </div>
-        <img 
+        <img
           v-show="!imageLoading && !imageError"
-          :src="room.qr_code_url" 
+          :src="room.qr_code_url"
           :alt="`QR Code for Room ${room.room_number}`"
           @error="handleImageError"
-          @load="handleImageLoad" />
+          @load="handleImageLoad"
+        />
         <p class="qr-token">Token: {{ room.qr_token }}</p>
       </div>
 
       <div class="actions flex-wrap items-center gap-3">
-        <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
-          <label for="qrCopies" class="text-xs font-bold text-slate-700 dark:text-slate-300">Print Copies:</label>
-          <select id="qrCopies" v-model="printCopies" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-black text-slate-900 dark:text-white cursor-pointer">
-            <option v-for="n in 10" :key="n" :value="n">{{ n }} {{ n === 1 ? 'copy' : 'copies' }}</option>
+        <div
+          class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700"
+        >
+          <label for="qrCopies" class="text-xs font-bold text-slate-700 dark:text-slate-300"
+            >Print Copies:</label
+          >
+          <select
+            id="qrCopies"
+            v-model="printCopies"
+            class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs font-black text-slate-900 dark:text-white cursor-pointer"
+          >
+            <option v-for="n in 10" :key="n" :value="n">
+              {{ n }} {{ n === 1 ? 'copy' : 'copies' }}
+            </option>
           </select>
         </div>
 
@@ -47,7 +58,7 @@
       </div>
 
       <div v-if="room.qr_generated_at" class="info">
-        <p> QR Code generated: {{ formatDate(room.qr_generated_at) }}</p>
+        <p>QR Code generated: {{ formatDate(room.qr_generated_at) }}</p>
       </div>
     </div>
 
@@ -55,7 +66,7 @@
       <p>Loading QR code...</p>
     </div>
     <div v-else-if="error" class="error">
-      <p> {{ error }}</p>
+      <p>{{ error }}</p>
       <button @click="loadQRCode" class="btn btn-small">Retry</button>
     </div>
 
@@ -67,8 +78,8 @@
       </button>
     </div>
 
-    <div v-if="successMessage" class="message success"> {{ successMessage }}</div>
-    <div v-if="errorMessage" class="message error"> {{ errorMessage }}</div>
+    <div v-if="successMessage" class="message success">{{ successMessage }}</div>
+    <div v-if="errorMessage" class="message error">{{ errorMessage }}</div>
   </div>
 </template>
 
@@ -107,7 +118,7 @@ const handleImageError = (event: Event) => {
   imageLoading.value = false
   imageError.value = true
   errorMessage.value = 'Failed to load QR code image. Attempting to reload...'
-  
+
   // Auto-retry once after 1 second
   setTimeout(() => {
     if (props.room.id) {
@@ -129,18 +140,18 @@ const loadQRCode = async () => {
 
     if (response.data.success && response.data.data) {
       const qrData = response.data.data
-      
+
       // Clear previous error state
       imageError.value = false
       errorMessage.value = ''
-      
+
       Object.assign(props.room, {
         qr_code_url: qrData.qr_url,
         qr_token: qrData.qr_token,
         qr_image_path: qrData.qr_image_path,
         qr_generated_at: qrData.qr_generated_at,
       })
-      
+
       console.log('QR Code loaded successfully:', qrData)
     } else {
       throw new Error(response.data.message || 'No QR code data received')
@@ -150,7 +161,7 @@ const loadQRCode = async () => {
     const message = err.response?.data?.message || err.message || 'Failed to load QR code'
     error.value = message
     errorMessage.value = message
-    
+
     // If the QR code doesn't exist, try to generate it
     if (err.response?.status === 404 || message.includes('not found')) {
       console.log('QR code not found, attempting to regenerate...')
@@ -242,9 +253,12 @@ const printQRCode = async () => {
     successMessage.value = ''
     errorMessage.value = ''
 
-    const response = await api.get(`/admin/qr-codes/${props.room.id}/print-template?copies=${printCopies.value}`, {
-      responseType: 'text',
-    })
+    const response = await api.get(
+      `/admin/qr-codes/${props.room.id}/print-template?copies=${printCopies.value}`,
+      {
+        responseType: 'text',
+      },
+    )
 
     if (!response.data) {
       throw new Error('No HTML template received')
@@ -294,7 +308,7 @@ const regenerateQRCode = async () => {
 
       successMessage.value = ` QR code regenerated successfully for Room ${props.room.room_number}`
       console.log('QR code regenerated successfully:', qrData)
-      
+
       // Clear any error state
       error.value = ''
       errorMessage.value = ''
@@ -421,8 +435,12 @@ watch(
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .error-placeholder {

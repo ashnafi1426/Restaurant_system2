@@ -65,7 +65,7 @@ export const chefProfileService = {
     const formData = new FormData()
     formData.append('photo', file)
     const response = await axios.post('/chef/profile/photo', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
     })
     return response.data.data
   },
@@ -81,5 +81,5 @@ export const chefProfileService = {
 
   async updateStatus(status: 'active' | 'on_break' | 'off_duty'): Promise<void> {
     await axios.post('/chef/profile/status', { status })
-  }
+  },
 }

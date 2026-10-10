@@ -1,16 +1,36 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Header -->
-    <div class="bg-white border-b border-gray-200 px-4 py-4 flex items-center gap-3 sticky top-0 z-10 shadow-sm">
-      <button @click="goBack" class="text-gray-600 hover:text-gray-900 p-1 rounded-lg hover:bg-gray-100 transition-colors">
+    <div
+      class="bg-white border-b border-gray-200 px-4 py-4 flex items-center gap-3 sticky top-0 z-10 shadow-sm"
+    >
+      <button
+        @click="goBack"
+        class="text-gray-600 hover:text-gray-900 p-1 rounded-lg hover:bg-gray-100 transition-colors"
+      >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          ></path>
         </svg>
       </button>
       <div class="flex-1">
         <h1 class="text-lg font-bold text-gray-900">Order Status</h1>
         <p class="text-xs text-gray-500 font-medium">
-          {{ orderData?.table_number ? 'Table ' + orderData.table_number : orderData?.room_number ? 'Room ' + orderData.room_number : (orderData?.order_type === 'walk_in' ? 'Walk-in Dining' : orderData?.order_type === 'takeaway' ? 'Takeaway Order' : 'Restaurant Order') }}
+          {{
+            orderData?.table_number
+              ? 'Table ' + orderData.table_number
+              : orderData?.room_number
+                ? 'Room ' + orderData.room_number
+                : orderData?.order_type === 'walk_in'
+                  ? 'Walk-in Dining'
+                  : orderData?.order_type === 'takeaway'
+                    ? 'Takeaway Order'
+                    : 'Restaurant Order'
+          }}
         </p>
       </div>
       <!-- Live connection dot -->
@@ -20,7 +40,7 @@
           :class="isConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-400'"
         ></div>
         <span class="text-xs" :class="isConnected ? 'text-green-600' : 'text-gray-400'">
-          {{isConnected ? 'Live' : 'Offline'}}
+          {{ isConnected ? 'Live' : 'Offline' }}
         </span>
       </div>
     </div>
@@ -34,9 +54,7 @@
     <!-- Error State -->
     <div v-else-if="error" class="p-4">
       <div class="rounded-xl p-6 text-center bg-red-50 border border-red-200">
-        <h2 class="font-bold mb-1 text-red-800">
-          Unable to Load Order
-        </h2>
+        <h2 class="font-bold mb-1 text-red-800">Unable to Load Order</h2>
         <p class="text-sm mb-4 text-red-600">
           {{ error }}
         </p>
@@ -59,7 +77,7 @@
           'bg-orange-50 border border-orange-200': isPreparing,
           'bg-blue-50 border border-blue-200': isReady,
           'bg-emerald-50 border border-emerald-200': isServed,
-          'bg-rose-50 border border-rose-200': isCancelled
+          'bg-rose-50 border border-rose-200': isCancelled,
         }"
       >
         <div
@@ -69,14 +87,14 @@
             'bg-orange-500': isPreparing,
             'bg-blue-600': isReady,
             'bg-emerald-600': isServed,
-            'bg-rose-500': isCancelled
+            'bg-rose-500': isCancelled,
           }"
         >
           <component :is="statusIconComponent" class="w-6 h-6 text-white" />
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2">
-            <h2 class="font-bold text-gray-900 text-base">{{statusTitle}}</h2>
+            <h2 class="font-bold text-gray-900 text-base">{{ statusTitle }}</h2>
             <span
               v-if="isServed"
               class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-600 text-white flex-shrink-0"
@@ -84,7 +102,7 @@
               Cleared
             </span>
           </div>
-          <p class="text-sm text-gray-600 mt-0.5">{{statusMessage}}</p>
+          <p class="text-sm text-gray-600 mt-0.5">{{ statusMessage }}</p>
         </div>
       </div>
 
@@ -92,23 +110,25 @@
       <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <!-- Order header row -->
         <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-          <span class="font-semibold text-gray-800 text-sm">Order #{{orderData.order_number || 'N/A'}}</span>
-          <span class="text-xs text-gray-500">{{formatTime(orderData.created_at || orderData.order_time)}}</span>
+          <span class="font-semibold text-gray-800 text-sm"
+            >Order #{{ orderData.order_number || 'N/A' }}</span
+          >
+          <span class="text-xs text-gray-500">{{
+            formatTime(orderData.created_at || orderData.order_time)
+          }}</span>
         </div>
 
         <!-- Items -->
         <div class="divide-y divide-gray-50">
           <div
-            v-for="(item, index) in (orderData?.items || [])"
+            v-for="(item, index) in orderData?.items || []"
             :key="item.id || index"
             class="flex items-center justify-between px-4 py-3"
           >
-            <span class="text-sm text-gray-800 flex-1">
-              {{item.quantity}}x {{item.name}}
-            </span>
+            <span class="text-sm text-gray-800 flex-1"> {{ item.quantity }}x {{ item.name }} </span>
             <div class="flex items-center gap-2 ml-3">
               <span class="text-sm font-semibold text-gray-900">
-                ETB {{((item.price || 0) * item.quantity).toFixed(2)}}
+                ETB {{ ((item.price || 0) * item.quantity).toFixed(2) }}
               </span>
               <span
                 class="px-2 py-0.5 text-xs rounded-full font-bold inline-flex items-center gap-1"
@@ -117,20 +137,34 @@
                   'bg-orange-100 text-orange-800': isPreparing,
                   'bg-blue-100 text-blue-800': isReady,
                   'bg-emerald-100 text-emerald-800': isServed,
-                  'bg-rose-100 text-rose-800': isCancelled
+                  'bg-rose-100 text-rose-800': isCancelled,
                 }"
               >
                 <Check v-if="isServed" class="w-3 h-3 text-emerald-600" />
-                <span>{{ isServed ? 'Cleared' : status === 'pending' ? 'Pending' : status === 'preparing' ? 'Preparing' : status === 'ready' ? 'Ready' : 'Cancelled' }}</span>
+                <span>{{
+                  isServed
+                    ? 'Cleared'
+                    : status === 'pending'
+                      ? 'Pending'
+                      : status === 'preparing'
+                        ? 'Preparing'
+                        : status === 'ready'
+                          ? 'Ready'
+                          : 'Cancelled'
+                }}</span>
               </span>
             </div>
           </div>
         </div>
 
         <!-- Total -->
-        <div class="flex items-center justify-between px-4 py-3 border-t-2 border-gray-200 bg-gray-50">
+        <div
+          class="flex items-center justify-between px-4 py-3 border-t-2 border-gray-200 bg-gray-50"
+        >
           <span class="font-bold text-gray-900">Total</span>
-          <span class="text-lg font-bold text-red-600">ETB {{(orderData.total || 0).toFixed(2)}}</span>
+          <span class="text-lg font-bold text-red-600"
+            >ETB {{ (orderData.total || 0).toFixed(2) }}</span
+          >
         </div>
       </div>
 
@@ -150,7 +184,11 @@
         <div class="flex items-center justify-between text-sm">
           <span class="text-gray-500">Method</span>
           <span class="font-medium text-gray-800 capitalize">
-            {{ orderData.payment_type === 'room_charge' ? 'Room Charge' : (orderData.payment_type || 'Cash') }}
+            {{
+              orderData.payment_type === 'room_charge'
+                ? 'Room Charge'
+                : orderData.payment_type || 'Cash'
+            }}
           </span>
         </div>
       </div>
@@ -161,12 +199,12 @@
         @click="handlePayNow"
         :disabled="isProcessingPayment"
         class="w-full py-4 rounded-xl font-bold text-white text-base shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        style="background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)"
+        style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)"
       >
         <span v-if="isProcessingPayment">Processing...</span>
         <template v-else>
           <span>💳</span>
-          <span>Pay Now with Chapa - ETB {{(orderData.total || 0).toFixed(2)}}</span>
+          <span>Pay Now with Chapa - ETB {{ (orderData.total || 0).toFixed(2) }}</span>
         </template>
       </button>
 
@@ -184,7 +222,8 @@
         v-if="orderData.payment_type === 'room_charge'"
         class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-700"
       >
-        <span class="font-medium">Room Charge</span> — This will be added to your room bill at checkout.
+        <span class="font-medium">Room Charge</span> — This will be added to your room bill at
+        checkout.
       </div>
 
       <!-- Refresh -->
@@ -194,10 +233,10 @@
           :disabled="isLoading"
           class="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
         >
-           Refresh
+          Refresh
         </button>
         <p v-if="lastUpdate" class="text-xs text-gray-400 mt-1">
-          Last updated: {{formatTime(lastUpdate)}}
+          Last updated: {{ formatTime(lastUpdate) }}
         </p>
       </div>
     </div>
@@ -227,10 +266,12 @@ const router = useRouter()
 const orderId = ref(route.params.orderId as string)
 
 const hotelId = ref(
-  (localStorage.getItem('hotel_id') ||
-  localStorage.getItem('active_hotel_id') ||
-  route.query.hotel_id as string ||
-  '').toString()
+  (
+    localStorage.getItem('hotel_id') ||
+    localStorage.getItem('active_hotel_id') ||
+    (route.query.hotel_id as string) ||
+    ''
+  ).toString(),
 )
 
 // Persist qr_token from URL or storage
@@ -263,16 +304,19 @@ const isProcessingPayment = ref(false)
 
 // Auto-verify if returning from Chapa or if a pending tx_ref is saved for this order
 onMounted(async () => {
-  const pendingTxRef = (route.query.tx_ref as string) || 
-                       (route.query.trx_ref as string) || 
-                       (route.query.transaction_ref as string) ||
-                       localStorage.getItem('pending_order_tx_ref') || 
-                       sessionStorage.getItem('pending_order_tx_ref')
+  const pendingTxRef =
+    (route.query.tx_ref as string) ||
+    (route.query.trx_ref as string) ||
+    (route.query.transaction_ref as string) ||
+    localStorage.getItem('pending_order_tx_ref') ||
+    sessionStorage.getItem('pending_order_tx_ref')
 
   if (pendingTxRef) {
     try {
       console.log('[OrderStatus] Checking/verifying pending payment:', pendingTxRef)
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/payments/verify/${pendingTxRef}`)
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/api/payments/verify/${pendingTxRef}`,
+      )
       const data = await res.json()
       console.log('[OrderStatus] Payment verification response:', data)
       if (data.success) {
@@ -292,25 +336,32 @@ const goBack = () => router.back()
 // Payment handler - Navigate to Pay Your Order page
 const handlePayNow = () => {
   if (!orderData.value) return
-  
+
   try {
     const rawItems = orderData.value.items || orderData.value.order_items || []
     const formattedItems = rawItems.map((item: any, idx: number) => ({
       id: item.id || item.menu_item_id || `item-${idx}`,
       name: item.name || item.item_name || item.menu_item?.name || 'Item',
       quantity: Number(item.quantity) || 1,
-      price: Number(item.price ?? item.item_price_at_order ?? item.unit_price ?? 0)
+      price: Number(item.price ?? item.item_price_at_order ?? item.unit_price ?? 0),
     }))
 
-    const isRoom = !orderData.value.table_number && (!!orderData.value.room_number || orderData.value.order_type === 'room_service')
-    const locationLabel = orderData.value.room_number 
-      ? `Room ${orderData.value.room_number}` 
-      : (orderData.value.table_number ? `Table ${orderData.value.table_number}` : 'Order')
+    const isRoom =
+      !orderData.value.table_number &&
+      (!!orderData.value.room_number || orderData.value.order_type === 'room_service')
+    const locationLabel = orderData.value.room_number
+      ? `Room ${orderData.value.room_number}`
+      : orderData.value.table_number
+        ? `Table ${orderData.value.table_number}`
+        : 'Order'
 
-    const currentQrToken = (typeof qrToken === 'string' ? qrToken : '') || 
-                          localStorage.getItem('guest_qr_token') || 
-                          (route.query.qr_token as string) || ''
-    const currentHotelId = hotelId.value || orderData.value.hotel_id || localStorage.getItem('hotel_id') || ''
+    const currentQrToken =
+      (typeof qrToken === 'string' ? qrToken : '') ||
+      localStorage.getItem('guest_qr_token') ||
+      (route.query.qr_token as string) ||
+      ''
+    const currentHotelId =
+      hotelId.value || orderData.value.hotel_id || localStorage.getItem('hotel_id') || ''
     const currentOrderId = orderData.value.order_id || orderData.value.id || orderId.value
 
     const paymentPayload = {
@@ -331,9 +382,9 @@ const handlePayNow = () => {
         tax: Number(orderData.value.tax || 0),
         service_charge: Number(orderData.value.service_charge || 0),
         total: Number(orderData.value.total || 0),
-        tip: 0
+        tip: 0,
       },
-      amount: Number(orderData.value.total || 0)
+      amount: Number(orderData.value.total || 0),
     }
 
     // Persist payment data
@@ -351,7 +402,10 @@ const handlePayNow = () => {
       localStorage.setItem('hotel_id', currentHotelId)
     }
 
-    console.log('[OrderStatus] Stored order data for payment page, navigating to /order/payment:', paymentPayload)
+    console.log(
+      '[OrderStatus] Stored order data for payment page, navigating to /order/payment:',
+      paymentPayload,
+    )
 
     // Navigate to Pay Your Order page (Screenshot 2)
     router.push({
@@ -359,8 +413,8 @@ const handlePayNow = () => {
       query: {
         order_id: currentOrderId,
         qr_token: currentQrToken || undefined,
-        hotel_id: currentHotelId || undefined
-      }
+        hotel_id: currentHotelId || undefined,
+      },
     })
   } catch (err: any) {
     console.error('[OrderStatus] Failed to prepare payment navigation:', err)
@@ -387,7 +441,8 @@ const statusMessage = computed(() => {
   if (isPending.value) return 'Your order has been received and will be prepared shortly.'
   if (isPreparing.value) return 'Our chef is preparing your delicious meal right now.'
   if (isReady.value) return 'Your order is ready! Please wait for delivery.'
-  if (isServed.value) return 'Your order has been served, paid, and cleared. Thank you for dining with us!'
+  if (isServed.value)
+    return 'Your order has been served, paid, and cleared. Thank you for dining with us!'
   if (isCancelled.value) return 'This order has been cancelled.'
   return ''
 })
@@ -399,7 +454,7 @@ const formatTime = (isoString: string): string => {
     return new Date(isoString).toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
     })
   } catch {
     return 'N/A'
@@ -412,7 +467,7 @@ watch(status, (newStatus, oldStatus) => {
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('Order Status Updated', {
         body: statusMessage.value,
-        icon: '/favicon.ico'
+        icon: '/favicon.ico',
       })
     }
   }

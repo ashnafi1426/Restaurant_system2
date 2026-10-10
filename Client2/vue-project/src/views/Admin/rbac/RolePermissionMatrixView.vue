@@ -14,7 +14,7 @@ import {
   AlertCircle,
   Filter,
   Layers,
-  Crown
+  Crown,
 } from 'lucide-vue-next'
 
 const roles = ref<Role[]>([])
@@ -45,7 +45,7 @@ const loadData = async () => {
     const m: Record<number, Set<number>> = {}
     const initM: Record<number, Set<number>> = {}
 
-    roles.value.forEach(r => {
+    roles.value.forEach((r) => {
       const permIds = r.permissions
         ? r.permissions.map((p: any) => (typeof p === 'number' ? p : p.id))
         : []
@@ -57,7 +57,8 @@ const loadData = async () => {
     initialMatrix.value = initM
   } catch (err: any) {
     console.error('Failed to load matrix data:', err)
-    errorMessage.value = err?.response?.data?.message || 'Failed to load roles and permissions matrix.'
+    errorMessage.value =
+      err?.response?.data?.message || 'Failed to load roles and permissions matrix.'
   } finally {
     loading.value = false
   }
@@ -67,14 +68,17 @@ const hotelStore = useHotelStore()
 
 onMounted(loadData)
 
-watch(() => hotelStore.hotelId, () => {
-  loadData()
-})
+watch(
+  () => hotelStore.hotelId,
+  () => {
+    loadData()
+  },
+)
 
 // Available modules
 const modules = computed(() => {
   const s = new Set<string>()
-  permissions.value.forEach(p => {
+  permissions.value.forEach((p) => {
     if (p.module) s.add(p.module)
   })
   return Array.from(s).sort()
@@ -85,16 +89,16 @@ const filteredPermissions = computed(() => {
   let list = permissions.value
 
   if (selectedModule.value !== 'all') {
-    list = list.filter(p => p.module === selectedModule.value)
+    list = list.filter((p) => p.module === selectedModule.value)
   }
 
   if (searchQuery.value.trim()) {
     const q = searchQuery.value.toLowerCase().trim()
     list = list.filter(
-      p =>
+      (p) =>
         p.name.toLowerCase().includes(q) ||
         p.slug.toLowerCase().includes(q) ||
-        (p.description && p.description.toLowerCase().includes(q))
+        (p.description && p.description.toLowerCase().includes(q)),
     )
   }
 
@@ -125,13 +129,13 @@ const toggleAllForRole = (roleId: number) => {
     matrix.value[roleId] = new Set()
   }
   const set = matrix.value[roleId]
-  const currentFilteredIds = filteredPermissions.value.map(p => p.id)
-  const allChecked = currentFilteredIds.every(id => set.has(id))
+  const currentFilteredIds = filteredPermissions.value.map((p) => p.id)
+  const allChecked = currentFilteredIds.every((id) => set.has(id))
 
   if (allChecked) {
-    currentFilteredIds.forEach(id => set.delete(id))
+    currentFilteredIds.forEach((id) => set.delete(id))
   } else {
-    currentFilteredIds.forEach(id => set.add(id))
+    currentFilteredIds.forEach((id) => set.add(id))
   }
 }
 
@@ -156,13 +160,14 @@ const saveMatrix = async () => {
   successMessage.value = ''
 
   try {
-    const promises = roles.value.map(r => {
+    const promises = roles.value.map((r) => {
       const permissionIds = Array.from(matrix.value[r.id] || [])
       return rbacService.syncRolePermissions(r.id, permissionIds)
     })
 
     await Promise.all(promises)
-    successMessage.value = 'All role permissions updated and synced successfully across the platform!'
+    successMessage.value =
+      'All role permissions updated and synced successfully across the platform!'
     await loadData()
 
     // Sync auth store immediately so current user's sidebar updates without manual refresh
@@ -189,7 +194,7 @@ const saveMatrix = async () => {
 // Reset changes
 const resetMatrix = () => {
   const m: Record<number, Set<number>> = {}
-  roles.value.forEach(r => {
+  roles.value.forEach((r) => {
     m[r.id] = new Set(Array.from(initialMatrix.value[r.id] || []))
   })
   matrix.value = m
@@ -198,20 +203,27 @@ const resetMatrix = () => {
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans">
+    <div
+      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans"
+    >
       <!-- Header Banner Section -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
+      >
         <div>
           <div class="flex items-center gap-2.5">
             <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
               Role & Permission Security Matrix
             </h1>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+            <span
+              class="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
+            >
               Super Admin Governance
             </span>
           </div>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Dynamic access matrix to inspect, toggle, and sync permissions across all platform roles in real time.
+            Dynamic access matrix to inspect, toggle, and sync permissions across all platform roles
+            in real time.
           </p>
         </div>
 
@@ -245,18 +257,26 @@ const resetMatrix = () => {
       </div>
 
       <!-- Feedback Alerts -->
-      <div v-if="successMessage" class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2">
+      <div
+        v-if="successMessage"
+        class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2"
+      >
         <CheckCircle2 class="w-4 h-4 flex-shrink-0" />
         <span>{{ successMessage }}</span>
       </div>
 
-      <div v-if="errorMessage" class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center gap-2">
+      <div
+        v-if="errorMessage"
+        class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center gap-2"
+      >
         <AlertCircle class="w-4 h-4 flex-shrink-0" />
         <span>{{ errorMessage }}</span>
       </div>
 
       <!-- Search & Filters Toolbar -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3"
+      >
         <div class="relative w-full sm:w-80">
           <Search class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           <input
@@ -282,27 +302,35 @@ const resetMatrix = () => {
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="p-16 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
+      <div
+        v-if="loading"
+        class="p-16 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800"
+      >
         <RefreshCw class="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-3" />
         <p class="text-xs font-bold text-slate-400">Loading security matrix...</p>
       </div>
 
       <!-- MATRIX TABLE -->
-      <div v-else class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden">
+      <div
+        v-else
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden"
+      >
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs border-collapse">
-            <thead class="bg-slate-100/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-700/80 sticky top-0 z-10">
+            <thead
+              class="bg-slate-100/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-700/80 sticky top-0 z-10"
+            >
               <tr>
-                <th class="py-3.5 px-4 min-w-[280px]">
-                  Permission & Domain
-                </th>
+                <th class="py-3.5 px-4 min-w-[280px]">Permission & Domain</th>
                 <th
                   v-for="role in roles"
                   :key="role.id"
                   class="py-3.5 px-3 text-center min-w-[120px]"
                 >
                   <div class="flex flex-col items-center gap-1">
-                    <span class="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1">
+                    <span
+                      class="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1"
+                    >
                       <Crown v-if="role.slug === 'admin'" class="w-3 h-3 text-amber-500 inline" />
                       {{ role.name }}
                     </span>
@@ -316,7 +344,9 @@ const resetMatrix = () => {
                 </th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+            <tbody
+              class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300"
+            >
               <tr
                 v-for="perm in filteredPermissions"
                 :key="perm.id"
@@ -328,22 +358,24 @@ const resetMatrix = () => {
                     {{ perm.name }}
                   </div>
                   <div class="flex items-center gap-1.5 mt-0.5">
-                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                    <span
+                      class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                    >
                       {{ perm.slug }}
                     </span>
-                    <span class="text-[10px] uppercase font-bold text-indigo-500 dark:text-indigo-400">
+                    <span
+                      class="text-[10px] uppercase font-bold text-indigo-500 dark:text-indigo-400"
+                    >
                       {{ perm.module }}
                     </span>
                   </div>
                 </td>
 
                 <!-- Checkbox for each role -->
-                <td
-                  v-for="role in roles"
-                  :key="role.id"
-                  class="py-3 px-3 text-center"
-                >
-                  <label class="inline-flex items-center justify-center cursor-pointer p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                <td v-for="role in roles" :key="role.id" class="py-3 px-3 text-center">
+                  <label
+                    class="inline-flex items-center justify-center cursor-pointer p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                  >
                     <input
                       type="checkbox"
                       :checked="hasPermission(role.id, perm.id)"
@@ -357,7 +389,10 @@ const resetMatrix = () => {
           </table>
         </div>
 
-        <div v-if="filteredPermissions.length === 0" class="p-12 text-center text-xs text-slate-400">
+        <div
+          v-if="filteredPermissions.length === 0"
+          class="p-12 text-center text-xs text-slate-400"
+        >
           No permissions match the selected filter or search query.
         </div>
       </div>

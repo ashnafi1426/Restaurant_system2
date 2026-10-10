@@ -32,7 +32,6 @@ const revenueData = ref<MonthlyRevenueData[]>([])
 const loading = ref(false)
 const selectedTimeframe = ref<'week' | 'month' | 'year'>(props.timeframe)
 
-
 const chartData = ref({
   labels: [] as string[],
   datasets: [
@@ -40,9 +39,18 @@ const chartData = ref({
       label: 'Revenue',
       data: [] as number[],
       backgroundColor: [
-        '#3b82f6', '#3b82f6', '#3b82f6', '#3b82f6',
-        '#3b82f6', '#3b82f6', '#3b82f6', '#3b82f6',
-        '#3b82f6', '#3b82f6', '#3b82f6', '#3b82f6'
+        '#3b82f6',
+        '#3b82f6',
+        '#3b82f6',
+        '#3b82f6',
+        '#3b82f6',
+        '#3b82f6',
+        '#3b82f6',
+        '#3b82f6',
+        '#3b82f6',
+        '#3b82f6',
+        '#3b82f6',
+        '#3b82f6',
       ],
       borderColor: '#2563eb',
       borderWidth: 1.5,
@@ -151,28 +159,44 @@ onMounted(() => {
   }
 })
 
-watch(() => props.data, () => {
-  if (props.data && props.data.length > 0) {
-    revenueData.value = props.data
-    updateChart()
-  }
-}, { deep: true })
+watch(
+  () => props.data,
+  () => {
+    if (props.data && props.data.length > 0) {
+      revenueData.value = props.data
+      updateChart()
+    }
+  },
+  { deep: true },
+)
 </script>
 
 <template>
-  <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-5">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+  <div
+    class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-5"
+  >
+    <div
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100 dark:border-slate-800"
+    >
       <div>
-        <h3 class="text-base font-black text-slate-900 dark:text-white">{{ languageStore.t('revenue_analytics', 'Revenue Analytics') }}</h3>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('revenue_analytics_desc', 'Financial performance & revenue trends') }}</p>
+        <h3 class="text-base font-black text-slate-900 dark:text-white">
+          {{ languageStore.t('revenue_analytics', 'Revenue Analytics') }}
+        </h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          {{ languageStore.t('revenue_analytics_desc', 'Financial performance & revenue trends') }}
+        </p>
       </div>
 
-      <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800">
+      <div
+        class="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800"
+      >
         <button
           @click="setTimeframe('week')"
           :class="[
             'px-3 py-1 text-xs font-black rounded-xl transition cursor-pointer',
-            selectedTimeframe === 'week' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            selectedTimeframe === 'week'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
           ]"
         >
           {{ languageStore.t('Week', 'Week') }}
@@ -181,7 +205,9 @@ watch(() => props.data, () => {
           @click="setTimeframe('month')"
           :class="[
             'px-3 py-1 text-xs font-black rounded-xl transition cursor-pointer',
-            selectedTimeframe === 'month' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            selectedTimeframe === 'month'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
           ]"
         >
           {{ languageStore.t('Month', 'Month') }}
@@ -190,7 +216,9 @@ watch(() => props.data, () => {
           @click="setTimeframe('year')"
           :class="[
             'px-3 py-1 text-xs font-black rounded-xl transition cursor-pointer',
-            selectedTimeframe === 'year' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            selectedTimeframe === 'year'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
           ]"
         >
           {{ languageStore.t('Year', 'Year') }}
@@ -200,21 +228,27 @@ watch(() => props.data, () => {
 
     <div class="grid grid-cols-3 gap-3">
       <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
-        <p class="text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-400">{{ languageStore.t('total_revenue', 'Total Revenue') }}</p>
+        <p class="text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-400">
+          {{ languageStore.t('total_revenue', 'Total Revenue') }}
+        </p>
         <p class="text-lg font-black text-slate-900 dark:text-white mt-0.5">
           {{ (totalRevenue / 1000).toFixed(1) }}k ETB
         </p>
       </div>
 
       <div class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
-        <p class="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400">{{ languageStore.t('average', 'Average') }}</p>
+        <p class="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400">
+          {{ languageStore.t('average', 'Average') }}
+        </p>
         <p class="text-lg font-black text-slate-900 dark:text-white mt-0.5">
           {{ (averageRevenue / 1000).toFixed(1) }}k ETB
         </p>
       </div>
 
       <div class="p-3 bg-purple-500/10 border border-purple-500/20 rounded-2xl">
-        <p class="text-[10px] font-bold uppercase text-purple-600 dark:text-purple-400">{{ languageStore.t('peak_revenue', 'Peak Revenue') }}</p>
+        <p class="text-[10px] font-bold uppercase text-purple-600 dark:text-purple-400">
+          {{ languageStore.t('peak_revenue', 'Peak Revenue') }}
+        </p>
         <p class="text-lg font-black text-slate-900 dark:text-white mt-0.5">
           {{ (maxRevenue / 1000).toFixed(1) }}k ETB
         </p>

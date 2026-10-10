@@ -1,15 +1,15 @@
 /**
  * useOrderStatus Composable
- * 
+ *
  * Manages real-time order status tracking via WebSocket for customer order status page.
- * 
+ *
  * Features:
  * - Fetches initial order data from API
  * - Subscribes to private WebSocket channel: orders.{hotelId}.{orderId}
  * - Receives real-time updates: OrderStatusUpdated, PaymentStatusUpdated, OrderCancelled
  * - Handles reconnection automatically
  * - Cleans up subscription on component unmount
- * 
+ *
  * NO POLLING - updates only via WebSocket events
  */
 
@@ -98,7 +98,8 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
    */
   const fetchOrderData = async (): Promise<void> => {
     const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
-    let qrToken = currentQrToken.value || initialQrToken || localStorage.getItem('guest_qr_token') || ''
+    let qrToken =
+      currentQrToken.value || initialQrToken || localStorage.getItem('guest_qr_token') || ''
 
     try {
       isLoading.value = true
@@ -112,7 +113,14 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
         try {
           const parsedData = JSON.parse(pendingOrderData)
           console.log('[useOrderStatus] Parsed pending data:', parsedData)
-          console.log('[useOrderStatus] Comparing IDs - parsedData.id:', parsedData.id, 'parsedData.order_id:', parsedData.order_id, 'orderId:', orderId)
+          console.log(
+            '[useOrderStatus] Comparing IDs - parsedData.id:',
+            parsedData.id,
+            'parsedData.order_id:',
+            parsedData.order_id,
+            'orderId:',
+            orderId,
+          )
 
           if (parsedData.id === orderId || parsedData.order_id === orderId) {
             // Use the stored order data
@@ -146,22 +154,26 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
 
       if (!qrToken) {
         try {
-          const walkInData = localStorage.getItem('walk_in_payment_data') || sessionStorage.getItem('walk_in_payment_data')
+          const walkInData =
+            localStorage.getItem('walk_in_payment_data') ||
+            sessionStorage.getItem('walk_in_payment_data')
           if (walkInData) {
             const parsed = JSON.parse(walkInData)
             if (parsed.qr_token) qrToken = parsed.qr_token
           }
-        } catch (_) { }
+        } catch (_) {}
       }
 
       if (!qrToken) {
         try {
-          const orderPaymentData = localStorage.getItem('order_payment_data') || sessionStorage.getItem('order_payment_data')
+          const orderPaymentData =
+            localStorage.getItem('order_payment_data') ||
+            sessionStorage.getItem('order_payment_data')
           if (orderPaymentData) {
             const parsed = JSON.parse(orderPaymentData)
             if (parsed.qr_token) qrToken = parsed.qr_token
           }
-        } catch (_) { }
+        } catch (_) {}
       }
 
       if (qrToken) {
@@ -175,13 +187,16 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
 
       console.log('[useOrderStatus] Fetching from realtime-status endpoint:', url)
       console.log('[useOrderStatus] Hotel ID:', hotelId.value)
-      console.log('[useOrderStatus] QR Token:', qrToken ? qrToken.substring(0, 4) + '****' : 'MISSING')
+      console.log(
+        '[useOrderStatus] QR Token:',
+        qrToken ? qrToken.substring(0, 4) + '****' : 'MISSING',
+      )
 
       const response = await axios.get(url, {
         headers: {
           'X-Hotel-ID': hotelId.value || '',
-          'Accept': 'application/json'
-        }
+          Accept: 'application/json',
+        },
       })
 
       if (response.data.success && response.data.data) {
@@ -212,7 +227,9 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
       if (err.response?.status === 403) {
         try {
           let fallbackToken = ''
-          const walkInData = localStorage.getItem('walk_in_payment_data') || sessionStorage.getItem('walk_in_payment_data')
+          const walkInData =
+            localStorage.getItem('walk_in_payment_data') ||
+            sessionStorage.getItem('walk_in_payment_data')
           if (walkInData) {
             const parsed = JSON.parse(walkInData)
             if (parsed.qr_token && parsed.qr_token !== qrToken) {
@@ -220,7 +237,9 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
             }
           }
           if (!fallbackToken) {
-            const orderPaymentData = localStorage.getItem('order_payment_data') || sessionStorage.getItem('order_payment_data')
+            const orderPaymentData =
+              localStorage.getItem('order_payment_data') ||
+              sessionStorage.getItem('order_payment_data')
             if (orderPaymentData) {
               const parsed = JSON.parse(orderPaymentData)
               if (parsed.qr_token && parsed.qr_token !== qrToken) {
@@ -230,7 +249,10 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
           }
 
           if (fallbackToken) {
-            console.log('[useOrderStatus] 403 received with token, retrying with fallback token:', fallbackToken)
+            console.log(
+              '[useOrderStatus] 403 received with token, retrying with fallback token:',
+              fallbackToken,
+            )
             currentQrToken.value = fallbackToken
             localStorage.setItem('guest_qr_token', fallbackToken)
 
@@ -238,8 +260,8 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
             const retryResponse = await axios.get(retryUrl, {
               headers: {
                 'X-Hotel-ID': hotelId.value || '',
-                'Accept': 'application/json'
-              }
+                Accept: 'application/json',
+              },
             })
 
             if (retryResponse.data.success && retryResponse.data.data) {
@@ -359,7 +381,6 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
       })
 
       console.log('[useOrderStatus]  Channel subscription setup complete')
-
     } catch (err: any) {
       console.error('[useOrderStatus] Error subscribing to channel:', err)
       error.value = 'Failed to subscribe to order updates'
@@ -387,7 +408,9 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
 
       // CRITICAL FIX: Validate hotel_id before re-subscribing
       if (!hotelId.value) {
-        console.error('[useOrderStatus] ❌ Cannot re-subscribe: hotel_id is missing after reconnect fetch')
+        console.error(
+          '[useOrderStatus] ❌ Cannot re-subscribe: hotel_id is missing after reconnect fetch',
+        )
         error.value = 'Configuration error: hotel ID not available after reconnection'
         return
       }
@@ -427,8 +450,13 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
   const isReady = computed(() => status.value === 'ready')
   const isServed = computed(() => ['served', 'cleared', 'completed'].includes(status.value))
   const isCancelled = computed(() => status.value === 'cancelled')
-  const isPaymentPending = computed(() => !isServed.value && (paymentStatus.value === 'pending' || paymentStatus.value === 'unpaid'))
-  const isPaymentPaid = computed(() => isServed.value || paymentStatus.value === 'paid' || paymentStatus.value === 'verified')
+  const isPaymentPending = computed(
+    () =>
+      !isServed.value && (paymentStatus.value === 'pending' || paymentStatus.value === 'unpaid'),
+  )
+  const isPaymentPaid = computed(
+    () => isServed.value || paymentStatus.value === 'paid' || paymentStatus.value === 'verified',
+  )
 
   // Lifecycle hooks
   onMounted(async () => {

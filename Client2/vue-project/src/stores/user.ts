@@ -44,7 +44,7 @@ export const useUserStore = defineStore('user', () => {
         return { success: true, data: cached }
       }
       try {
-        const allKeys = Object.keys(localStorage).filter(k => k.startsWith('users_cache_'))
+        const allKeys = Object.keys(localStorage).filter((k) => k.startsWith('users_cache_'))
         for (const k of allKeys) {
           const raw = localStorage.getItem(k)
           if (raw) {

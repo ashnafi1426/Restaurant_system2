@@ -13,7 +13,7 @@ const isLoadingStats = ref(false)
 const floorStats = ref({
   active_floors: 0,
   total_staff: 0,
-  available_waiters: 0
+  available_waiters: 0,
 })
 
 // Computed properties from store
@@ -50,7 +50,7 @@ const loadStats = async () => {
     floorStats.value = {
       active_floors: floorsCount || 5,
       available_waiters: waitersCount || 18,
-      total_staff: (waitersCount || 18) + 24
+      total_staff: (waitersCount || 18) + 24,
     }
   } catch (err) {
     console.warn('Failed to load stats:', err)
@@ -58,7 +58,7 @@ const loadStats = async () => {
     floorStats.value = {
       active_floors: 5,
       total_staff: 42,
-      available_waiters: 18
+      available_waiters: 18,
     }
   } finally {
     isLoadingStats.value = false
@@ -67,7 +67,7 @@ const loadStats = async () => {
 
 const submitForm = async () => {
   const newFloor = await addFloorStore.createFloor()
-  
+
   if (newFloor) {
     // Redirect after success
     setTimeout(() => {
@@ -103,7 +103,10 @@ onMounted(() => {
     <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 px-6 py-6">
       <!-- HEADER WITH BACK BUTTON -->
       <div class="flex items-center gap-4 mb-8">
-        <button @click="goBack" class="flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-slate-900 transition">
+        <button
+          @click="goBack"
+          class="flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-slate-900 transition"
+        >
           <ArrowLeft class="w-5 h-5" />
           <span class="font-medium">Back to Assignments</span>
         </button>
@@ -112,7 +115,10 @@ onMounted(() => {
       <!-- PAGE TITLE -->
       <div class="mb-8">
         <h1 class="text-4xl font-bold text-slate-900">Add New Floor</h1>
-        <p class="text-slate-600 mt-2">Expand your hospitality suite operations. Define new zones and designate management teams for immediate service readiness.</p>
+        <p class="text-slate-600 mt-2">
+          Expand your hospitality suite operations. Define new zones and designate management teams
+          for immediate service readiness.
+        </p>
       </div>
 
       <!-- MAIN CONTENT -->
@@ -144,7 +150,7 @@ onMounted(() => {
                     placeholder="e.g. 05"
                     :class="[
                       'w-full px-4 py-2 border rounded-lg text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none transition',
-                      validationErrors.floor_number ? 'border-red-500' : 'border-slate-300'
+                      validationErrors.floor_number ? 'border-red-500' : 'border-slate-300',
                     ]"
                   />
                   <!-- Validation Error -->
@@ -152,7 +158,10 @@ onMounted(() => {
                     {{ validationErrors.floor_number }}
                   </p>
                   <!-- Uniqueness Check Status -->
-                  <p v-else-if="formData.floor_number && !validationErrors.floor_number" class="text-xs text-emerald-600 mt-1">
+                  <p
+                    v-else-if="formData.floor_number && !validationErrors.floor_number"
+                    class="text-xs text-emerald-600 mt-1"
+                  >
                     ✓ Floor number available
                   </p>
                 </div>
@@ -170,7 +179,7 @@ onMounted(() => {
                 placeholder="e.g. Executive Balcony"
                 :class="[
                   'w-full px-4 py-2 border rounded-lg text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none transition',
-                  validationErrors.name ? 'border-red-500' : 'border-slate-300'
+                  validationErrors.name ? 'border-red-500' : 'border-slate-300',
                 ]"
               />
               <!-- Validation Error -->
@@ -181,7 +190,9 @@ onMounted(() => {
 
             <!-- Description -->
             <div>
-              <label class="block text-sm font-bold text-slate-700 mb-2">Description (Optional)</label>
+              <label class="block text-sm font-bold text-slate-700 mb-2"
+                >Description (Optional)</label
+              >
               <textarea
                 :value="formData.description"
                 @input="(e) => handleFieldChange('description', e.target.value)"
@@ -189,7 +200,7 @@ onMounted(() => {
                 rows="4"
                 :class="[
                   'w-full px-4 py-2 border rounded-lg text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none transition resize-none',
-                  validationErrors.description ? 'border-red-500' : 'border-slate-300'
+                  validationErrors.description ? 'border-red-500' : 'border-slate-300',
                 ]"
               ></textarea>
               <!-- Validation Error -->
@@ -205,22 +216,33 @@ onMounted(() => {
               <div class="text-3xl"></div>
               <div class="flex-1">
                 <h3 class="font-bold text-slate-900 mb-2">Staff Assignment</h3>
-                <p class="text-sm text-slate-600">After creating this floor, you can assign waiters and staff members from the Floor Assignment page.</p>
+                <p class="text-sm text-slate-600">
+                  After creating this floor, you can assign waiters and staff members from the Floor
+                  Assignment page.
+                </p>
               </div>
             </div>
           </div>
 
           <!-- ERROR ALERT -->
-          <div v-if="error" class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+          <div
+            v-if="error"
+            class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3"
+          >
             <AlertCircle class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
             <div class="flex-1">
               <p class="text-sm font-medium text-red-900">{{ error }}</p>
             </div>
-            <button @click="addFloorStore.clearError" class="text-red-600 hover:text-red-700">×</button>
+            <button @click="addFloorStore.clearError" class="text-red-600 hover:text-red-700">
+              ×
+            </button>
           </div>
 
           <!-- SUCCESS ALERT -->
-          <div v-if="success" class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
+          <div
+            v-if="success"
+            class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3"
+          >
             <CheckCircle class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
             <div class="flex-1">
               <p class="text-sm font-medium text-emerald-900">{{ success }}</p>
@@ -250,8 +272,12 @@ onMounted(() => {
         <div class="space-y-6">
           <!-- FLOOR MAP PREVIEW -->
           <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-            <h3 class="text-sm font-bold text-slate-600 mb-4 uppercase">Auto-generating Floor Map Preview...</h3>
-            <div class="w-full h-48 bg-gradient-to-br from-slate-100 to-slate-50 rounded-lg flex items-center justify-center text-slate-400">
+            <h3 class="text-sm font-bold text-slate-600 mb-4 uppercase">
+              Auto-generating Floor Map Preview...
+            </h3>
+            <div
+              class="w-full h-48 bg-gradient-to-br from-slate-100 to-slate-50 rounded-lg flex items-center justify-center text-slate-400"
+            >
               <div class="text-center">
                 <div class="text-4xl mb-2">📐</div>
                 <p class="text-sm">Floor layout will appear here</p>
@@ -264,7 +290,9 @@ onMounted(() => {
             <!-- Active Floors -->
             <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-4">
               <p class="text-xs text-slate-600 font-semibold uppercase mb-1">ACTIVE FLOORS</p>
-              <p class="text-3xl font-bold text-slate-900">{{ floorStats.active_floors }}<span class="text-sm text-slate-400">/15</span></p>
+              <p class="text-3xl font-bold text-slate-900">
+                {{ floorStats.active_floors }}<span class="text-sm text-slate-400">/15</span>
+              </p>
             </div>
 
             <!-- Wait Staff Pool -->
@@ -283,7 +311,9 @@ onMounted(() => {
           <!-- INFO BOX -->
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p class="text-xs font-bold text-blue-900 mb-2">💡 PRO TIP</p>
-            <p class="text-sm text-blue-800">Assign backup staff to ensure continuous service coverage during peak hours.</p>
+            <p class="text-sm text-blue-800">
+              Assign backup staff to ensure continuous service coverage during peak hours.
+            </p>
           </div>
         </div>
       </div>

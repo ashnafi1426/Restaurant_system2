@@ -36,14 +36,18 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
     return grouped
   })
 
-  const fetchAssignments = async (paramsOrDate?: string | {
-    page?: number
-    per_page?: number
-    date?: string
-    floor_id?: string
-    waiter_id?: string | number
-    status?: string
-  }) => {
+  const fetchAssignments = async (
+    paramsOrDate?:
+      | string
+      | {
+          page?: number
+          per_page?: number
+          date?: string
+          floor_id?: string
+          waiter_id?: string | number
+          status?: string
+        },
+  ) => {
     loading.value = true
     error.value = null
     try {
@@ -67,8 +71,11 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
     try {
       const data = await floorAssignmentService.getTodayAssignments()
       assignments.value = data
-      successMessage.value = data.length > 0 ? `${data.length} assignment(s) loaded` : 'No assignments for today'
-      setTimeout(() => { successMessage.value = null }, 3000)
+      successMessage.value =
+        data.length > 0 ? `${data.length} assignment(s) loaded` : 'No assignments for today'
+      setTimeout(() => {
+        successMessage.value = null
+      }, 3000)
       return data
     } catch (err: any) {
       console.error('[FloorAssignmentStore] Error fetching today assignments:', err)
@@ -105,10 +112,12 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
       const data = await floorAssignmentService.bulkAssign(payload)
       assignments.value = data
       successMessage.value = `${data.length} assignment(s) saved successfully`
-      setTimeout(() => { successMessage.value = null }, 3000)
-      
+      setTimeout(() => {
+        successMessage.value = null
+      }, 3000)
+
       await fetchStats()
-      
+
       return data
     } catch (err: any) {
       console.error('[FloorAssignmentStore] Error saving assignments:', err)
@@ -121,22 +130,21 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
 
   const updateAssignment = async (
     assignmentId: string,
-    priority: 'primary' | 'secondary' | 'backup'
+    priority: 'primary' | 'secondary' | 'backup',
   ) => {
     try {
-      const updated = await floorAssignmentService.updateAssignmentPriority(
-        assignmentId,
-        priority
-      )
-      
-      const index = assignments.value.findIndex(a => a.id === assignmentId)
+      const updated = await floorAssignmentService.updateAssignmentPriority(assignmentId, priority)
+
+      const index = assignments.value.findIndex((a) => a.id === assignmentId)
       if (index >= 0) {
         assignments.value[index] = updated
       }
-      
+
       successMessage.value = 'Assignment updated successfully'
-      setTimeout(() => { successMessage.value = null }, 3000)
-      
+      setTimeout(() => {
+        successMessage.value = null
+      }, 3000)
+
       return updated
     } catch (err: any) {
       console.error('[FloorAssignmentStore] Error updating assignment:', err)
@@ -148,14 +156,16 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
   const deleteAssignment = async (assignmentId: string) => {
     try {
       await floorAssignmentService.deleteAssignment(assignmentId)
-      
-      assignments.value = assignments.value.filter(a => a.id !== assignmentId)
-      
+
+      assignments.value = assignments.value.filter((a) => a.id !== assignmentId)
+
       successMessage.value = 'Assignment deleted successfully'
-      setTimeout(() => { successMessage.value = null }, 3000)
-      
+      setTimeout(() => {
+        successMessage.value = null
+      }, 3000)
+
       await fetchStats()
-      
+
       return true
     } catch (err: any) {
       console.error('[FloorAssignmentStore] Error deleting assignment:', err)
@@ -165,7 +175,7 @@ export const useFloorAssignmentStore = defineStore('floorAssignment', () => {
   }
 
   const removeAssignment = async (assignmentId: string) => {
-    assignments.value = assignments.value.filter(a => a.id !== assignmentId)
+    assignments.value = assignments.value.filter((a) => a.id !== assignmentId)
     try {
       await floorAssignmentService.deleteAssignment(assignmentId)
       await fetchStats()

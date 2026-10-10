@@ -26,7 +26,7 @@ import {
   Loader2,
   FileText,
   AlertCircle,
-  Printer
+  Printer,
 } from 'lucide-vue-next'
 import type { Reservation } from '@/types/reservation'
 
@@ -74,15 +74,21 @@ onMounted(() => {
   loadReservation()
 })
 
-watch(() => route.params.id, (newId) => {
-  if (newId) {
-    loadReservation()
-  }
-})
+watch(
+  () => route.params.id,
+  (newId) => {
+    if (newId) {
+      loadReservation()
+    }
+  },
+)
 
-watch(() => hotelStore.hotelId, () => {
-  loadReservation()
-})
+watch(
+  () => hotelStore.hotelId,
+  () => {
+    loadReservation()
+  },
+)
 
 const getStatusBadgeClass = (status?: string) => {
   switch (status?.toLowerCase()) {
@@ -285,7 +291,9 @@ const printDetails = () => {
       <!-- Loading State -->
       <div v-if="loading" class="py-24 text-center flex flex-col items-center justify-center gap-3">
         <Loader2 class="w-10 h-10 text-blue-600 dark:text-blue-400 animate-spin" />
-        <span class="text-sm font-bold text-slate-600 dark:text-slate-400">Loading reservation details...</span>
+        <span class="text-sm font-bold text-slate-600 dark:text-slate-400"
+          >Loading reservation details...</span
+        >
       </div>
 
       <!-- Error State -->
@@ -294,7 +302,9 @@ const printDetails = () => {
         class="p-6 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-2xl text-center space-y-3"
       >
         <AlertCircle class="w-10 h-10 text-red-600 dark:text-red-400 mx-auto" />
-        <h2 class="text-base font-bold text-red-800 dark:text-red-300">{{ error || 'Reservation not found' }}</h2>
+        <h2 class="text-base font-bold text-red-800 dark:text-red-300">
+          {{ error || 'Reservation not found' }}
+        </h2>
         <button
           @click="router.push('/reservations')"
           class="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl cursor-pointer"
@@ -306,9 +316,13 @@ const printDetails = () => {
       <!-- Detail Cards Grid -->
       <div v-else class="space-y-6">
         <!-- Status & Highlight Banner -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs"
+        >
           <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-black text-lg">
+            <div
+              class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-black text-lg"
+            >
               <Calendar class="w-6 h-6" />
             </div>
             <div>
@@ -322,8 +336,13 @@ const printDetails = () => {
                 </span>
               </div>
               <p class="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
-                {{ formatDate(reservation.check_in_date) }} → {{ formatDate(reservation.check_out_date) }}
-                <span class="text-xs font-normal text-slate-500">({{ reservation.total_nights || 1 }} night{{ (reservation.total_nights || 1) > 1 ? 's' : '' }})</span>
+                {{ formatDate(reservation.check_in_date) }} →
+                {{ formatDate(reservation.check_out_date) }}
+                <span class="text-xs font-normal text-slate-500"
+                  >({{ reservation.total_nights || 1 }} night{{
+                    (reservation.total_nights || 1) > 1 ? 's' : ''
+                  }})</span
+                >
               </p>
             </div>
           </div>
@@ -341,17 +360,24 @@ const printDetails = () => {
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Guest Information Card -->
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
-            <div class="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div
+            class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4"
+          >
+            <div
+              class="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800"
+            >
               <User class="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Guest Information</h2>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                Guest Information
+              </h2>
             </div>
 
             <div class="space-y-3 text-xs">
               <div class="flex items-center justify-between">
                 <span class="text-slate-500">Full Name</span>
                 <span class="font-bold text-slate-900 dark:text-white text-sm">
-                  {{ reservation.guest?.first_name || '' }} {{ reservation.guest?.last_name || 'Guest' }}
+                  {{ reservation.guest?.first_name || '' }}
+                  {{ reservation.guest?.last_name || 'Guest' }}
                 </span>
               </div>
               <div class="flex items-center justify-between">
@@ -388,10 +414,16 @@ const printDetails = () => {
           </div>
 
           <!-- Room & Stay Details Card -->
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
-            <div class="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div
+            class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4"
+          >
+            <div
+              class="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800"
+            >
               <BedDouble class="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Room & Accommodation</h2>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                Room & Accommodation
+              </h2>
             </div>
 
             <div class="space-y-3 text-xs">
@@ -404,7 +436,15 @@ const printDetails = () => {
               <div class="flex items-center justify-between">
                 <span class="text-slate-500">Room Type</span>
                 <span class="font-bold text-slate-800 dark:text-slate-200">
-                  {{ (typeof reservation.room?.room_type === 'string' ? reservation.room?.room_type : reservation.room?.room_type?.name) || (typeof reservation.room?.roomType === 'string' ? reservation.room?.roomType : reservation.room?.roomType?.name) || 'Standard' }}
+                  {{
+                    (typeof reservation.room?.room_type === 'string'
+                      ? reservation.room?.room_type
+                      : reservation.room?.room_type?.name) ||
+                    (typeof reservation.room?.roomType === 'string'
+                      ? reservation.room?.roomType
+                      : reservation.room?.roomType?.name) ||
+                    'Standard'
+                  }}
                 </span>
               </div>
               <div class="flex items-center justify-between">
@@ -430,21 +470,43 @@ const printDetails = () => {
         </div>
 
         <!-- Special Requests Card -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-3">
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-3"
+        >
           <div class="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
             <FileText class="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Special Requests & Notes</h2>
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              Special Requests & Notes
+            </h2>
           </div>
-          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/40 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800">
+          <p
+            class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/40 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800"
+          >
             {{ reservation.special_requests || 'No special requests provided for this booking.' }}
           </p>
         </div>
 
         <!-- Metadata Card -->
-        <div class="bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 text-[11px] text-slate-400">
-          <span>Created on: <strong class="text-slate-600 dark:text-slate-300">{{ reservation.created_at || 'Recently' }}</strong></span>
-          <span v-if="reservation.created_by">Created by: <strong class="text-slate-600 dark:text-slate-300">{{ typeof reservation.created_by === 'object' ? reservation.created_by?.name : reservation.created_by }}</strong></span>
-          <span>System ID: <code class="text-slate-500 font-mono">{{ reservation.id }}</code></span>
+        <div
+          class="bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 text-[11px] text-slate-400"
+        >
+          <span
+            >Created on:
+            <strong class="text-slate-600 dark:text-slate-300">{{
+              reservation.created_at || 'Recently'
+            }}</strong></span
+          >
+          <span v-if="reservation.created_by"
+            >Created by:
+            <strong class="text-slate-600 dark:text-slate-300">{{
+              typeof reservation.created_by === 'object'
+                ? reservation.created_by?.name
+                : reservation.created_by
+            }}</strong></span
+          >
+          <span
+            >System ID: <code class="text-slate-500 font-mono">{{ reservation.id }}</code></span
+          >
         </div>
       </div>
     </div>

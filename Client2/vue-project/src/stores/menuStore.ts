@@ -52,7 +52,7 @@ export const useMenuStore = defineStore('menu', () => {
           last_page: meta.last_page || 1,
           per_page: meta.per_page || 10,
           total: meta.total !== undefined ? meta.total : menuItems.value.length,
-          from: meta.from !== undefined ? meta.from : (menuItems.value.length > 0 ? 1 : 0),
+          from: meta.from !== undefined ? meta.from : menuItems.value.length > 0 ? 1 : 0,
           to: meta.to !== undefined ? meta.to : menuItems.value.length,
         }
       } else if (Array.isArray(raw)) {

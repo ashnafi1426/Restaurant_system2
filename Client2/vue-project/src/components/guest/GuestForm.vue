@@ -62,12 +62,18 @@ const updatePreferences = (value: string) => {
   <form class="space-y-8" @submit.prevent="emit('submit')">
     <!-- Personal Information -->
 
-    <div class="bg-white dark:bg-slate-800 rounded-xl shadow p-6 border border-slate-200 dark:border-slate-700">
-      <h2 class="text-xl font-semibold mb-6 text-slate-900 dark:text-white">{{ languageStore.t('personal_info', 'Personal Information') }}</h2>
+    <div
+      class="bg-white dark:bg-slate-800 rounded-xl shadow p-6 border border-slate-200 dark:border-slate-700"
+    >
+      <h2 class="text-xl font-semibold mb-6 text-slate-900 dark:text-white">
+        {{ languageStore.t('personal_info', 'Personal Information') }}
+      </h2>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label class="block mb-2 font-medium text-slate-700 dark:text-slate-300"> {{ languageStore.t('first_name', 'First Name') }} * </label>
+          <label class="block mb-2 font-medium text-slate-700 dark:text-slate-300">
+            {{ languageStore.t('first_name', 'First Name') }} *
+          </label>
 
           <input
             v-model="form.first_name"
@@ -78,7 +84,9 @@ const updatePreferences = (value: string) => {
         </div>
 
         <div>
-          <label class="block mb-2 font-medium text-slate-700 dark:text-slate-300"> {{ languageStore.t('last_name', 'Last Name') }} * </label>
+          <label class="block mb-2 font-medium text-slate-700 dark:text-slate-300">
+            {{ languageStore.t('last_name', 'Last Name') }} *
+          </label>
 
           <input
             v-model="form.last_name"
@@ -89,7 +97,9 @@ const updatePreferences = (value: string) => {
         </div>
 
         <div>
-          <label class="block mb-2 font-medium text-slate-700 dark:text-slate-300"> {{ languageStore.t('email', 'Email') }} </label>
+          <label class="block mb-2 font-medium text-slate-700 dark:text-slate-300">
+            {{ languageStore.t('email', 'Email') }}
+          </label>
 
           <input
             v-model="form.email"
@@ -100,7 +110,9 @@ const updatePreferences = (value: string) => {
         </div>
 
         <div>
-          <label class="block mb-2 font-medium text-slate-700 dark:text-slate-300"> {{ languageStore.t('phone', 'Phone') }} * </label>
+          <label class="block mb-2 font-medium text-slate-700 dark:text-slate-300">
+            {{ languageStore.t('phone', 'Phone') }} *
+          </label>
 
           <input
             v-model="form.phone"
@@ -113,8 +125,12 @@ const updatePreferences = (value: string) => {
     </div>
     <!-- Address -->
 
-    <div class="bg-white dark:bg-slate-800 rounded-xl shadow p-6 border border-slate-200 dark:border-slate-700">
-      <h2 class="text-xl font-semibold mb-6 text-slate-900 dark:text-white">{{ languageStore.t('address', 'Address') }}</h2>
+    <div
+      class="bg-white dark:bg-slate-800 rounded-xl shadow p-6 border border-slate-200 dark:border-slate-700"
+    >
+      <h2 class="text-xl font-semibold mb-6 text-slate-900 dark:text-white">
+        {{ languageStore.t('address', 'Address') }}
+      </h2>
 
       <textarea
         v-model="form.address"
@@ -126,8 +142,12 @@ const updatePreferences = (value: string) => {
 
     <!-- Preferences -->
 
-    <div class="bg-white dark:bg-slate-800 rounded-xl shadow p-6 border border-slate-200 dark:border-slate-700">
-      <h2 class="text-xl font-semibold mb-6 text-slate-900 dark:text-white">{{ languageStore.t('preferences', 'Preferences') }}</h2>
+    <div
+      class="bg-white dark:bg-slate-800 rounded-xl shadow p-6 border border-slate-200 dark:border-slate-700"
+    >
+      <h2 class="text-xl font-semibold mb-6 text-slate-900 dark:text-white">
+        {{ languageStore.t('preferences', 'Preferences') }}
+      </h2>
 
       <input
         :value="preferenceText()"
@@ -136,13 +156,19 @@ const updatePreferences = (value: string) => {
         placeholder="Non Smoking, Sea View, King Bed"
       />
 
-      <p class="text-sm text-gray-500 dark:text-slate-400 mt-2">{{ languageStore.t('separate_preferences', 'Separate preferences using commas.') }}</p>
+      <p class="text-sm text-gray-500 dark:text-slate-400 mt-2">
+        {{ languageStore.t('separate_preferences', 'Separate preferences using commas.') }}
+      </p>
     </div>
 
     <!-- Buttons -->
 
     <div class="flex justify-end gap-4">
-      <button type="button" @click="emit('cancel')" class="px-6 py-3 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition">
+      <button
+        type="button"
+        @click="emit('cancel')"
+        class="px-6 py-3 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition"
+      >
         {{ languageStore.t('cancel', 'Cancel') }}
       </button>
 
@@ -151,7 +177,11 @@ const updatePreferences = (value: string) => {
         :disabled="loading"
         class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg disabled:opacity-50 transition cursor-pointer"
       >
-        {{ loading ? languageStore.t('saving', 'Saving...') : languageStore.t('save_guest', 'Save Guest') }}
+        {{
+          loading
+            ? languageStore.t('saving', 'Saving...')
+            : languageStore.t('save_guest', 'Save Guest')
+        }}
       </button>
     </div>
   </form>

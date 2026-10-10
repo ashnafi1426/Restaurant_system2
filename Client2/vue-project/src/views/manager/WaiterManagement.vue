@@ -1,218 +1,228 @@
 <template>
   <DashboardLayout>
-  <div class="waiter-management">
-    <div class="page-header">
-      <div class="header-content">
-        <div class="flex items-center gap-2">
-          <h1>Waiter Management</h1>
-          <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
-            <Building2 class="w-3 h-3" />
-            {{ hotelStore.hotelName }}
-          </span>
+    <div class="waiter-management">
+      <div class="page-header">
+        <div class="header-content">
+          <div class="flex items-center gap-2">
+            <h1>Waiter Management</h1>
+            <span
+              v-if="hotelStore.hotelName"
+              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
+            >
+              <Building2 class="w-3 h-3" />
+              {{ hotelStore.hotelName }}
+            </span>
+          </div>
+          <p>Manage hotel waiters, assignments, and performance</p>
         </div>
-        <p>Manage hotel waiters, assignments, and performance</p>
-      </div>
-      <button class="btn btn-primary" @click="showRegisterModal = true">
-        <i class="icon-plus" /> Register New Waiter
-      </button>
-    </div>
-
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon active">
-          <i class="icon-check-circle" />
-        </div>
-        <div class="stat-content">
-          <h3>{{ totalWaiters }}</h3>
-          <p>Total Waiters</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon success">
-          <i class="icon-user-check" />
-        </div>
-        <div class="stat-content">
-          <h3>{{ activeWaiters.length }}</h3>
-          <p>Active Waiters</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon warning">
-          <i class="icon-alert-circle" />
-        </div>
-        <div class="stat-content">
-          <h3>{{ busyWaiters.length }}</h3>
-          <p>Currently Busy</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon info">
-          <i class="icon-available" />
-        </div>
-        <div class="stat-content">
-          <h3>{{ availableWaiters.length }}</h3>
-          <p>Available Now</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="filters-section">
-      <div class="search-box">
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search by name, email, or phone..."
-          @input="handleSearch"
-        />
-        <i class="icon-search" />
-      </div>
-
-      <div class="filter-buttons">
-        <button
-          v-for="status in ['All', 'Active', 'Inactive', 'Suspended']"
-          :key="status"
-          class="filter-btn"
-          :class="{ active: selectedFilter === status }"
-          @click="handleFilter(status)"
-        >
-          {{ status }}
+        <button class="btn btn-primary" @click="showRegisterModal = true">
+          <i class="icon-plus" /> Register New Waiter
         </button>
       </div>
-    </div>
 
-    <div v-if="error" class="alert alert-error">
-      {{ error }}
-      <button @click="clearError" class="btn-close">×</button>
-    </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon active">
+            <i class="icon-check-circle" />
+          </div>
+          <div class="stat-content">
+            <h3>{{ totalWaiters }}</h3>
+            <p>Total Waiters</p>
+          </div>
+        </div>
 
-    <div v-if="isLoading" class="loading-state py-16 text-center flex flex-col items-center justify-center gap-3">
-      <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-      <p class="text-xs font-bold text-slate-600 dark:text-slate-400">Loading waiters...</p>
-    </div>
+        <div class="stat-card">
+          <div class="stat-icon success">
+            <i class="icon-user-check" />
+          </div>
+          <div class="stat-content">
+            <h3>{{ activeWaiters.length }}</h3>
+            <p>Active Waiters</p>
+          </div>
+        </div>
 
-    <div v-else class="table-section">
-      <WaiterTable
-        :waiters="waiters"
-        @view="handleViewWaiter"
-        @edit="handleEditWaiter"
-        @change-availability="handleChangeAvailability"
-        @toggle-status="handleToggleStatus"
-        @suspend="handleSuspendWaiter"
-        @delete="handleDeleteWaiter"
-      />
+        <div class="stat-card">
+          <div class="stat-icon warning">
+            <i class="icon-alert-circle" />
+          </div>
+          <div class="stat-content">
+            <h3>{{ busyWaiters.length }}</h3>
+            <p>Currently Busy</p>
+          </div>
+        </div>
 
-      <div v-if="totalPages > 1" class="pagination">
-        <button
-          :disabled="currentPage === 1"
-          @click="goToPage(currentPage - 1)"
-          class="btn btn-secondary"
-        >
-          Previous
-        </button>
+        <div class="stat-card">
+          <div class="stat-icon info">
+            <i class="icon-available" />
+          </div>
+          <div class="stat-content">
+            <h3>{{ availableWaiters.length }}</h3>
+            <p>Available Now</p>
+          </div>
+        </div>
+      </div>
 
-        <div class="page-numbers">
+      <div class="filters-section">
+        <div class="search-box">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search by name, email, or phone..."
+            @input="handleSearch"
+          />
+          <i class="icon-search" />
+        </div>
+
+        <div class="filter-buttons">
           <button
-            v-for="page in totalPages"
-            :key="page"
-            @click="goToPage(page)"
-            class="page-btn"
-            :class="{ active: page === currentPage }"
+            v-for="status in ['All', 'Active', 'Inactive', 'Suspended']"
+            :key="status"
+            class="filter-btn"
+            :class="{ active: selectedFilter === status }"
+            @click="handleFilter(status)"
           >
-            {{ page }}
+            {{ status }}
           </button>
         </div>
-
-        <button
-          :disabled="currentPage === totalPages"
-          @click="goToPage(currentPage + 1)"
-          class="btn btn-secondary"
-        >
-          Next
-        </button>
       </div>
-    </div>
 
-    <div v-if="showRegisterModal" class="modal-overlay" @click="closeModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h2>Register New Waiter</h2>
-          <button @click="closeModal" class="btn-close">×</button>
+      <div v-if="error" class="alert alert-error">
+        {{ error }}
+        <button @click="clearError" class="btn-close">×</button>
+      </div>
+
+      <div
+        v-if="isLoading"
+        class="loading-state py-16 text-center flex flex-col items-center justify-center gap-3"
+      >
+        <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+        <p class="text-xs font-bold text-slate-600 dark:text-slate-400">Loading waiters...</p>
+      </div>
+
+      <div v-else class="table-section">
+        <WaiterTable
+          :waiters="waiters"
+          @view="handleViewWaiter"
+          @edit="handleEditWaiter"
+          @change-availability="handleChangeAvailability"
+          @toggle-status="handleToggleStatus"
+          @suspend="handleSuspendWaiter"
+          @delete="handleDeleteWaiter"
+        />
+
+        <div v-if="totalPages > 1" class="pagination">
+          <button
+            :disabled="currentPage === 1"
+            @click="goToPage(currentPage - 1)"
+            class="btn btn-secondary"
+          >
+            Previous
+          </button>
+
+          <div class="page-numbers">
+            <button
+              v-for="page in totalPages"
+              :key="page"
+              @click="goToPage(page)"
+              class="page-btn"
+              :class="{ active: page === currentPage }"
+            >
+              {{ page }}
+            </button>
+          </div>
+
+          <button
+            :disabled="currentPage === totalPages"
+            @click="goToPage(currentPage + 1)"
+            class="btn btn-secondary"
+          >
+            Next
+          </button>
         </div>
+      </div>
 
-        <form @submit.prevent="submitRegister" class="form">
-          <div class="form-row">
-            <div class="form-group">
-              <label>First Name *</label>
-              <input v-model="registerForm.first_name" type="text" required />
-            </div>
-            <div class="form-group">
-              <label>Last Name *</label>
-              <input v-model="registerForm.last_name" type="text" required />
-            </div>
+      <div v-if="showRegisterModal" class="modal-overlay" @click="closeModal">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h2>Register New Waiter</h2>
+            <button @click="closeModal" class="btn-close">×</button>
           </div>
 
-          <div class="form-group">
-            <label>Email *</label>
-            <input v-model="registerForm.email" type="email" required />
-          </div>
+          <form @submit.prevent="submitRegister" class="form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>First Name *</label>
+                <input v-model="registerForm.first_name" type="text" required />
+              </div>
+              <div class="form-group">
+                <label>Last Name *</label>
+                <input v-model="registerForm.last_name" type="text" required />
+              </div>
+            </div>
 
-          <div class="form-row">
             <div class="form-group">
-              <label>Phone *</label>
-              <input v-model="registerForm.phone" type="tel" required />
+              <label>Email *</label>
+              <input v-model="registerForm.email" type="email" required />
             </div>
-            <div class="form-group">
-              <label>Employee Number</label>
-              <input v-model="registerForm.employee_number" type="text" />
-            </div>
-          </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label>Employment Type *</label>
-              <select v-model="registerForm.employment_type" required>
-                <option value="full_time">Full Time</option>
-                <option value="part_time">Part Time</option>
-                <option value="contract">Contract</option>
-              </select>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Phone *</label>
+                <input v-model="registerForm.phone" type="tel" required />
+              </div>
+              <div class="form-group">
+                <label>Employee Number</label>
+                <input v-model="registerForm.employee_number" type="text" />
+              </div>
             </div>
-            <div class="form-group">
-              <label>Hire Date *</label>
-              <input v-model="registerForm.hire_date" type="date" required />
-            </div>
-          </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label>Password *</label>
-              <input v-model="registerForm.password" type="password" required />
+            <div class="form-row">
+              <div class="form-group">
+                <label>Employment Type *</label>
+                <select v-model="registerForm.employment_type" required>
+                  <option value="full_time">Full Time</option>
+                  <option value="part_time">Part Time</option>
+                  <option value="contract">Contract</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Hire Date *</label>
+                <input v-model="registerForm.hire_date" type="date" required />
+              </div>
             </div>
-            <div class="form-group">
-              <label>Confirm Password *</label>
-              <input v-model="registerForm.password_confirmation" type="password" required />
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Password *</label>
+                <input v-model="registerForm.password" type="password" required />
+              </div>
+              <div class="form-group">
+                <label>Confirm Password *</label>
+                <input v-model="registerForm.password_confirmation" type="password" required />
+              </div>
             </div>
-          </div>
 
-          <div class="form-group">
-            <label>Maximum Orders *</label>
-            <input v-model.number="registerForm.maximum_orders" type="number" min="1" max="20" required />
-          </div>
+            <div class="form-group">
+              <label>Maximum Orders *</label>
+              <input
+                v-model.number="registerForm.maximum_orders"
+                type="number"
+                min="1"
+                max="20"
+                required
+              />
+            </div>
 
-          <div class="modal-footer">
-            <button type="button" @click="closeModal" class="btn btn-secondary">
-              Cancel
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-              {{ isSubmitting ? 'Registering...' : 'Register Waiter' }}
-            </button>
-          </div>
-        </form>
+            <div class="modal-footer">
+              <button type="button" @click="closeModal" class="btn btn-secondary">Cancel</button>
+              <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+                {{ isSubmitting ? 'Registering...' : 'Register Waiter' }}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
-  </div>
   </DashboardLayout>
 </template>
 
@@ -259,9 +269,12 @@ onMounted(() => {
   store.fetchWaiters()
 })
 
-watch(() => hotelStore.hotelId, () => {
-  store.fetchWaiters()
-})
+watch(
+  () => hotelStore.hotelId,
+  () => {
+    store.fetchWaiters()
+  },
+)
 
 async function handleSearch() {
   await store.fetchWaiters(1, searchQuery.value, null)
@@ -312,10 +325,13 @@ function handleEditWaiter(waiter: any) {}
 async function handleChangeAvailability(waiter: any) {
   const newStatus = prompt(
     'Select availability:\navailable\nbusy\nbreak\noffline',
-    waiter.availability
+    waiter.availability,
   )
   if (newStatus && ['available', 'busy', 'break', 'offline'].includes(newStatus)) {
-    await store.changeAvailability(waiter.id, newStatus as 'available' | 'busy' | 'break' | 'offline')
+    await store.changeAvailability(
+      waiter.id,
+      newStatus as 'available' | 'busy' | 'break' | 'offline',
+    )
   }
 }
 

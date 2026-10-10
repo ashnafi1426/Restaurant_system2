@@ -89,13 +89,19 @@ const isFullscreen = ref(false)
 
 const toggleFullscreen = () => {
   if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen?.().then(() => {
-      isFullscreen.value = true
-    }).catch(() => {})
+    document.documentElement
+      .requestFullscreen?.()
+      .then(() => {
+        isFullscreen.value = true
+      })
+      .catch(() => {})
   } else {
-    document.exitFullscreen?.().then(() => {
-      isFullscreen.value = false
-    }).catch(() => {})
+    document
+      .exitFullscreen?.()
+      .then(() => {
+        isFullscreen.value = false
+      })
+      .catch(() => {})
   }
 }
 
@@ -178,7 +184,7 @@ watch(
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '')
     }
-  }
+  },
 )
 
 const loadHotels = async () => {
@@ -362,7 +368,11 @@ const enterHotelViewMode = async (hotel: Hotel) => {
 
 const handleEnterHotelViewMode = enterHotelViewMode
 
-const updateStatus = async (hotelId: string, status: 'active' | 'inactive' | 'suspended', successText: string) => {
+const updateStatus = async (
+  hotelId: string,
+  status: 'active' | 'inactive' | 'suspended',
+  successText: string,
+) => {
   saving.value = true
   try {
     await platformService.updateHotelStatus(hotelId, status)
@@ -392,7 +402,11 @@ const handleDeactivateHotel = deactivateHotel
 
 const confirmSuspend = async () => {
   if (!selectedHotel.value) return
-  await updateStatus(selectedHotel.value.id, 'suspended', `Hotel "${selectedHotel.value.name}" is now SUSPENDED. Data is safely preserved.`)
+  await updateStatus(
+    selectedHotel.value.id,
+    'suspended',
+    `Hotel "${selectedHotel.value.name}" is now SUSPENDED. Data is safely preserved.`,
+  )
   showSuspendModal.value = false
 }
 
@@ -403,7 +417,10 @@ const confirmArchive = async () => {
   saving.value = true
   try {
     await platformService.archiveHotel(selectedHotel.value.id)
-    notify('success', `Hotel "${selectedHotel.value.name}" has been ARCHIVED. All records are preserved.`)
+    notify(
+      'success',
+      `Hotel "${selectedHotel.value.name}" has been ARCHIVED. All records are preserved.`,
+    )
     showArchiveModal.value = false
     await loadHotels()
   } catch (err: any) {
@@ -442,12 +459,18 @@ const handleConfirmPermanentDelete = confirmDelete
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans">
+    <div
+      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans"
+    >
       <!-- Header Banner Section -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+      >
         <div>
           <div class="flex items-center gap-3">
-            <div class="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+            <div
+              class="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
+            >
               <Building2 class="w-6 h-6" />
             </div>
             <div>
@@ -455,26 +478,38 @@ const handleConfirmPermanentDelete = confirmDelete
                 <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                   {{ languageStore.t('hotels_management', 'Hotels Management') }}
                 </h1>
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                <span
+                  class="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
+                >
                   {{ totalHotels }} {{ languageStore.t('hotels_count', 'Hotels') }}
                 </span>
               </div>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                {{ languageStore.t('hotels_governance_desc', 'Centralized platform governance to onboard, configure, suspend, and supervise multi-tenant hotel properties.') }}
+                {{
+                  languageStore.t(
+                    'hotels_governance_desc',
+                    'Centralized platform governance to onboard, configure, suspend, and supervise multi-tenant hotel properties.',
+                  )
+                }}
               </p>
             </div>
           </div>
         </div>
-
       </div>
 
       <!-- Feedback Alerts -->
-      <div v-if="successMessage" class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2">
+      <div
+        v-if="successMessage"
+        class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2"
+      >
         <CheckCircle2 class="w-4 h-4 flex-shrink-0" />
         <span>{{ successMessage }}</span>
       </div>
 
-      <div v-if="errorMessage" class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center gap-2">
+      <div
+        v-if="errorMessage"
+        class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center gap-2"
+      >
         <AlertCircle class="w-4 h-4 flex-shrink-0" />
         <span>{{ errorMessage }}</span>
       </div>
@@ -487,11 +522,18 @@ const handleConfirmPermanentDelete = confirmDelete
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
           <!-- Search Input -->
           <div class="relative flex-1">
-            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <Search
+              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+            />
             <input
               v-model="searchQuery"
               type="text"
-              :placeholder="languageStore.t('search_hotel_placeholder', 'Search hotel by name, city, email, code...')"
+              :placeholder="
+                languageStore.t(
+                  'search_hotel_placeholder',
+                  'Search hotel by name, city, email, code...',
+                )
+              "
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none font-medium"
             />
           </div>
@@ -504,11 +546,15 @@ const handleConfirmPermanentDelete = confirmDelete
             :class="[
               isFilterOpen
                 ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
-                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{ isFilterOpen ? languageStore.t('hide_filter', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
+            <span>{{
+              isFilterOpen
+                ? languageStore.t('hide_filter', 'Hide Filter')
+                : languageStore.t('filter', 'Filter')
+            }}</span>
           </button>
         </div>
 
@@ -610,10 +656,14 @@ const handleConfirmPermanentDelete = confirmDelete
       </Transition>
 
       <!-- HOTELS TABLE -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden"
+      >
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs border-collapse">
-            <thead class="bg-slate-100/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-700/80">
+            <thead
+              class="bg-slate-100/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-700/80"
+            >
               <tr>
                 <th class="py-4 px-5">{{ languageStore.t('hotel', 'Hotel') }}</th>
                 <th class="py-4 px-4">{{ languageStore.t('location', 'Location') }}</th>
@@ -623,7 +673,9 @@ const handleConfirmPermanentDelete = confirmDelete
                 <th class="py-4 px-5 text-right">{{ languageStore.t('actions', 'Actions') }}</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium">
+            <tbody
+              class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium"
+            >
               <!-- Loading Skeleton -->
               <tr v-if="loading">
                 <td colspan="6" class="p-12 text-center text-xs text-slate-400">
@@ -636,8 +688,17 @@ const handleConfirmPermanentDelete = confirmDelete
               <tr v-else-if="hotels.length === 0">
                 <td colspan="6" class="p-12 text-center text-xs text-slate-400">
                   <Building2 class="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                  <p class="font-bold">{{ languageStore.t('no_hotels_found', 'No hotels found.') }}</p>
-                  <p class="text-[11px] text-slate-400 mt-0.5">{{ languageStore.t('refine_hotel_search', 'Try refining your search or add a new hotel.') }}</p>
+                  <p class="font-bold">
+                    {{ languageStore.t('no_hotels_found', 'No hotels found.') }}
+                  </p>
+                  <p class="text-[11px] text-slate-400 mt-0.5">
+                    {{
+                      languageStore.t(
+                        'refine_hotel_search',
+                        'Try refining your search or add a new hotel.',
+                      )
+                    }}
+                  </p>
                 </td>
               </tr>
 
@@ -651,7 +712,9 @@ const handleConfirmPermanentDelete = confirmDelete
                 <!-- Hotel Name & Slug -->
                 <td class="py-4 px-5">
                   <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-sm flex-shrink-0">
+                    <div
+                      class="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-sm flex-shrink-0"
+                    >
                       {{ hotel.name.slice(0, 2).toUpperCase() }}
                     </div>
                     <div>
@@ -667,7 +730,9 @@ const handleConfirmPermanentDelete = confirmDelete
 
                 <!-- Location -->
                 <td class="py-4 px-4">
-                  <div class="flex items-center gap-1.5 text-xs text-slate-800 dark:text-slate-200 font-semibold">
+                  <div
+                    class="flex items-center gap-1.5 text-xs text-slate-800 dark:text-slate-200 font-semibold"
+                  >
                     <MapPin class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
                     <span>{{ hotel.city || 'N/A' }}</span>
                   </div>
@@ -678,18 +743,27 @@ const handleConfirmPermanentDelete = confirmDelete
 
                 <!-- Hotel Admin -->
                 <td class="py-4 px-4">
-                  <div class="flex items-center gap-1.5 text-xs text-slate-800 dark:text-slate-200 font-semibold">
+                  <div
+                    class="flex items-center gap-1.5 text-xs text-slate-800 dark:text-slate-200 font-semibold"
+                  >
                     <UserCheck class="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
-                    <span>{{ hotel.admin_name || languageStore.t('no_admin_assigned', 'No Admin Assigned') }}</span>
+                    <span>{{
+                      hotel.admin_name || languageStore.t('no_admin_assigned', 'No Admin Assigned')
+                    }}</span>
                   </div>
-                  <span v-if="hotel.admin_email" class="text-[10px] text-slate-400 block ml-5 font-mono">
+                  <span
+                    v-if="hotel.admin_email"
+                    class="text-[10px] text-slate-400 block ml-5 font-mono"
+                  >
                     {{ hotel.admin_email }}
                   </span>
                 </td>
 
                 <!-- Rooms -->
                 <td class="py-4 px-4">
-                  <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs">
+                  <span
+                    class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs"
+                  >
                     {{ hotel.rooms_count ?? 0 }} {{ languageStore.t('rooms', 'rooms') }}
                   </span>
                 </td>
@@ -749,7 +823,9 @@ const handleConfirmPermanentDelete = confirmDelete
                       class="w-full px-3.5 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center gap-2.5 font-bold transition cursor-pointer"
                     >
                       <LayoutDashboard class="w-3.5 h-3.5 text-indigo-500" />
-                      <span>{{ languageStore.t('view_hotel_dashboard', 'View Hotel Dashboard') }}</span>
+                      <span>{{
+                        languageStore.t('view_hotel_dashboard', 'View Hotel Dashboard')
+                      }}</span>
                     </button>
 
                     <button
@@ -820,21 +896,32 @@ const handleConfirmPermanentDelete = confirmDelete
         </div>
 
         <!-- Pagination Bar -->
-        <div v-if="lastPage > 1" class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div
+          v-if="lastPage > 1"
+          class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between"
+        >
           <span class="text-xs text-slate-500">
-            {{ languageStore.t('page', 'Page') }} {{ currentPage }} {{ languageStore.t('of', 'of') }} {{ lastPage }} ({{ totalHotels }} {{ languageStore.t('total', 'total') }})
+            {{ languageStore.t('page', 'Page') }} {{ currentPage }}
+            {{ languageStore.t('of', 'of') }} {{ lastPage }} ({{ totalHotels }}
+            {{ languageStore.t('total', 'total') }})
           </span>
           <div class="flex items-center gap-2">
             <button
               :disabled="currentPage <= 1"
-              @click="currentPage--; loadHotels()"
+              @click="
+                currentPage--
+                loadHotels()
+              "
               class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-bold disabled:opacity-40"
             >
               {{ languageStore.t('previous', 'Previous') }}
             </button>
             <button
               :disabled="currentPage >= lastPage"
-              @click="currentPage++; loadHotels()"
+              @click="
+                currentPage++
+                loadHotels()
+              "
               class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-bold disabled:opacity-40"
             >
               {{ languageStore.t('next', 'Next') }}
@@ -847,21 +934,43 @@ const handleConfirmPermanentDelete = confirmDelete
       <!-- 1. ADD NEW HOTEL MODAL -->
       <!-- ========================================================================= -->
       <Teleport to="body">
-        <div v-if="showCreateModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs" @click="showCreateModal = false"></div>
-          <div class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-150">
+        <div
+          v-if="showCreateModal"
+          class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+        >
+          <div
+            class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs"
+            @click="showCreateModal = false"
+          ></div>
+          <div
+            class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-150"
+          >
             <!-- Header -->
-            <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800">
+            <div
+              class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800"
+            >
               <div class="flex items-center gap-3">
                 <div class="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
                   <Building2 class="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 class="text-lg font-black text-slate-900 dark:text-white">{{ languageStore.t('create_new_hotel', 'Create New Hotel') }}</h2>
-                  <p class="text-xs text-slate-500">{{ languageStore.t('add_tenant_desc', 'Add a new tenant property to the platform') }}</p>
+                  <h2 class="text-lg font-black text-slate-900 dark:text-white">
+                    {{ languageStore.t('create_new_hotel', 'Create New Hotel') }}
+                  </h2>
+                  <p class="text-xs text-slate-500">
+                    {{
+                      languageStore.t(
+                        'add_tenant_desc',
+                        'Add a new tenant property to the platform',
+                      )
+                    }}
+                  </p>
                 </div>
               </div>
-              <button @click="showCreateModal = false" class="p-2 text-slate-400 hover:text-slate-600 rounded-xl cursor-pointer">
+              <button
+                @click="showCreateModal = false"
+                class="p-2 text-slate-400 hover:text-slate-600 rounded-xl cursor-pointer"
+              >
                 <X class="w-5 h-5" />
               </button>
             </div>
@@ -870,7 +979,9 @@ const handleConfirmPermanentDelete = confirmDelete
             <div class="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('hotel_name', 'Hotel Name') }} *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >{{ languageStore.t('hotel_name', 'Hotel Name') }} *</label
+                  >
                   <input
                     v-model="hotelForm.name"
                     type="text"
@@ -879,7 +990,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('hotel_slug', 'Hotel Slug') }} *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >{{ languageStore.t('hotel_slug', 'Hotel Slug') }} *</label
+                  >
                   <input
                     v-model="hotelForm.slug"
                     type="text"
@@ -888,7 +1001,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('email', 'Email') }} *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >{{ languageStore.t('email', 'Email') }} *</label
+                  >
                   <input
                     v-model="hotelForm.email"
                     type="email"
@@ -897,7 +1012,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('phone', 'Phone') }} *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >{{ languageStore.t('phone', 'Phone') }} *</label
+                  >
                   <input
                     v-model="hotelForm.phone"
                     type="text"
@@ -906,7 +1023,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div class="sm:col-span-2">
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('address', 'Address') }} *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >{{ languageStore.t('address', 'Address') }} *</label
+                  >
                   <input
                     v-model="hotelForm.address"
                     type="text"
@@ -915,7 +1034,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('city', 'City') }} *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >{{ languageStore.t('city', 'City') }} *</label
+                  >
                   <input
                     v-model="hotelForm.city"
                     type="text"
@@ -924,7 +1045,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('country', 'Country') }} *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >{{ languageStore.t('country', 'Country') }} *</label
+                  >
                   <input
                     v-model="hotelForm.country"
                     type="text"
@@ -933,7 +1056,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('timezone', 'Timezone') }} *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >{{ languageStore.t('timezone', 'Timezone') }} *</label
+                  >
                   <input
                     v-model="hotelForm.timezone"
                     type="text"
@@ -941,7 +1066,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('currency', 'Currency') }} *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >{{ languageStore.t('currency', 'Currency') }} *</label
+                  >
                   <input
                     v-model="hotelForm.currency"
                     type="text"
@@ -949,14 +1076,32 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div class="sm:col-span-2">
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('initial_status', 'Initial Status') }}</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('initial_status', 'Initial Status')
+                  }}</label>
                   <select
                     v-model="hotelForm.status"
                     class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
                   >
-                    <option value="active">{{ languageStore.t('operational_immediately', 'Active (Fully operational immediately)') }}</option>
-                    <option value="inactive">{{ languageStore.t('disabled_until_configured', 'Inactive (Disabled until configured)') }}</option>
-                    <option value="suspended">{{ languageStore.t('suspended', 'Suspended') }}</option>
+                    <option value="active">
+                      {{
+                        languageStore.t(
+                          'operational_immediately',
+                          'Active (Fully operational immediately)',
+                        )
+                      }}
+                    </option>
+                    <option value="inactive">
+                      {{
+                        languageStore.t(
+                          'disabled_until_configured',
+                          'Inactive (Disabled until configured)',
+                        )
+                      }}
+                    </option>
+                    <option value="suspended">
+                      {{ languageStore.t('suspended', 'Suspended') }}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -964,13 +1109,24 @@ const handleConfirmPermanentDelete = confirmDelete
               <!-- Initial Hotel Admin Section -->
               <div class="pt-4 border-t border-slate-200 dark:border-slate-800">
                 <label class="flex items-center gap-2 cursor-pointer mb-3">
-                  <input type="checkbox" v-model="createInitialAdmin" class="rounded text-indigo-600 accent-indigo-600" />
-                  <span class="font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('create_initial_admin', 'Create Initial Hotel Admin Account') }}</span>
+                  <input
+                    type="checkbox"
+                    v-model="createInitialAdmin"
+                    class="rounded text-indigo-600 accent-indigo-600"
+                  />
+                  <span class="font-extrabold text-slate-900 dark:text-white">{{
+                    languageStore.t('create_initial_admin', 'Create Initial Hotel Admin Account')
+                  }}</span>
                 </label>
 
-                <div v-if="createInitialAdmin" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-500/20">
+                <div
+                  v-if="createInitialAdmin"
+                  class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-500/20"
+                >
                   <div>
-                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('admin_first_name', 'Admin First Name') }} *</label>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                      >{{ languageStore.t('admin_first_name', 'Admin First Name') }} *</label
+                    >
                     <input
                       v-model="hotelForm.admin_first_name"
                       type="text"
@@ -979,7 +1135,9 @@ const handleConfirmPermanentDelete = confirmDelete
                     />
                   </div>
                   <div>
-                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('admin_last_name', 'Admin Last Name') }} *</label>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                      >{{ languageStore.t('admin_last_name', 'Admin Last Name') }} *</label
+                    >
                     <input
                       v-model="hotelForm.admin_last_name"
                       type="text"
@@ -988,7 +1146,9 @@ const handleConfirmPermanentDelete = confirmDelete
                     />
                   </div>
                   <div>
-                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('admin_email', 'Admin Email') }} *</label>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                      >{{ languageStore.t('admin_email', 'Admin Email') }} *</label
+                    >
                     <input
                       v-model="hotelForm.admin_email"
                       type="email"
@@ -997,11 +1157,15 @@ const handleConfirmPermanentDelete = confirmDelete
                     />
                   </div>
                   <div>
-                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('admin_password_hint', 'Password (Default: HotelAdmin123@)') }}</label>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                      languageStore.t('admin_password_hint', 'Password (Default: HotelAdmin123@)')
+                    }}</label>
                     <input
                       v-model="hotelForm.admin_password"
                       type="password"
-                      :placeholder="languageStore.t('leave_blank_default', 'Leave blank for default')"
+                      :placeholder="
+                        languageStore.t('leave_blank_default', 'Leave blank for default')
+                      "
                       class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
                     />
                   </div>
@@ -1010,7 +1174,9 @@ const handleConfirmPermanentDelete = confirmDelete
             </div>
 
             <!-- Footer -->
-            <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2.5">
+            <div
+              class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2.5"
+            >
               <button
                 type="button"
                 @click="showCreateModal = false"
@@ -1025,7 +1191,11 @@ const handleConfirmPermanentDelete = confirmDelete
                 class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs shadow-md transition disabled:opacity-50 flex items-center gap-1.5"
               >
                 <RefreshCw v-if="saving" class="w-3.5 h-3.5 animate-spin" />
-                <span>{{ saving ? languageStore.t('creating', 'Creating...') : languageStore.t('create_hotel', 'Create Hotel') }}</span>
+                <span>{{
+                  saving
+                    ? languageStore.t('creating', 'Creating...')
+                    : languageStore.t('create_hotel', 'Create Hotel')
+                }}</span>
               </button>
             </div>
           </div>
@@ -1036,21 +1206,40 @@ const handleConfirmPermanentDelete = confirmDelete
       <!-- 2. HOTEL DETAILS MODAL (With Statistics) -->
       <!-- ========================================================================= -->
       <Teleport to="body">
-        <div v-if="showDetailsModal && selectedHotel" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs" @click="showDetailsModal = false"></div>
-          <div class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-150">
+        <div
+          v-if="showDetailsModal && selectedHotel"
+          class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+        >
+          <div
+            class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs"
+            @click="showDetailsModal = false"
+          ></div>
+          <div
+            class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-150"
+          >
             <!-- Header -->
-            <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
+            <div
+              class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40"
+            >
               <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black text-lg">
+                <div
+                  class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black text-lg"
+                >
                   {{ selectedHotel.name.slice(0, 2).toUpperCase() }}
                 </div>
                 <div>
-                  <h2 class="text-xl font-black text-slate-900 dark:text-white">{{ selectedHotel.name }}</h2>
-                  <p class="text-xs text-slate-400 font-mono">{{ selectedHotel.slug }} · {{ selectedHotel.city }}, {{ selectedHotel.country }}</p>
+                  <h2 class="text-xl font-black text-slate-900 dark:text-white">
+                    {{ selectedHotel.name }}
+                  </h2>
+                  <p class="text-xs text-slate-400 font-mono">
+                    {{ selectedHotel.slug }} · {{ selectedHotel.city }}, {{ selectedHotel.country }}
+                  </p>
                 </div>
               </div>
-              <button @click="showDetailsModal = false" class="p-2 text-slate-400 hover:text-slate-600 rounded-xl cursor-pointer">
+              <button
+                @click="showDetailsModal = false"
+                class="p-2 text-slate-400 hover:text-slate-600 rounded-xl cursor-pointer"
+              >
                 <X class="w-5 h-5" />
               </button>
             </div>
@@ -1059,89 +1248,155 @@ const handleConfirmPermanentDelete = confirmDelete
             <div class="flex-1 overflow-y-auto p-6 space-y-6 text-xs">
               <!-- Statistics Cards Grid -->
               <div>
-                <h3 class="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-3">
+                <h3
+                  class="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-3"
+                >
                   {{ languageStore.t('hotel_statistics', 'Hotel Statistics & Overview') }}
                 </h3>
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                  <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
+                  <div
+                    class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center"
+                  >
                     <BedDouble class="w-5 h-5 text-indigo-500 mx-auto mb-1" />
-                    <span class="block text-base font-black text-slate-900 dark:text-white">{{ selectedHotel.rooms_count ?? 0 }}</span>
-                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{ languageStore.t('rooms', 'Rooms') }}</span>
+                    <span class="block text-base font-black text-slate-900 dark:text-white">{{
+                      selectedHotel.rooms_count ?? 0
+                    }}</span>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{
+                      languageStore.t('rooms', 'Rooms')
+                    }}</span>
                   </div>
-                  <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
+                  <div
+                    class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center"
+                  >
                     <Users class="w-5 h-5 text-blue-500 mx-auto mb-1" />
-                    <span class="block text-base font-black text-slate-900 dark:text-white">{{ selectedHotel.staff_count ?? 0 }}</span>
-                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{ languageStore.t('staff', 'Staff') }}</span>
+                    <span class="block text-base font-black text-slate-900 dark:text-white">{{
+                      selectedHotel.staff_count ?? 0
+                    }}</span>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{
+                      languageStore.t('staff', 'Staff')
+                    }}</span>
                   </div>
-                  <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
+                  <div
+                    class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center"
+                  >
                     <UserCheck class="w-5 h-5 text-teal-500 mx-auto mb-1" />
-                    <span class="block text-base font-black text-slate-900 dark:text-white">{{ selectedHotel.guests_count ?? 0 }}</span>
-                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{ languageStore.t('guests', 'Guests') }}</span>
+                    <span class="block text-base font-black text-slate-900 dark:text-white">{{
+                      selectedHotel.guests_count ?? 0
+                    }}</span>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{
+                      languageStore.t('guests', 'Guests')
+                    }}</span>
                   </div>
-                  <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
+                  <div
+                    class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center"
+                  >
                     <CalendarCheck class="w-5 h-5 text-amber-500 mx-auto mb-1" />
-                    <span class="block text-base font-black text-slate-900 dark:text-white">{{ selectedHotel.reservations_count ?? 0 }}</span>
-                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{ languageStore.t('bookings', 'Bookings') }}</span>
+                    <span class="block text-base font-black text-slate-900 dark:text-white">{{
+                      selectedHotel.reservations_count ?? 0
+                    }}</span>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{
+                      languageStore.t('bookings', 'Bookings')
+                    }}</span>
                   </div>
-                  <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
+                  <div
+                    class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center"
+                  >
                     <Utensils class="w-5 h-5 text-orange-500 mx-auto mb-1" />
-                    <span class="block text-base font-black text-slate-900 dark:text-white">{{ selectedHotel.orders_count ?? 0 }}</span>
-                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{ languageStore.t('orders', 'Orders') }}</span>
+                    <span class="block text-base font-black text-slate-900 dark:text-white">{{
+                      selectedHotel.orders_count ?? 0
+                    }}</span>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{
+                      languageStore.t('orders', 'Orders')
+                    }}</span>
                   </div>
-                  <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center">
+                  <div
+                    class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center"
+                  >
                     <DollarSign class="w-5 h-5 text-emerald-500 mx-auto mb-1" />
-                    <span class="block text-base font-black text-slate-900 dark:text-white">{{ formatCurrency(selectedHotel.revenue_total, selectedHotel.currency) }}</span>
-                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{ languageStore.t('revenue', 'Revenue') }}</span>
+                    <span class="block text-base font-black text-slate-900 dark:text-white">{{
+                      formatCurrency(selectedHotel.revenue_total, selectedHotel.currency)
+                    }}</span>
+                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{
+                      languageStore.t('revenue', 'Revenue')
+                    }}</span>
                   </div>
                 </div>
               </div>
 
               <!-- Information Grid -->
-              <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-3">
-                <h3 class="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider">
+              <div
+                class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-3"
+              >
+                <h3
+                  class="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider"
+                >
                   {{ languageStore.t('hotel_details', 'Hotel Details') }}
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div class="flex items-center gap-2">
                     <Mail class="w-4 h-4 text-slate-400" />
                     <div>
-                      <span class="text-slate-400 block text-[10px]">{{ languageStore.t('email', 'Email') }}</span>
-                      <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedHotel.email || 'N/A' }}</span>
+                      <span class="text-slate-400 block text-[10px]">{{
+                        languageStore.t('email', 'Email')
+                      }}</span>
+                      <span class="font-bold text-slate-800 dark:text-slate-200">{{
+                        selectedHotel.email || 'N/A'
+                      }}</span>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
                     <Phone class="w-4 h-4 text-slate-400" />
                     <div>
-                      <span class="text-slate-400 block text-[10px]">{{ languageStore.t('phone', 'Phone') }}</span>
-                      <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedHotel.phone || 'N/A' }}</span>
+                      <span class="text-slate-400 block text-[10px]">{{
+                        languageStore.t('phone', 'Phone')
+                      }}</span>
+                      <span class="font-bold text-slate-800 dark:text-slate-200">{{
+                        selectedHotel.phone || 'N/A'
+                      }}</span>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
                     <MapPin class="w-4 h-4 text-slate-400" />
                     <div>
-                      <span class="text-slate-400 block text-[10px]">{{ languageStore.t('address', 'Address') }}</span>
-                      <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedHotel.address || 'N/A' }}</span>
+                      <span class="text-slate-400 block text-[10px]">{{
+                        languageStore.t('address', 'Address')
+                      }}</span>
+                      <span class="font-bold text-slate-800 dark:text-slate-200">{{
+                        selectedHotel.address || 'N/A'
+                      }}</span>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
                     <Globe class="w-4 h-4 text-slate-400" />
                     <div>
-                      <span class="text-slate-400 block text-[10px]">{{ languageStore.t('location', 'Location') }}</span>
-                      <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedHotel.city }}, {{ selectedHotel.country }}</span>
+                      <span class="text-slate-400 block text-[10px]">{{
+                        languageStore.t('location', 'Location')
+                      }}</span>
+                      <span class="font-bold text-slate-800 dark:text-slate-200"
+                        >{{ selectedHotel.city }}, {{ selectedHotel.country }}</span
+                      >
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
                     <Clock class="w-4 h-4 text-slate-400" />
                     <div>
-                      <span class="text-slate-400 block text-[10px]">{{ languageStore.t('timezone', 'Timezone') }}</span>
-                      <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedHotel.timezone || 'Africa/Addis_Ababa' }}</span>
+                      <span class="text-slate-400 block text-[10px]">{{
+                        languageStore.t('timezone', 'Timezone')
+                      }}</span>
+                      <span class="font-bold text-slate-800 dark:text-slate-200">{{
+                        selectedHotel.timezone || 'Africa/Addis_Ababa'
+                      }}</span>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
                     <Coins class="w-4 h-4 text-slate-400" />
                     <div>
-                      <span class="text-slate-400 block text-[10px]">{{ languageStore.t('currency', 'Currency') }}</span>
-                      <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedHotel.currency || 'ETB' }}</span>
+                      <span class="text-slate-400 block text-[10px]">{{
+                        languageStore.t('currency', 'Currency')
+                      }}</span>
+                      <span class="font-bold text-slate-800 dark:text-slate-200">{{
+                        selectedHotel.currency || 'ETB'
+                      }}</span>
                     </div>
                   </div>
                 </div>
@@ -1149,10 +1404,15 @@ const handleConfirmPermanentDelete = confirmDelete
 
               <!-- Admins List -->
               <div>
-                <h3 class="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-2">
+                <h3
+                  class="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-2"
+                >
                   {{ languageStore.t('assigned_hotel_admins', 'Assigned Hotel Administrators') }}
                 </h3>
-                <div v-if="selectedHotel.admins && selectedHotel.admins.length > 0" class="space-y-2">
+                <div
+                  v-if="selectedHotel.admins && selectedHotel.admins.length > 0"
+                  class="space-y-2"
+                >
                   <div
                     v-for="adm in selectedHotel.admins"
                     :key="adm.id"
@@ -1160,23 +1420,34 @@ const handleConfirmPermanentDelete = confirmDelete
                   >
                     <div>
                       <span class="font-bold text-slate-900 dark:text-white">{{ adm.name }}</span>
-                      <span class="text-slate-400 block text-[11px] font-mono">{{ adm.email }}</span>
+                      <span class="text-slate-400 block text-[11px] font-mono">{{
+                        adm.email
+                      }}</span>
                     </div>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-500">
+                    <span
+                      class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-500"
+                    >
                       {{ languageStore.t('hotel_admin', 'Hotel Admin') }}
                     </span>
                   </div>
                 </div>
-                <div v-else class="p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-center text-slate-400">
+                <div
+                  v-else
+                  class="p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-center text-slate-400"
+                >
                   {{ languageStore.t('no_admins_yet', 'No hotel administrators assigned yet.') }}
                 </div>
               </div>
             </div>
 
             <!-- Footer -->
-            <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div
+              class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between"
+            >
               <div class="flex items-center gap-2">
-                <span class="text-[11px] text-slate-400">{{ languageStore.t('status', 'Status') }}:</span>
+                <span class="text-[11px] text-slate-400"
+                  >{{ languageStore.t('status', 'Status') }}:</span
+                >
                 <span class="font-bold uppercase text-xs">{{ selectedHotel.status }}</span>
               </div>
               <button
@@ -1194,20 +1465,42 @@ const handleConfirmPermanentDelete = confirmDelete
       <!-- 3. EDIT HOTEL MODAL -->
       <!-- ========================================================================= -->
       <Teleport to="body">
-        <div v-if="showEditModal && selectedHotel" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs" @click="showEditModal = false"></div>
-          <div class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-150">
-            <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800">
+        <div
+          v-if="showEditModal && selectedHotel"
+          class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+        >
+          <div
+            class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs"
+            @click="showEditModal = false"
+          ></div>
+          <div
+            class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-150"
+          >
+            <div
+              class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800"
+            >
               <div class="flex items-center gap-3">
                 <div class="p-2.5 rounded-xl bg-blue-500/10 text-blue-600">
                   <Edit class="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 class="text-lg font-black text-slate-900 dark:text-white">{{ languageStore.t('edit_hotel', 'Edit Hotel') }}</h2>
-                  <p class="text-xs text-slate-500">{{ languageStore.t('update_hotel_desc', 'Update hotel profile and contact information') }}</p>
+                  <h2 class="text-lg font-black text-slate-900 dark:text-white">
+                    {{ languageStore.t('edit_hotel', 'Edit Hotel') }}
+                  </h2>
+                  <p class="text-xs text-slate-500">
+                    {{
+                      languageStore.t(
+                        'update_hotel_desc',
+                        'Update hotel profile and contact information',
+                      )
+                    }}
+                  </p>
                 </div>
               </div>
-              <button @click="showEditModal = false" class="p-2 text-slate-400 hover:text-slate-600 rounded-xl cursor-pointer">
+              <button
+                @click="showEditModal = false"
+                class="p-2 text-slate-400 hover:text-slate-600 rounded-xl cursor-pointer"
+              >
                 <X class="w-5 h-5" />
               </button>
             </div>
@@ -1215,7 +1508,9 @@ const handleConfirmPermanentDelete = confirmDelete
             <div class="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div class="sm:col-span-2">
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('hotel_name', 'Hotel Name') }} *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >{{ languageStore.t('hotel_name', 'Hotel Name') }} *</label
+                  >
                   <input
                     v-model="editForm.name"
                     type="text"
@@ -1223,7 +1518,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('email', 'Email') }}</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('email', 'Email')
+                  }}</label>
                   <input
                     v-model="editForm.email"
                     type="email"
@@ -1231,7 +1528,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('phone', 'Phone') }}</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('phone', 'Phone')
+                  }}</label>
                   <input
                     v-model="editForm.phone"
                     type="text"
@@ -1239,7 +1538,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div class="sm:col-span-2">
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('address', 'Address') }}</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('address', 'Address')
+                  }}</label>
                   <input
                     v-model="editForm.address"
                     type="text"
@@ -1247,7 +1548,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('city', 'City') }}</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('city', 'City')
+                  }}</label>
                   <input
                     v-model="editForm.city"
                     type="text"
@@ -1255,7 +1558,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('country', 'Country') }}</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('country', 'Country')
+                  }}</label>
                   <input
                     v-model="editForm.country"
                     type="text"
@@ -1263,7 +1568,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('timezone', 'Timezone') }}</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('timezone', 'Timezone')
+                  }}</label>
                   <input
                     v-model="editForm.timezone"
                     type="text"
@@ -1271,7 +1578,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{ languageStore.t('currency', 'Currency') }}</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('currency', 'Currency')
+                  }}</label>
                   <input
                     v-model="editForm.currency"
                     type="text"
@@ -1281,7 +1590,9 @@ const handleConfirmPermanentDelete = confirmDelete
               </div>
             </div>
 
-            <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2.5">
+            <div
+              class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2.5"
+            >
               <button
                 @click="showEditModal = false"
                 class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs"
@@ -1294,7 +1605,11 @@ const handleConfirmPermanentDelete = confirmDelete
                 class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs shadow-md transition disabled:opacity-50 flex items-center gap-1.5"
               >
                 <RefreshCw v-if="saving" class="w-3.5 h-3.5 animate-spin" />
-                <span>{{ saving ? languageStore.t('saving', 'Saving...') : languageStore.t('save_changes', 'Save Changes') }}</span>
+                <span>{{
+                  saving
+                    ? languageStore.t('saving', 'Saving...')
+                    : languageStore.t('save_changes', 'Save Changes')
+                }}</span>
               </button>
             </div>
           </div>
@@ -1305,22 +1620,39 @@ const handleConfirmPermanentDelete = confirmDelete
       <!-- 4. SUSPEND HOTEL MODAL -->
       <!-- ========================================================================= -->
       <Teleport to="body">
-        <div v-if="showSuspendModal && selectedHotel" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs" @click="showSuspendModal = false"></div>
-          <div class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl text-xs space-y-4">
+        <div
+          v-if="showSuspendModal && selectedHotel"
+          class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+        >
+          <div
+            class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs"
+            @click="showSuspendModal = false"
+          ></div>
+          <div
+            class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl text-xs space-y-4"
+          >
             <div class="flex items-center gap-3">
               <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
                 <ShieldAlert class="w-6 h-6" />
               </div>
               <div>
-                <h3 class="text-base font-black text-slate-900 dark:text-white">{{ languageStore.t('suspend_hotel_title', 'Suspend Hotel Property') }}</h3>
-                <p class="text-slate-400">{{ languageStore.t('suspend_hotel_desc', 'Restricts tenant access while preserving all data') }}</p>
+                <h3 class="text-base font-black text-slate-900 dark:text-white">
+                  {{ languageStore.t('suspend_hotel_title', 'Suspend Hotel Property') }}
+                </h3>
+                <p class="text-slate-400">
+                  {{
+                    languageStore.t(
+                      'suspend_hotel_desc',
+                      'Restricts tenant access while preserving all data',
+                    )
+                  }}
+                </p>
               </div>
             </div>
 
             <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
-              Are you sure you want to suspend <strong>{{ selectedHotel.name }}</strong>?
-              Hotel staff and administrators will immediately be unable to operate the system.
+              Are you sure you want to suspend <strong>{{ selectedHotel.name }}</strong
+              >? Hotel staff and administrators will immediately be unable to operate the system.
               <span class="text-emerald-600 dark:text-emerald-400 block font-bold mt-1">
                 ✓ No historical data, bookings, or payments will be deleted.
               </span>
@@ -1338,7 +1670,11 @@ const handleConfirmPermanentDelete = confirmDelete
                 @click="handleConfirmSuspend"
                 class="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold shadow-md transition disabled:opacity-50"
               >
-                {{ saving ? languageStore.t('suspending', 'Suspending...') : languageStore.t('confirm_suspension', 'Confirm Suspension') }}
+                {{
+                  saving
+                    ? languageStore.t('suspending', 'Suspending...')
+                    : languageStore.t('confirm_suspension', 'Confirm Suspension')
+                }}
               </button>
             </div>
           </div>
@@ -1349,22 +1685,40 @@ const handleConfirmPermanentDelete = confirmDelete
       <!-- 5. ARCHIVE HOTEL MODAL -->
       <!-- ========================================================================= -->
       <Teleport to="body">
-        <div v-if="showArchiveModal && selectedHotel" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs" @click="showArchiveModal = false"></div>
-          <div class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl text-xs space-y-4">
+        <div
+          v-if="showArchiveModal && selectedHotel"
+          class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+        >
+          <div
+            class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs"
+            @click="showArchiveModal = false"
+          ></div>
+          <div
+            class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl text-xs space-y-4"
+          >
             <div class="flex items-center gap-3">
               <div class="p-3 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
                 <Archive class="w-6 h-6" />
               </div>
               <div>
-                <h3 class="text-base font-black text-slate-900 dark:text-white">{{ languageStore.t('archive_hotel_title', 'Archive Hotel Property') }}</h3>
-                <p class="text-slate-400">{{ languageStore.t('archive_hotel_desc', 'Safe storage without accidental permanent deletion') }}</p>
+                <h3 class="text-base font-black text-slate-900 dark:text-white">
+                  {{ languageStore.t('archive_hotel_title', 'Archive Hotel Property') }}
+                </h3>
+                <p class="text-slate-400">
+                  {{
+                    languageStore.t(
+                      'archive_hotel_desc',
+                      'Safe storage without accidental permanent deletion',
+                    )
+                  }}
+                </p>
               </div>
             </div>
 
             <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
-              Archiving <strong>{{ selectedHotel.name }}</strong> safely marks it as archived while retaining all 
-              reservations, guest profiles, financial payments, and order histories indefinitely.
+              Archiving <strong>{{ selectedHotel.name }}</strong> safely marks it as archived while
+              retaining all reservations, guest profiles, financial payments, and order histories
+              indefinitely.
             </p>
 
             <div class="flex items-center justify-end gap-2.5 pt-2">
@@ -1379,7 +1733,11 @@ const handleConfirmPermanentDelete = confirmDelete
                 @click="handleConfirmArchive"
                 class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold shadow-md transition disabled:opacity-50"
               >
-                {{ saving ? languageStore.t('archiving', 'Archiving...') : languageStore.t('archive_property', 'Archive Property') }}
+                {{
+                  saving
+                    ? languageStore.t('archiving', 'Archiving...')
+                    : languageStore.t('archive_property', 'Archive Property')
+                }}
               </button>
             </div>
           </div>
@@ -1390,27 +1748,40 @@ const handleConfirmPermanentDelete = confirmDelete
       <!-- 6. PERMANENT DELETE MODAL -->
       <!-- ========================================================================= -->
       <Teleport to="body">
-        <div v-if="showDeleteModal && selectedHotel" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs" @click="showDeleteModal = false"></div>
-          <div class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl text-xs space-y-4">
+        <div
+          v-if="showDeleteModal && selectedHotel"
+          class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+        >
+          <div
+            class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs"
+            @click="showDeleteModal = false"
+          ></div>
+          <div
+            class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl text-xs space-y-4"
+          >
             <div class="flex items-center gap-3">
               <div class="p-3 rounded-2xl bg-rose-500/10 text-rose-600">
                 <Trash2 class="w-6 h-6" />
               </div>
               <div>
-                <h3 class="text-base font-black text-rose-600 dark:text-rose-400">{{ languageStore.t('permanent_destruction', 'Permanent Destruction') }}</h3>
-                <p class="text-slate-400">{{ languageStore.t('high_risk_action', 'High-risk action') }}</p>
+                <h3 class="text-base font-black text-rose-600 dark:text-rose-400">
+                  {{ languageStore.t('permanent_destruction', 'Permanent Destruction') }}
+                </h3>
+                <p class="text-slate-400">
+                  {{ languageStore.t('high_risk_action', 'High-risk action') }}
+                </p>
               </div>
             </div>
 
             <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
-              Permanent deletion will completely remove <strong>{{ selectedHotel.name }}</strong>. 
-              To confirm, please type the exact hotel name below:
+              Permanent deletion will completely remove <strong>{{ selectedHotel.name }}</strong
+              >. To confirm, please type the exact hotel name below:
             </p>
 
             <div>
               <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                Type <span class="font-mono text-rose-600 font-bold">{{ selectedHotel.name }}</span> {{ languageStore.t('type_to_confirm', 'to confirm:') }}
+                Type <span class="font-mono text-rose-600 font-bold">{{ selectedHotel.name }}</span>
+                {{ languageStore.t('type_to_confirm', 'to confirm:') }}
               </label>
               <input
                 v-model="deleteConfirmName"
@@ -1431,7 +1802,11 @@ const handleConfirmPermanentDelete = confirmDelete
                 @click="handleConfirmPermanentDelete"
                 class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-40 text-white font-extrabold shadow-md transition"
               >
-                {{ saving ? languageStore.t('deleting', 'Deleting...') : languageStore.t('delete_permanently', 'Delete Permanently') }}
+                {{
+                  saving
+                    ? languageStore.t('deleting', 'Deleting...')
+                    : languageStore.t('delete_permanently', 'Delete Permanently')
+                }}
               </button>
             </div>
           </div>

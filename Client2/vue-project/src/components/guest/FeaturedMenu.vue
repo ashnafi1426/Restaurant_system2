@@ -79,7 +79,11 @@ const placeholderImage = 'https://images.unsplash.com/photo-1544025162-d76694265
           <div class="flex items-center justify-between mt-6">
             <div>
               <p class="text-2xl font-bold text-teal-600">
-                {{ (item.total_price != null ? Number(item.total_price).toFixed(2) : Number(item.price).toFixed(2)) }}
+                {{
+                  item.total_price != null
+                    ? Number(item.total_price).toFixed(2)
+                    : Number(item.price).toFixed(2)
+                }}
                 ETB
               </p>
             </div>

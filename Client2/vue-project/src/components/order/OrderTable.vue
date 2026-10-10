@@ -11,7 +11,7 @@ import {
   Loader2,
   ShoppingBag,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -162,7 +162,9 @@ function paymentClass(payment: Order['payment_type']): string {
     chapa: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
     online: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
   }
-  return classes[payment] || 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
+  return (
+    classes[payment] || 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
+  )
 }
 
 function paymentLabel(payment: Order['payment_type']): string {
@@ -184,20 +186,30 @@ function handleClickOutside() {
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs font-sans w-full" @click="handleClickOutside">
+  <div
+    class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs font-sans w-full"
+    @click="handleClickOutside"
+  >
     <!-- Loading State -->
-    <div v-if="loading" class="p-10 text-center flex flex-col items-center justify-center space-y-2">
+    <div
+      v-if="loading"
+      class="p-10 text-center flex flex-col items-center justify-center space-y-2"
+    >
       <Loader2 class="w-7 h-7 text-blue-600 dark:text-blue-400 animate-spin" />
       <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Loading order records...</p>
     </div>
 
     <!-- Empty State -->
     <div v-else-if="orders.length === 0" class="p-10 text-center space-y-2">
-      <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+      <div
+        class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto"
+      >
         <ShoppingBag class="w-5 h-5" />
       </div>
       <h3 class="text-xs font-black text-slate-900 dark:text-white">No Orders Found</h3>
-      <p class="text-[11px] text-slate-500 dark:text-slate-400">No orders match your current search filters.</p>
+      <p class="text-[11px] text-slate-500 dark:text-slate-400">
+        No orders match your current search filters.
+      </p>
     </div>
 
     <template v-else>
@@ -221,7 +233,9 @@ function handleClickOutside() {
             </span>
           </div>
 
-          <div class="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300 bg-slate-50/70 dark:bg-slate-950 p-2 rounded-xl border border-slate-200 dark:border-slate-800">
+          <div
+            class="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300 bg-slate-50/70 dark:bg-slate-950 p-2 rounded-xl border border-slate-200 dark:border-slate-800"
+          >
             <div>
               <span class="text-[9px] text-slate-400 block font-bold uppercase">Guest</span>
               <span class="font-bold text-slate-900 dark:text-white truncate block text-xs">
@@ -231,13 +245,22 @@ function handleClickOutside() {
             <div>
               <span class="text-[9px] text-slate-400 block font-bold uppercase">Room / Table</span>
               <span class="font-bold text-slate-900 dark:text-white block text-xs">
-                {{ order.room?.room_number ? 'Room ' + order.room.room_number : (order.table?.table_number ? 'Table ' + order.table.table_number : 'N/A') }}
+                {{
+                  order.room?.room_number
+                    ? 'Room ' + order.room.room_number
+                    : order.table?.table_number
+                      ? 'Table ' + order.table.table_number
+                      : 'N/A'
+                }}
               </span>
             </div>
           </div>
 
           <div class="flex items-center justify-between text-xs pt-0.5">
-            <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold border" :class="paymentClass(order.payment_type)">
+            <span
+              class="px-2 py-0.5 rounded-md text-[10px] font-extrabold border"
+              :class="paymentClass(order.payment_type)"
+            >
               {{ paymentLabel(order.payment_type) }}
             </span>
             <span class="font-black text-xs text-slate-900 dark:text-white">
@@ -250,7 +273,9 @@ function handleClickOutside() {
       <!-- Desktop Table View -->
       <div class="hidden sm:block overflow-x-auto w-full">
         <table class="w-full text-left border-collapse">
-          <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+          <thead
+            class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
+          >
             <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
               <th class="px-3 py-3 whitespace-nowrap pl-4">Order Ref</th>
               <th class="px-3 py-3 whitespace-nowrap">Guest</th>
@@ -278,7 +303,9 @@ function handleClickOutside() {
               <!-- Guest -->
               <td class="px-3 py-3">
                 <div class="flex items-center gap-2 max-w-[160px]">
-                  <div class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-black text-[9px] flex items-center justify-center flex-shrink-0">
+                  <div
+                    class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-black text-[9px] flex items-center justify-center flex-shrink-0"
+                  >
                     {{ (getGuestDisplayName(order.guest)?.[0] || 'G').toUpperCase() }}
                   </div>
                   <div class="min-w-0 flex-1">
@@ -294,11 +321,17 @@ function handleClickOutside() {
 
               <!-- Room / Table -->
               <td class="px-2.5 py-2.5 whitespace-nowrap">
-                <span v-if="order.room?.room_number" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700">
+                <span
+                  v-if="order.room?.room_number"
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
+                >
                   <BedDouble class="w-3 h-3 text-slate-400" />
                   Room {{ order.room.room_number }}
                 </span>
-                <span v-else-if="order.table?.table_number" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800">
+                <span
+                  v-else-if="order.table?.table_number"
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800"
+                >
                   Table {{ order.table.table_number }}
                 </span>
                 <span v-else class="text-slate-400 text-xs italic">N/A</span>
@@ -318,18 +351,25 @@ function handleClickOutside() {
                   class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-extrabold border"
                   :class="statusClass(order.status)"
                 >
-                  <span class="h-1.5 w-1.5 rounded-full flex-shrink-0" :class="statusDot(order.status)"></span>
+                  <span
+                    class="h-1.5 w-1.5 rounded-full flex-shrink-0"
+                    :class="statusDot(order.status)"
+                  ></span>
                   <span>{{ statusLabel(order.status) }}</span>
                 </span>
               </td>
 
               <!-- Total -->
-              <td class="px-2.5 py-2.5 text-right whitespace-nowrap font-extrabold text-slate-900 dark:text-white text-xs">
+              <td
+                class="px-2.5 py-2.5 text-right whitespace-nowrap font-extrabold text-slate-900 dark:text-white text-xs"
+              >
                 {{ formatCurrency(order.total) }}
               </td>
 
               <!-- Date -->
-              <td class="px-2.5 py-2.5 whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <td
+                class="px-2.5 py-2.5 whitespace-nowrap text-xs text-slate-500 dark:text-slate-400 font-medium"
+              >
                 {{ formatDate(order.order_time) }}
               </td>
 
@@ -339,7 +379,10 @@ function handleClickOutside() {
                   <button
                     @click="toggleDropdown(order.id, $event)"
                     class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                    :class="{ 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white': openDropdown === String(order.id) }"
+                    :class="{
+                      'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white':
+                        openDropdown === String(order.id),
+                    }"
                     title="Actions"
                   >
                     <MoreVertical class="w-3.5 h-3.5" />
@@ -409,8 +452,9 @@ function handleClickOutside() {
           </div>
 
           <div class="text-[11px] font-medium">
-            Showing <span class="font-extrabold text-slate-900 dark:text-white">{{ orders.length }}</span> of
-            <span class="font-extrabold text-slate-900 dark:text-white">{{ total }}</span> orders
+            Showing
+            <span class="font-extrabold text-slate-900 dark:text-white">{{ orders.length }}</span>
+            of <span class="font-extrabold text-slate-900 dark:text-white">{{ total }}</span> orders
           </div>
         </div>
         <div class="flex items-center gap-1">

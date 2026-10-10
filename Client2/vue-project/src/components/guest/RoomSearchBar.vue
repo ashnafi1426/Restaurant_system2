@@ -9,7 +9,12 @@
           :value="modelValue"
           @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
           type="text"
-          :placeholder="languageStore.t('search_rooms_guest_placeholder', 'Search by room number, type or floor…')"
+          :placeholder="
+            languageStore.t(
+              'search_rooms_guest_placeholder',
+              'Search by room number, type or floor…',
+            )
+          "
           class="search-input"
           autocomplete="off"
         />
@@ -61,7 +66,7 @@ defineEmits<{
   border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 20px;
   box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.10),
+    0 20px 60px rgba(0, 0, 0, 0.1),
     0 4px 16px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   padding: 12px 20px;

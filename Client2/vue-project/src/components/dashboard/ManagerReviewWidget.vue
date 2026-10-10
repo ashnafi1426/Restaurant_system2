@@ -2,7 +2,7 @@
   <div class="manager-review-widget bg-white rounded-lg shadow p-6">
     <div class="flex items-center justify-between mb-4">
       <div>
-        <h3 class="text-lg font-bold text-gray-900"> Review Moderation</h3>
+        <h3 class="text-lg font-bold text-gray-900">Review Moderation</h3>
         <p class="text-xs text-gray-500 mt-1">{{ statusMessage }}</p>
       </div>
       <router-link
@@ -138,5 +138,4 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

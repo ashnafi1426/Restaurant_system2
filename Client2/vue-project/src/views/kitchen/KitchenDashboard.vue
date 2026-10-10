@@ -13,14 +13,7 @@ import PopularMenu from '@/components/kitchen/PopularMenu.vue'
 import KitchenEfficiency from '@/components/kitchen/KitchenEfficiency.vue'
 import KitchenFooterBar from '@/components/kitchen/KitchenFooterBar.vue'
 import KitchenOrderDetailsDialog from '@/components/kitchen/KitchenOrderDetailsDialog.vue'
-import {
-  CookingPot,
-  RefreshCw,
-  Building2,
-  AlertCircle,
-  Clock,
-  Sparkles,
-} from 'lucide-vue-next'
+import { CookingPot, RefreshCw, Building2, AlertCircle, Clock, Sparkles } from 'lucide-vue-next'
 
 import type { KitchenOrder } from '@/types/kitchen'
 
@@ -122,9 +115,12 @@ onMounted(async () => {
   document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
-watch(() => hotelStore.hotelId, async () => {
-  await kitchenStore.refreshDashboard()
-})
+watch(
+  () => hotelStore.hotelId,
+  async () => {
+    await kitchenStore.refreshDashboard()
+  },
+)
 
 onBeforeUnmount(() => {
   stopAutoRefresh()
@@ -134,30 +130,54 @@ onBeforeUnmount(() => {
 
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 py-4 md:py-6 transition-colors duration-300">
+    <div
+      class="min-h-screen bg-slate-50 dark:bg-slate-950 py-4 md:py-6 transition-colors duration-300"
+    >
       <!-- Header Banner -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-3xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-3xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6"
+      >
         <div class="flex items-center gap-3.5">
-          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 text-white flex-shrink-0">
+          <div
+            class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20 text-white flex-shrink-0"
+          >
             <CookingPot class="w-6 h-6 stroke-[2.2]" />
           </div>
           <div>
             <div class="flex items-center gap-2 flex-wrap">
-              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">{{ languageStore.t('Kitchen Dashboard', 'Kitchen Operations Dashboard') }}</h1>
-              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+              <h1
+                class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight"
+              >
+                {{ languageStore.t('Kitchen Dashboard', 'Kitchen Operations Dashboard') }}
+              </h1>
+              <span
+                v-if="hotelStore.hotelName"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
+              >
                 <Building2 class="w-3 h-3" />
                 {{ hotelStore.hotelName }}
               </span>
             </div>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('kitchen_dashboard_desc', 'Real-time culinary order pipeline, prep queue, and line efficiency monitor.') }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              {{
+                languageStore.t(
+                  'kitchen_dashboard_desc',
+                  'Real-time culinary order pipeline, prep queue, and line efficiency monitor.',
+                )
+              }}
+            </p>
           </div>
         </div>
 
         <!-- Right Actions -->
         <div class="flex items-center gap-3">
-          <div class="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/60 px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
+          <div
+            class="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/60 px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50"
+          >
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span class="hidden sm:inline">{{ languageStore.t('live_queue', 'Live Queue (10s sync)') }}</span>
+            <span class="hidden sm:inline">{{
+              languageStore.t('live_queue', 'Live Queue (10s sync)')
+            }}</span>
             <span class="sm:hidden">{{ languageStore.t('live', 'Live') }}</span>
           </div>
 
@@ -173,7 +193,10 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- Error Alert -->
-      <div v-if="error" class="mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 flex items-center justify-between">
+      <div
+        v-if="error"
+        class="mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 flex items-center justify-between"
+      >
         <div class="flex items-center gap-3 text-rose-800 dark:text-rose-200 text-xs font-bold">
           <AlertCircle class="w-5 h-5 text-rose-500 flex-shrink-0" />
           <span>{{ error }}</span>

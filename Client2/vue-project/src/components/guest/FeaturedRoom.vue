@@ -68,31 +68,45 @@ onMounted(async () => {
   }
 })
 
-watch(() => guestHotelStore.hotelId, async () => {
-  loading.value = true
-  try {
-    await roomStore.fetchRooms()
-  } catch (err) {
-    console.error('[FeaturedRoom] Error fetching rooms on hotel change:', err)
-  } finally {
-    loading.value = false
-  }
-})
+watch(
+  () => guestHotelStore.hotelId,
+  async () => {
+    loading.value = true
+    try {
+      await roomStore.fetchRooms()
+    } catch (err) {
+      console.error('[FeaturedRoom] Error fetching rooms on hotel change:', err)
+    } finally {
+      loading.value = false
+    }
+  },
+)
 </script>
 
 <template>
-  <section class="bg-white dark:bg-slate-900 py-12 sm:py-16 lg:py-24 transition-colors duration-300 font-sans border-b border-slate-200 dark:border-slate-800">
+  <section
+    class="bg-white dark:bg-slate-900 py-12 sm:py-16 lg:py-24 transition-colors duration-300 font-sans border-b border-slate-200 dark:border-slate-800"
+  >
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div class="space-y-2">
-          <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+          <span
+            class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+          >
             {{ languageStore.t('featured_accommodation', 'Featured Accommodation') }}
           </span>
-          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h2
+            class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight"
+          >
             {{ languageStore.t('explore_fine_rooms', 'Explore Our Fine Rooms') }}
           </h2>
           <p class="text-sm text-slate-600 dark:text-slate-400 font-medium">
-            {{ languageStore.t('designed_for_luxury', 'Designed for luxury, comfort, and peaceful relaxation during your stay.') }}
+            {{
+              languageStore.t(
+                'designed_for_luxury',
+                'Designed for luxury, comfort, and peaceful relaxation during your stay.',
+              )
+            }}
           </p>
         </div>
 
@@ -113,25 +127,41 @@ watch(() => guestHotelStore.hotelId, async () => {
         >
           <div class="relative h-64 overflow-hidden bg-slate-900">
             <img
-              :src="room.images?.[0] || 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=600&fit=crop'"
+              :src="
+                room.images?.[0] ||
+                'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=600&fit=crop'
+              "
               :alt="getRoomName(room)"
               class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
             />
-            <div class="absolute top-4 right-4 px-3 py-1 bg-slate-950/80 backdrop-blur-md text-amber-400 font-black text-xs rounded-full border border-amber-500/30">
-              {{ getRoomPrice(room) }} <span class="text-[10px] text-slate-300 font-medium">{{ languageStore.t('per_night', '/ night') }}</span>
+            <div
+              class="absolute top-4 right-4 px-3 py-1 bg-slate-950/80 backdrop-blur-md text-amber-400 font-black text-xs rounded-full border border-amber-500/30"
+            >
+              {{ getRoomPrice(room) }}
+              <span class="text-[10px] text-slate-300 font-medium">{{
+                languageStore.t('per_night', '/ night')
+              }}</span>
             </div>
           </div>
 
           <div class="p-6 space-y-4 flex-1 flex flex-col justify-between">
             <div class="space-y-2">
-              <h3 class="text-lg font-black text-slate-900 dark:text-white group-hover:text-amber-500 transition">
+              <h3
+                class="text-lg font-black text-slate-900 dark:text-white group-hover:text-amber-500 transition"
+              >
                 {{ getRoomName(room) }}
               </h3>
 
-              <div class="flex items-center gap-4 text-xs font-bold text-slate-500 dark:text-slate-400">
+              <div
+                class="flex items-center gap-4 text-xs font-bold text-slate-500 dark:text-slate-400"
+              >
                 <div class="flex items-center gap-1.5">
                   <Users class="w-4 h-4 text-amber-500" />
-                  <span>{{ languageStore.t('up_to', 'Up to') }} {{ room.room_type?.max_occupancy || 2 }} {{ languageStore.t('guests_count', 'Guests') }}</span>
+                  <span
+                    >{{ languageStore.t('up_to', 'Up to') }}
+                    {{ room.room_type?.max_occupancy || 2 }}
+                    {{ languageStore.t('guests_count', 'Guests') }}</span
+                  >
                 </div>
                 <div class="flex items-center gap-1.5">
                   <BedDouble class="w-4 h-4 text-amber-500" />
@@ -140,9 +170,11 @@ watch(() => guestHotelStore.hotelId, async () => {
               </div>
             </div>
 
-            <div class="pt-4 border-t border-slate-200/60 dark:border-slate-800 flex flex-wrap gap-2">
+            <div
+              class="pt-4 border-t border-slate-200/60 dark:border-slate-800 flex flex-wrap gap-2"
+            >
               <span
-                v-for="amenity in (room.amenities || ['King Bed', 'City View', 'Free Wi-Fi'])"
+                v-for="amenity in room.amenities || ['King Bed', 'City View', 'Free Wi-Fi']"
                 :key="amenity"
                 class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-200/60 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-300/60 dark:border-slate-800"
               >

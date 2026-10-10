@@ -5,8 +5,18 @@
       class="relative inline-flex items-center justify-center w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex-shrink-0"
       title="Review Notifications"
     >
-      <svg class="w-5 h-5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+      <svg
+        class="w-5 h-5 text-slate-600 dark:text-slate-300"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+        />
       </svg>
       <span
         v-if="unreadCount > 0"
@@ -28,14 +38,21 @@
         v-if="showDropdown"
         class="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 z-50"
       >
-        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 p-4">
+        <div
+          class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 p-4"
+        >
           <h3 class="text-sm font-bold text-gray-900 dark:text-white">Review Notifications</h3>
           <button
             @click="showDropdown = false"
             class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -46,8 +63,18 @@
           </div>
 
           <div v-else-if="notifications.length === 0" class="p-6 text-center">
-            <svg class="w-12 h-12 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            <svg
+              class="w-12 h-12 text-gray-300 mx-auto mb-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+              />
             </svg>
             <p class="text-sm text-gray-600">No notifications</p>
           </div>
@@ -58,22 +85,30 @@
               :key="notification.id"
               :class="[
                 'p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer',
-                !notification.is_read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                !notification.is_read ? 'bg-blue-50 dark:bg-blue-900/20' : '',
               ]"
               @click="markAsRead(notification.id)"
             >
               <div class="flex gap-3">
                 <div class="flex-shrink-0">
-                  <span class="inline-flex items-center justify-center h-8 w-8 rounded-full"
+                  <span
+                    class="inline-flex items-center justify-center h-8 w-8 rounded-full"
                     :class="[
-                      notification.notification_type === 'new_review' ? 'bg-blue-100 dark:bg-blue-900' :
-                      notification.notification_type === 'review_approved' ? 'bg-green-100 dark:bg-green-900' :
-                      'bg-red-100 dark:bg-red-900'
+                      notification.notification_type === 'new_review'
+                        ? 'bg-blue-100 dark:bg-blue-900'
+                        : notification.notification_type === 'review_approved'
+                          ? 'bg-green-100 dark:bg-green-900'
+                          : 'bg-red-100 dark:bg-red-900',
                     ]"
                   >
                     <span class="text-lg">
-                      {{ notification.notification_type === 'new_review' ? '📝' :
-                         notification.notification_type === 'review_approved' ? '' : '' }}
+                      {{
+                        notification.notification_type === 'new_review'
+                          ? '📝'
+                          : notification.notification_type === 'review_approved'
+                            ? ''
+                            : ''
+                      }}
                     </span>
                   </span>
                 </div>
@@ -81,7 +116,9 @@
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-semibold text-gray-900 dark:text-white">
                     <span v-if="notification.notification_type === 'new_review'">New Review</span>
-                    <span v-else-if="notification.notification_type === 'review_approved'">Approved</span>
+                    <span v-else-if="notification.notification_type === 'review_approved'"
+                      >Approved</span
+                    >
                     <span v-else>Rejected</span>
                   </p>
                   <p class="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
@@ -112,11 +149,7 @@
       </div>
     </transition>
 
-    <div
-      v-if="showDropdown"
-      class="fixed inset-0 z-40"
-      @click="showDropdown = false"
-    ></div>
+    <div v-if="showDropdown" class="fixed inset-0 z-40" @click="showDropdown = false"></div>
   </div>
 </template>
 
@@ -141,7 +174,7 @@ const formatTime = (dateString: string) => {
   if (hours < 1) return 'Just now'
   if (hours < 24) return `${hours}h ago`
   if (days < 7) return `${days}d ago`
-  
+
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
@@ -161,7 +194,7 @@ const loadNotifications = async () => {
 const markAsRead = async (notificationId: string) => {
   try {
     await reviewService.markNotificationAsRead(notificationId)
-    const notification = notifications.value.find(n => n.id === notificationId)
+    const notification = notifications.value.find((n) => n.id === notificationId)
     if (notification && !notification.is_read) {
       notification.is_read = true
       unreadCount.value = Math.max(0, unreadCount.value - 1)
@@ -179,7 +212,7 @@ onMounted(() => {
     if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
       return
     }
-    
+
     loadNotifications()
   }, 30000)
 })
@@ -191,5 +224,4 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

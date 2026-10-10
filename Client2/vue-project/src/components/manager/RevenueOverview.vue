@@ -42,10 +42,7 @@ const departments = computed(() => {
 })
 
 const totalRevenue = computed(() => {
-  return departments.value.reduce(
-    (total, item) => total + item.value,
-    0,
-  )
+  return departments.value.reduce((total, item) => total + item.value, 0)
 })
 
 const percentage = (value: number) => {

@@ -76,11 +76,13 @@ class TableAssignmentService {
   async assignWaitersToTables(data: any): Promise<any> {
     const payload = Array.isArray(data)
       ? { assignments: data }
-      : (data && data.assignments ? data : {
-          table_id: data.table_id,
-          waiter_ids: data.waiter_ids || (data.waiter_id ? [data.waiter_id] : []),
-          status: data.status || (data.is_active !== false ? 'active' : 'inactive')
-        })
+      : data && data.assignments
+        ? data
+        : {
+            table_id: data.table_id,
+            waiter_ids: data.waiter_ids || (data.waiter_id ? [data.waiter_id] : []),
+            status: data.status || (data.is_active !== false ? 'active' : 'inactive'),
+          }
     const response = await api.post('/manager/table-assignments', payload)
     return response.data
   }
@@ -93,7 +95,7 @@ class TableAssignmentService {
       shift_id?: string
       priority?: 'primary' | 'secondary' | 'backup'
       status?: 'active' | 'inactive' | 'completed'
-    }
+    },
   ): Promise<TableAssignment> {
     const response = await api.patch(`/manager/table-assignments/${assignmentId}`, data)
     return response.data.data

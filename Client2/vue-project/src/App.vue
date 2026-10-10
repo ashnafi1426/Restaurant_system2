@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-white dark:bg-slate-950 transition-colors duration-300">
     <GlobalPageLoader />
-    
+
     <router-view />
   </div>
 </template>
@@ -12,7 +12,9 @@ import GlobalPageLoader from '@/components/loading/GlobalPageLoader.vue'
 
 <style>
 html {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 html.dark {

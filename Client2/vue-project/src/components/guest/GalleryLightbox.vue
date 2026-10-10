@@ -81,7 +81,9 @@ onUnmounted(() => {
 
           <!-- Information -->
 
-          <div class="mt-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 shadow-2xl">
+          <div
+            class="mt-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 shadow-2xl"
+          >
             <div class="flex flex-wrap items-center justify-between gap-6">
               <div>
                 <span class="rounded-full bg-amber-500 px-4 py-2 text-sm font-semibold text-white">
@@ -92,7 +94,14 @@ onUnmounted(() => {
                   {{ languageStore.t(image.title, image.title) }}
                 </h2>
 
-                <p class="mt-3 text-slate-500 dark:text-slate-400">{{ languageStore.t('luxury_hotel_gallery_collection', 'Luxury Hotel Gallery Collection') }}</p>
+                <p class="mt-3 text-slate-500 dark:text-slate-400">
+                  {{
+                    languageStore.t(
+                      'luxury_hotel_gallery_collection',
+                      'Luxury Hotel Gallery Collection',
+                    )
+                  }}
+                </p>
               </div>
 
               <button
@@ -108,4 +117,3 @@ onUnmounted(() => {
     </Transition>
   </Teleport>
 </template>
-

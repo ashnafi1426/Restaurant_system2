@@ -7,15 +7,15 @@ import { useHotelStore } from '@/stores/hotelStore'
 import { useLanguageStore } from '@/stores/language'
 import { roomService } from '../../services/roomService'
 import SearchableSelect from '@/components/common/SearchableSelect.vue'
-import { 
-  CheckCircle2, 
-  AlertCircle, 
-  Loader2, 
-  Sparkles, 
-  Plus, 
+import {
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Sparkles,
+  Plus,
   Building2,
   Layers,
-  BedDouble
+  BedDouble,
 } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -193,20 +193,30 @@ onMounted(() => {
   loadHotelData()
 })
 
-watch(() => hotelStore.hotelId, () => {
-  loadHotelData()
-})
+watch(
+  () => hotelStore.hotelId,
+  () => {
+    loadHotelData()
+  },
+)
 
-watch(() => props.initialData, (newVal) => {
-  if (newVal) {
-    populateInitial(newVal)
-  }
-}, { deep: true })
+watch(
+  () => props.initialData,
+  (newVal) => {
+    if (newVal) {
+      populateInitial(newVal)
+    }
+  },
+  { deep: true },
+)
 
 const isRoomNumberTaken = (roomNumber: string) => {
   const clean = String(roomNumber || '').trim()
   if (!clean) return false
-  if (props.initialData?.room_number && clean.toLowerCase() === String(props.initialData.room_number).trim().toLowerCase()) {
+  if (
+    props.initialData?.room_number &&
+    clean.toLowerCase() === String(props.initialData.room_number).trim().toLowerCase()
+  ) {
     return false
   }
   return existingRoomNumbers.value.some((r) => r.toLowerCase() === clean.toLowerCase())
@@ -273,7 +283,8 @@ const save = () => {
       <div class="flex items-center gap-2">
         <AlertCircle class="w-5 h-5 text-amber-600 flex-shrink-0" />
         <span>
-          No floors found for <strong>{{ hotelStore.hotelName }}</strong>. Every room must belong to an existing floor for room service & waiter assignments.
+          No floors found for <strong>{{ hotelStore.hotelName }}</strong
+          >. Every room must belong to an existing floor for room service & waiter assignments.
         </span>
       </div>
       <div class="flex items-center gap-2">
@@ -303,7 +314,8 @@ const save = () => {
       <div class="flex items-center gap-2">
         <AlertCircle class="w-5 h-5 text-amber-600 flex-shrink-0" />
         <span>
-          No room types found for <strong>{{ hotelStore.hotelName }}</strong>. You must create a room type before adding rooms.
+          No room types found for <strong>{{ hotelStore.hotelName }}</strong
+          >. You must create a room type before adding rooms.
         </span>
       </div>
       <button
@@ -319,7 +331,9 @@ const save = () => {
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
       <!-- Room Number Field -->
       <div>
-        <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
+        <label
+          class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
+        >
           {{ languageStore.t('room_number', 'Room Number') }} <span class="text-red-500">*</span>
         </label>
         <div class="flex gap-2">
@@ -332,8 +346,8 @@ const save = () => {
               serverErrors?.room_number || (form.room_number && isRoomNumberTaken(form.room_number))
                 ? 'border-red-400 bg-red-50/30 dark:bg-red-950/20 focus:ring-2 focus:ring-red-500'
                 : form.room_number
-                ? 'border-emerald-400 bg-emerald-50/20 dark:bg-emerald-950/20 focus:ring-2 focus:ring-emerald-500'
-                : 'border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-blue-500'
+                  ? 'border-emerald-400 bg-emerald-50/20 dark:bg-emerald-950/20 focus:ring-2 focus:ring-emerald-500'
+                  : 'border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-blue-500',
             ]"
             required
           />
@@ -349,15 +363,24 @@ const save = () => {
         </div>
 
         <!-- Room Number Live Status & Errors -->
-        <div v-if="serverErrors?.room_number" class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+        <div
+          v-if="serverErrors?.room_number"
+          class="text-red-500 text-xs mt-1.5 flex items-center gap-1"
+        >
           <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
           <span>{{ serverErrors.room_number[0] }}</span>
         </div>
-        <div v-else-if="form.room_number && isRoomNumberTaken(form.room_number)" class="text-red-500 text-xs mt-1.5 flex items-center gap-1 font-medium">
+        <div
+          v-else-if="form.room_number && isRoomNumberTaken(form.room_number)"
+          class="text-red-500 text-xs mt-1.5 flex items-center gap-1 font-medium"
+        >
           <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
           <span>Room #{{ form.room_number }} is already taken in {{ hotelStore.hotelName }}.</span>
         </div>
-        <div v-else-if="form.room_number" class="text-emerald-600 dark:text-emerald-400 text-xs mt-1.5 flex items-center gap-1 font-medium">
+        <div
+          v-else-if="form.room_number"
+          class="text-emerald-600 dark:text-emerald-400 text-xs mt-1.5 flex items-center gap-1 font-medium"
+        >
           <CheckCircle2 class="w-3.5 h-3.5 flex-shrink-0" />
           <span>Room #{{ form.room_number }} is available in {{ hotelStore.hotelName }}.</span>
         </div>
@@ -385,10 +408,21 @@ const save = () => {
         </div>
 
         <!-- Inline quick add floor -->
-        <div v-if="showAddFloorInline" class="mb-3 p-3 bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl space-y-2">
-          <div class="flex items-center justify-between text-xs font-semibold text-blue-900 dark:text-blue-200">
+        <div
+          v-if="showAddFloorInline"
+          class="mb-3 p-3 bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl space-y-2"
+        >
+          <div
+            class="flex items-center justify-between text-xs font-semibold text-blue-900 dark:text-blue-200"
+          >
             <span>Quick Add Floor</span>
-            <button type="button" @click="showAddFloorInline = false" class="text-slate-400 hover:text-slate-600 cursor-pointer">✕</button>
+            <button
+              type="button"
+              @click="showAddFloorInline = false"
+              class="text-slate-400 hover:text-slate-600 cursor-pointer"
+            >
+              ✕
+            </button>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <input
@@ -433,18 +467,30 @@ const save = () => {
           value-key="id"
           :icon="Layers"
           item-type="floor"
-          :placeholder="loadingFloors ? 'Loading existing floors...' : languageStore.t('select_floor', 'Select an existing floor')"
+          :placeholder="
+            loadingFloors
+              ? 'Loading existing floors...'
+              : languageStore.t('select_floor', 'Select an existing floor')
+          "
           search-placeholder="Search floors by name or number..."
           empty-text="No matching floors found"
           :disabled="loadingFloors"
           :has-error="Boolean(serverErrors?.floor_id)"
-          :format-option-label="(fl) => fl.name ? `${fl.name} (Floor ${fl.floor_number})` : `Floor ${fl.floor_number}`"
-          @change="(opt) => { if (opt) form.floor = Number(opt.floor_number); }"
+          :format-option-label="
+            (fl) => (fl.name ? `${fl.name} (Floor ${fl.floor_number})` : `Floor ${fl.floor_number}`)
+          "
+          @change="
+            (opt) => {
+              if (opt) form.floor = Number(opt.floor_number)
+            }
+          "
         >
           <template #option="{ option }">
             <div class="flex items-center justify-between w-full min-w-0">
               <div class="flex items-center gap-2 min-w-0">
-                <div class="w-6 h-6 rounded-md bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-[11px] flex-shrink-0">
+                <div
+                  class="w-6 h-6 rounded-md bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-[11px] flex-shrink-0"
+                >
                   {{ option.floor_number }}
                 </div>
                 <div class="min-w-0">
@@ -477,7 +523,9 @@ const save = () => {
 
       <!-- Room Type Field -->
       <div>
-        <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
+        <label
+          class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
+        >
           {{ languageStore.t('room_type', 'Room Type') }} <span class="text-red-500">*</span>
         </label>
         <SearchableSelect
@@ -487,17 +535,26 @@ const save = () => {
           value-key="id"
           :icon="BedDouble"
           item-type="room type"
-          :placeholder="loadingRoomTypes ? 'Loading room types...' : languageStore.t('select_room_type', 'Select Room Type')"
+          :placeholder="
+            loadingRoomTypes
+              ? 'Loading room types...'
+              : languageStore.t('select_room_type', 'Select Room Type')
+          "
           search-placeholder="Search room types or price..."
           empty-text="No room types matching search"
           :disabled="loadingRoomTypes"
           :has-error="Boolean(serverErrors?.room_type_id)"
-          :format-option-label="(type) => `${type.name} - ${parseFloat(type.base_price_per_night || 0).toLocaleString('en-US')} ${hotelStore.currency || 'ETB'}/night`"
+          :format-option-label="
+            (type) =>
+              `${type.name} - ${parseFloat(type.base_price_per_night || 0).toLocaleString('en-US')} ${hotelStore.currency || 'ETB'}/night`
+          "
         >
           <template #option="{ option }">
             <div class="flex items-center justify-between w-full min-w-0">
               <div class="flex items-center gap-2 min-w-0">
-                <div class="w-6 h-6 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center flex-shrink-0">
+                <div
+                  class="w-6 h-6 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center flex-shrink-0"
+                >
                   <BedDouble class="w-3.5 h-3.5" />
                 </div>
                 <div class="min-w-0">
@@ -509,24 +566,36 @@ const save = () => {
                   </div>
                 </div>
               </div>
-              <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 ml-2 whitespace-nowrap">
-                {{ parseFloat(option.base_price_per_night || 0).toLocaleString('en-US') }} {{ hotelStore.currency || 'ETB' }}<span class="text-[10px] font-normal text-slate-400">/night</span>
+              <span
+                class="text-xs font-bold text-emerald-600 dark:text-emerald-400 ml-2 whitespace-nowrap"
+              >
+                {{ parseFloat(option.base_price_per_night || 0).toLocaleString('en-US') }}
+                {{ hotelStore.currency || 'ETB'
+                }}<span class="text-[10px] font-normal text-slate-400">/night</span>
               </span>
             </div>
           </template>
         </SearchableSelect>
-        <p v-if="serverErrors?.room_type_id" class="text-red-500 text-xs mt-1 flex items-center gap-1">
+        <p
+          v-if="serverErrors?.room_type_id"
+          class="text-red-500 text-xs mt-1 flex items-center gap-1"
+        >
           <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
           <span>{{ serverErrors.room_type_id[0] }}</span>
         </p>
-        <p v-else-if="!form.room_type_id && roomTypes.length > 0" class="text-slate-500 text-xs mt-1">
+        <p
+          v-else-if="!form.room_type_id && roomTypes.length > 0"
+          class="text-slate-500 text-xs mt-1"
+        >
           {{ languageStore.t('select_room_type_prompt', 'Please select a room type') }}
         </p>
       </div>
 
       <!-- Status Field -->
       <div>
-        <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
+        <label
+          class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
+        >
           {{ languageStore.t('status', 'Status') }} <span class="text-red-500">*</span>
         </label>
         <select
@@ -538,20 +607,30 @@ const save = () => {
           <option value="reserved">🔒 {{ languageStore.t('reserved', 'Reserved') }}</option>
           <option value="occupied">👤 {{ languageStore.t('occupied', 'Occupied') }}</option>
           <option value="cleaning">🧹 {{ languageStore.t('cleaning', 'Cleaning') }}</option>
-          <option value="maintenance">🔧 {{ languageStore.t('maintenance', 'Maintenance') }}</option>
+          <option value="maintenance">
+            🔧 {{ languageStore.t('maintenance', 'Maintenance') }}
+          </option>
         </select>
       </div>
     </div>
 
     <!-- Description Field -->
     <div>
-      <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
-        {{ languageStore.t('description', 'Description') }} <span class="text-slate-400 text-xs">({{ languageStore.t('optional', 'Optional') }})</span>
+      <label
+        class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
+      >
+        {{ languageStore.t('description', 'Description') }}
+        <span class="text-slate-400 text-xs">({{ languageStore.t('optional', 'Optional') }})</span>
       </label>
       <textarea
         v-model="form.description"
         rows="3"
-        :placeholder="languageStore.t('special_requests_placeholder', 'Add room details, amenities, special features, etc...')"
+        :placeholder="
+          languageStore.t(
+            'special_requests_placeholder',
+            'Add room details, amenities, special features, etc...',
+          )
+        "
         class="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-lg px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 resize-none"
       />
     </div>
@@ -573,7 +652,11 @@ const save = () => {
         >
           {{ languageStore.t('active_room_label', 'Active Room') }}
         </label>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('active_room_desc', 'Room will be available for bookings and occupancy') }}</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          {{
+            languageStore.t('active_room_desc', 'Room will be available for bookings and occupancy')
+          }}
+        </p>
       </div>
     </div>
 
@@ -589,12 +672,20 @@ const save = () => {
       </button>
       <button
         type="submit"
-        :disabled="!form.room_number || !form.room_type_id || !form.floor_id || isRoomNumberTaken(form.room_number) || isSubmitting"
+        :disabled="
+          !form.room_number ||
+          !form.room_type_id ||
+          !form.floor_id ||
+          isRoomNumberTaken(form.room_number) ||
+          isSubmitting
+        "
         class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors duration-200 cursor-pointer inline-flex items-center gap-2 shadow-sm"
       >
         <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
         <span v-if="isSubmitting">{{ languageStore.t('saving', 'Saving Room...') }}</span>
-        <span v-else-if="isRoomNumberTaken(form.room_number)">❌ {{ languageStore.t('room_taken', 'Room Number Taken') }}</span>
+        <span v-else-if="isRoomNumberTaken(form.room_number)"
+          >❌ {{ languageStore.t('room_taken', 'Room Number Taken') }}</span
+        >
         <span v-else>💾 {{ languageStore.t('save_room', 'Save Room') }}</span>
       </button>
     </div>
@@ -615,7 +706,8 @@ const save = () => {
       <div class="flex items-center gap-2 mb-2">
         <Building2 class="w-4 h-4 text-blue-700 dark:text-blue-400" />
         <p class="text-xs sm:text-sm font-semibold text-blue-950 dark:text-blue-300">
-          {{ languageStore.t('existing_rooms_label', 'Existing Rooms in') }} {{ hotelStore.hotelName }} ({{ existingRoomNumbers.length }}):
+          {{ languageStore.t('existing_rooms_label', 'Existing Rooms in') }}
+          {{ hotelStore.hotelName }} ({{ existingRoomNumbers.length }}):
         </p>
       </div>
       <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
@@ -626,7 +718,7 @@ const save = () => {
           :class="[
             num.toLowerCase() === form.room_number.trim().toLowerCase()
               ? 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800 font-bold'
-              : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
+              : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800',
           ]"
         >
           #{{ num }}
@@ -637,7 +729,8 @@ const save = () => {
       v-else-if="!loadingRooms"
       class="p-3 sm:p-4 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-500"
     >
-      📍 No rooms exist in <strong>{{ hotelStore.hotelName }}</strong> yet. This will be the first room!
+      📍 No rooms exist in <strong>{{ hotelStore.hotelName }}</strong> yet. This will be the first
+      room!
     </div>
   </form>
 </template>

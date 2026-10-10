@@ -3,15 +3,15 @@ import api from '../api/auth'
 export interface NotificationData {
   id?: string
   type:
-  | 'booking'
-  | 'check_in'
-  | 'check_out'
-  | 'cancellation'
-  | 'system'
-  | 'order_created'
-  | 'order_preparing'
-  | 'order_ready'
-  | 'order_served'
+    | 'booking'
+    | 'check_in'
+    | 'check_out'
+    | 'cancellation'
+    | 'system'
+    | 'order_created'
+    | 'order_preparing'
+    | 'order_ready'
+    | 'order_served'
   title: string
   message: string
   reservation_id?: string
@@ -36,7 +36,7 @@ let lastKnownUnreadCount = 0
 export const notificationService = {
   getNotifications(limit: number = 10) {
     const key = `notifications-${limit}`
-    
+
     // Return existing pending request if one exists
     if (pendingRequests.has(key)) {
       return pendingRequests.get(key)!
@@ -52,7 +52,7 @@ export const notificationService = {
 
   getUnreadCount() {
     const now = Date.now()
-    
+
     // Debounce: if we fetched recently, return the cached promise
     if (pendingRequests.has('unread-count')) {
       return pendingRequests.get('unread-count')!
@@ -64,7 +64,8 @@ export const notificationService = {
     }
 
     lastUnreadCountFetch = now
-    const request = api.get('/notifications/unread-count')
+    const request = api
+      .get('/notifications/unread-count')
       .then((res) => {
         if (res.data?.unread_count !== undefined) {
           lastKnownUnreadCount = res.data.unread_count
@@ -95,10 +96,7 @@ export const notificationService = {
     return api.delete('/notifications/clear-all')
   },
 
-  subscribeToNotifications(
-    callback: (newCount: number) => void,
-    interval: number = 30000,
-  ) {
+  subscribeToNotifications(callback: (newCount: number) => void, interval: number = 30000) {
     // Prevent multiple polling instances - return existing interval if already active
     if (globalPollIntervalId !== null) {
       console.warn('[NotificationService] Polling already active, reusing existing interval')

@@ -1,6 +1,13 @@
 export type ReservationStatus = 'pending' | 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled'
 
-export type OrderStatus = 'pending' | 'accepted' | 'preparing' | 'ready' | 'delivered' | 'completed' | 'cancelled'
+export type OrderStatus =
+  | 'pending'
+  | 'accepted'
+  | 'preparing'
+  | 'ready'
+  | 'delivered'
+  | 'completed'
+  | 'cancelled'
 
 export type RoomStatus = 'available' | 'occupied' | 'reserved' | 'cleaning' | 'maintenance'
 

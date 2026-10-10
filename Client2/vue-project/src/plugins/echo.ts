@@ -1,9 +1,9 @@
 /**
  * Laravel Echo WebSocket Plugin
- * 
+ *
  * Configures Laravel Echo to connect to Laravel Reverb WebSocket server.
  * Uses Pusher protocol (pusher-js) but connects to self-hosted Reverb (not Pusher Cloud).
- * 
+ *
  * This plugin is imported in main.ts to initialize WebSocket connection on app startup.
  */
 
@@ -47,7 +47,9 @@ const echo = new Echo({
         // Defensive check: if guest_qr_token is not yet in storage, check walk_in_payment_data or order_payment_data
         if (!qrToken) {
           try {
-            const walkInData = localStorage.getItem('walk_in_payment_data') || sessionStorage.getItem('walk_in_payment_data')
+            const walkInData =
+              localStorage.getItem('walk_in_payment_data') ||
+              sessionStorage.getItem('walk_in_payment_data')
             if (walkInData) {
               const parsed = JSON.parse(walkInData)
               if (parsed.qr_token) {
@@ -55,11 +57,13 @@ const echo = new Echo({
                 localStorage.setItem('guest_qr_token', qrToken)
               }
             }
-          } catch (_) { }
+          } catch (_) {}
         }
         if (!qrToken) {
           try {
-            const orderPaymentData = localStorage.getItem('order_payment_data') || sessionStorage.getItem('order_payment_data')
+            const orderPaymentData =
+              localStorage.getItem('order_payment_data') ||
+              sessionStorage.getItem('order_payment_data')
             if (orderPaymentData) {
               const parsed = JSON.parse(orderPaymentData)
               if (parsed.qr_token) {
@@ -67,7 +71,7 @@ const echo = new Echo({
                 localStorage.setItem('guest_qr_token', qrToken)
               }
             }
-          } catch (_) { }
+          } catch (_) {}
         }
 
         console.log('[Echo] Authorizing channel:', channel.name)
@@ -78,7 +82,7 @@ const echo = new Echo({
         // Build request body - include QR token for guest order channels
         const requestBody: any = {
           socket_id: socketId,
-          channel_name: channel.name
+          channel_name: channel.name,
         }
 
         // Include QR token in body for guest authentication
@@ -92,34 +96,40 @@ const echo = new Echo({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : '',
+            Accept: 'application/json',
+            Authorization: token ? `Bearer ${token}` : '',
             'X-Hotel-ID': hotelId || '',
             'X-QR-Token': qrToken || '',
           },
-          body: JSON.stringify(requestBody)
+          body: JSON.stringify(requestBody),
         })
-          .then(response => {
+          .then((response) => {
             if (!response.ok) {
-              console.error('[Echo] ❌ Authorization failed - HTTP', response.status, response.statusText)
-              return response.text().then(text => {
+              console.error(
+                '[Echo] ❌ Authorization failed - HTTP',
+                response.status,
+                response.statusText,
+              )
+              return response.text().then((text) => {
                 console.error('[Echo] Response body:', text)
-                throw new Error(`Authorization failed: ${response.status} ${response.statusText} - ${text}`)
+                throw new Error(
+                  `Authorization failed: ${response.status} ${response.statusText} - ${text}`,
+                )
               })
             }
             return response.json()
           })
-          .then(data => {
+          .then((data) => {
             console.log('[Echo]  Channel authorization successful:', channel.name)
             callback(null, data)
           })
-          .catch(error => {
+          .catch((error) => {
             console.error('[Echo] ⚠️ Channel authorization error:', error)
             callback(error, null)
           })
-      }
+      },
     }
-  }
+  },
 })
 
 // Make Echo available globally

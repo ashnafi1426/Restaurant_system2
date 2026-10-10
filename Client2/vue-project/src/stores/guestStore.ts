@@ -1,13 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Guest, GuestForm, GuestFilter, GuestListResponse } from '@/types/guest'
-import {
-  getGuests,
-  getGuest,
-  createGuest,
-  updateGuest,
-  deleteGuest,
-} from '@/services/guestService'
+import { getGuests, getGuest, createGuest, updateGuest, deleteGuest } from '@/services/guestService'
 
 export interface GuestPagination {
   current_page: number

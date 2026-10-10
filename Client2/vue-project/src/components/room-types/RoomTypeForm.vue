@@ -40,9 +40,12 @@ onMounted(() => {
   loadExistingTypes()
 })
 
-watch(() => hotelStore.hotelId, () => {
-  loadExistingTypes()
-})
+watch(
+  () => hotelStore.hotelId,
+  () => {
+    loadExistingTypes()
+  },
+)
 
 watch(
   () => props.modelValue,
@@ -62,17 +65,20 @@ watch(
 
 watch(
   form,
-  () => emit('update:modelValue', {
-    ...form,
-    base_price_per_night: Number(form.base_price_per_night) || 0,
-    capacity: parseInt(String(form.capacity), 10) || 0,
-    is_active: Boolean(form.is_active),
-  }),
+  () =>
+    emit('update:modelValue', {
+      ...form,
+      base_price_per_night: Number(form.base_price_per_night) || 0,
+      capacity: parseInt(String(form.capacity), 10) || 0,
+      is_active: Boolean(form.is_active),
+    }),
   { deep: true },
 )
 
 const isNameTaken = computed(() => {
-  const clean = String(form.name || '').trim().toLowerCase()
+  const clean = String(form.name || '')
+    .trim()
+    .toLowerCase()
   if (!clean) return false
   return existingNames.value.some((n) => n.toLowerCase() === clean)
 })
@@ -110,7 +116,9 @@ const submit = () => {
   <form @submit.prevent="submit" class="space-y-4 sm:space-y-5 md:space-y-6">
     <!-- Room Type Name Field -->
     <div>
-      <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
+      <label
+        class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
+      >
         Room Type Name <span class="text-red-500">*</span>
       </label>
       <input
@@ -122,8 +130,8 @@ const submit = () => {
           serverErrors?.name || isNameTaken
             ? 'border-red-400 bg-red-50/20 focus:ring-2 focus:ring-red-500'
             : form.name
-            ? 'border-emerald-400 focus:ring-2 focus:ring-emerald-500'
-            : 'border-slate-300 dark:border-slate-800 focus:ring-2 focus:ring-blue-500'
+              ? 'border-emerald-400 focus:ring-2 focus:ring-emerald-500'
+              : 'border-slate-300 dark:border-slate-800 focus:ring-2 focus:ring-blue-500',
         ]"
         required
       />
@@ -132,11 +140,19 @@ const submit = () => {
         <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
         <span>{{ serverErrors.name[0] }}</span>
       </div>
-      <div v-else-if="isNameTaken" class="text-red-500 text-xs mt-1.5 flex items-center gap-1 font-medium">
+      <div
+        v-else-if="isNameTaken"
+        class="text-red-500 text-xs mt-1.5 flex items-center gap-1 font-medium"
+      >
         <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
-        <span>A room type named "{{ form.name }}" already exists in {{ hotelStore.hotelName }}.</span>
+        <span
+          >A room type named "{{ form.name }}" already exists in {{ hotelStore.hotelName }}.</span
+        >
       </div>
-      <div v-else-if="form.name && !loadingExisting" class="text-emerald-600 dark:text-emerald-400 text-xs mt-1.5 flex items-center gap-1 font-medium">
+      <div
+        v-else-if="form.name && !loadingExisting"
+        class="text-emerald-600 dark:text-emerald-400 text-xs mt-1.5 flex items-center gap-1 font-medium"
+      >
         <CheckCircle2 class="w-3.5 h-3.5 flex-shrink-0" />
         <span>Name is available for {{ hotelStore.hotelName }}.</span>
       </div>
@@ -144,7 +160,9 @@ const submit = () => {
 
     <!-- Description Field -->
     <div>
-      <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
+      <label
+        class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
+      >
         Description <span class="text-slate-400 text-xs">(Optional)</span>
       </label>
       <textarea
@@ -158,7 +176,9 @@ const submit = () => {
     <!-- Price and Capacity Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
       <div>
-        <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
+        <label
+          class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
+        >
           Price Per Night ({{ hotelStore.currency || 'ETB' }}) <span class="text-red-500">*</span>
         </label>
         <div class="relative">
@@ -170,21 +190,26 @@ const submit = () => {
             :class="[
               serverErrors?.base_price_per_night
                 ? 'border-red-400 focus:ring-red-500'
-                : 'border-slate-300 dark:border-slate-800 focus:ring-blue-500'
+                : 'border-slate-300 dark:border-slate-800 focus:ring-blue-500',
             ]"
             min="0"
             step="any"
             required
           />
         </div>
-        <p v-if="serverErrors?.base_price_per_night" class="text-red-500 text-xs mt-1 flex items-center gap-1">
+        <p
+          v-if="serverErrors?.base_price_per_night"
+          class="text-red-500 text-xs mt-1 flex items-center gap-1"
+        >
           <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
           <span>{{ serverErrors.base_price_per_night[0] }}</span>
         </p>
       </div>
 
       <div>
-        <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
+        <label
+          class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
+        >
           Capacity (Guests) <span class="text-red-500">*</span>
         </label>
         <input
@@ -195,7 +220,7 @@ const submit = () => {
           :class="[
             serverErrors?.capacity
               ? 'border-red-400 focus:ring-red-500'
-              : 'border-slate-300 dark:border-slate-800 focus:ring-blue-500'
+              : 'border-slate-300 dark:border-slate-800 focus:ring-blue-500',
           ]"
           min="1"
           max="20"
@@ -210,7 +235,9 @@ const submit = () => {
 
     <!-- Amenities Field -->
     <div>
-      <label class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
+      <label
+        class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
+      >
         Amenities <span class="text-slate-400 text-xs">(Optional)</span>
       </label>
 

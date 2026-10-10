@@ -27,7 +27,10 @@
             <span class="metric-label">Acceptance Rate</span>
             <span class="metric-value">{{ latestMetric?.acceptance_rate || 0 }}%</span>
             <div class="metric-bar">
-              <div class="metric-fill" :style="{ width: (latestMetric?.acceptance_rate || 0) + '%' }"></div>
+              <div
+                class="metric-fill"
+                :style="{ width: (latestMetric?.acceptance_rate || 0) + '%' }"
+              ></div>
             </div>
           </div>
 
@@ -35,7 +38,10 @@
             <span class="metric-label">Completion Rate</span>
             <span class="metric-value">{{ latestMetric?.completion_rate || 0 }}%</span>
             <div class="metric-bar">
-              <div class="metric-fill" :style="{ width: (latestMetric?.completion_rate || 0) + '%' }"></div>
+              <div
+                class="metric-fill"
+                :style="{ width: (latestMetric?.completion_rate || 0) + '%' }"
+              ></div>
             </div>
           </div>
 
@@ -43,7 +49,10 @@
             <span class="metric-label">On-Time Rate</span>
             <span class="metric-value">{{ latestMetric?.on_time_rate || 0 }}%</span>
             <div class="metric-bar">
-              <div class="metric-fill" :style="{ width: (latestMetric?.on_time_rate || 0) + '%' }"></div>
+              <div
+                class="metric-fill"
+                :style="{ width: (latestMetric?.on_time_rate || 0) + '%' }"
+              ></div>
             </div>
           </div>
 
@@ -51,7 +60,12 @@
             <span class="metric-label">Guest Rating</span>
             <span class="metric-value">{{ latestMetric?.guest_rating || 'N/A' }}</span>
             <div class="metric-bar">
-              <div class="metric-fill" :style="{ width: (latestMetric?.guest_rating ? (latestMetric.guest_rating * 20) : 0) + '%' }"></div>
+              <div
+                class="metric-fill"
+                :style="{
+                  width: (latestMetric?.guest_rating ? latestMetric.guest_rating * 20 : 0) + '%',
+                }"
+              ></div>
             </div>
           </div>
         </div>
@@ -93,7 +107,7 @@
               v-for="(metric, index) in performanceHistory.slice(-7)"
               :key="index"
               class="trend-bar"
-              :style="{ height: (metric.performance_score * 20) + '%' }"
+              :style="{ height: metric.performance_score * 20 + '%' }"
               :title="`${metric.date}: ${metric.performance_score.toFixed(2)} score`"
             ></div>
           </div>
@@ -212,7 +226,9 @@ onMounted(async () => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .error-state {

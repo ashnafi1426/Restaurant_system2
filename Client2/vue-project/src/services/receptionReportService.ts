@@ -104,7 +104,7 @@ export async function getReservationReport(dateRange: DateRange = {}) {
   try {
     const response = await api.get<{ success: boolean; data: ReservationReportData }>(
       '/reception/reports/reservations',
-      { params: dateRange }
+      { params: dateRange },
     )
     return response.data
   } catch (error: any) {
@@ -117,7 +117,7 @@ export async function getOccupancyReport(dateRange: DateRange = {}) {
   try {
     const response = await api.get<{ success: boolean; data: OccupancyReportData }>(
       '/reception/reports/occupancy',
-      { params: dateRange }
+      { params: dateRange },
     )
     return response.data
   } catch (error: any) {
@@ -130,7 +130,7 @@ export async function getGuestReport(dateRange: DateRange = {}) {
   try {
     const response = await api.get<{ success: boolean; data: GuestReportData }>(
       '/reception/reports/guests',
-      { params: dateRange }
+      { params: dateRange },
     )
     return response.data
   } catch (error: any) {
@@ -143,7 +143,7 @@ export async function getRevenueReport(dateRange: DateRange = {}) {
   try {
     const response = await api.get<{ success: boolean; data: RevenueReportData }>(
       '/reception/reports/revenue',
-      { params: dateRange }
+      { params: dateRange },
     )
     return response.data
   } catch (error: any) {
@@ -156,7 +156,7 @@ export async function getCheckInOutReport(dateRange: DateRange = {}) {
   try {
     const response = await api.get<{ success: boolean; data: CheckInOutReportData }>(
       '/reception/reports/check-in-out',
-      { params: dateRange }
+      { params: dateRange },
     )
     return response.data
   } catch (error: any) {

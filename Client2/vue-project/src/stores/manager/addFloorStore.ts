@@ -91,7 +91,7 @@ export const useAddFloorStore = defineStore('addFloor', () => {
     checkingUniqueness.value = true
     try {
       const isUnique = await floorManagementService.validateFloorNumber(
-        parseInt(formData.value.floor_number)
+        parseInt(formData.value.floor_number),
       )
       floorNumberUnique.value = isUnique
       if (!isUnique) {
@@ -169,7 +169,7 @@ export const useAddFloorStore = defineStore('addFloor', () => {
 
   const setFieldValue = (field: string, value: any) => {
     ;(formData.value as any)[field] = value
-    
+
     if (validationErrors.value[field]) {
       delete validationErrors.value[field]
     }

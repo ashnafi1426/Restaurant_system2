@@ -15,12 +15,14 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
   const totalWaiters = ref(0)
   const totalPages = ref(0)
 
-  const activeWaiters = computed(() => waiters.value.filter(w => w.status === 'active'))
-  const inactiveWaiters = computed(() => waiters.value.filter(w => w.status === 'inactive'))
-  const suspendedWaiters = computed(() => waiters.value.filter(w => w.status === 'suspended'))
-  const busyWaiters = computed(() => waiters.value.filter(w => w.is_busy))
+  const activeWaiters = computed(() => waiters.value.filter((w) => w.status === 'active'))
+  const inactiveWaiters = computed(() => waiters.value.filter((w) => w.status === 'inactive'))
+  const suspendedWaiters = computed(() => waiters.value.filter((w) => w.status === 'suspended'))
+  const busyWaiters = computed(() => waiters.value.filter((w) => w.is_busy))
   const availableWaiters = computed(() =>
-    waiters.value.filter(w => w.status === 'active' && w.availability === 'available' && !w.is_busy)
+    waiters.value.filter(
+      (w) => w.status === 'active' && w.availability === 'available' && !w.is_busy,
+    ),
   )
 
   async function fetchWaiters(page = 1, search = '', status: string | null = null) {
@@ -34,10 +36,10 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
         status: status || filterStatus.value,
         availability: filterAvailability.value,
       })
-      
-      const waiterData = Array.isArray(response.data) ? response.data : (response.data?.data || [])
+
+      const waiterData = Array.isArray(response.data) ? response.data : response.data?.data || []
       waiters.value = waiterData
-      
+
       if (response.pagination) {
         currentPage.value = response.pagination.current_page || 1
         totalWaiters.value = response.pagination.total || waiterData.length
@@ -91,7 +93,7 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
     error.value = null
     try {
       const updated = await waiterManagementService.updateWaiter(waiterId, data)
-      const index = waiters.value.findIndex(w => w.id === waiterId)
+      const index = waiters.value.findIndex((w) => w.id === waiterId)
       if (index !== -1) {
         waiters.value[index] = updated
       }
@@ -112,7 +114,7 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
     isLoading.value = true
     try {
       const updated = await waiterManagementService.deactivateWaiter(waiterId)
-      const index = waiters.value.findIndex(w => w.id === waiterId)
+      const index = waiters.value.findIndex((w) => w.id === waiterId)
       if (index !== -1) {
         waiters.value[index] = updated
       }
@@ -130,7 +132,7 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
     isLoading.value = true
     try {
       const updated = await waiterManagementService.reactivateWaiter(waiterId)
-      const index = waiters.value.findIndex(w => w.id === waiterId)
+      const index = waiters.value.findIndex((w) => w.id === waiterId)
       if (index !== -1) {
         waiters.value[index] = updated
       }
@@ -148,7 +150,7 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
     isLoading.value = true
     try {
       const updated = await waiterManagementService.suspendWaiter(waiterId, reason)
-      const index = waiters.value.findIndex(w => w.id === waiterId)
+      const index = waiters.value.findIndex((w) => w.id === waiterId)
       if (index !== -1) {
         waiters.value[index] = updated
       }
@@ -164,12 +166,12 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
 
   async function changeAvailability(
     waiterId: string,
-    availability: 'available' | 'busy' | 'break' | 'offline'
+    availability: 'available' | 'busy' | 'break' | 'offline',
   ) {
     isLoading.value = true
     try {
       const updated = await waiterManagementService.changeAvailability(waiterId, availability)
-      const index = waiters.value.findIndex(w => w.id === waiterId)
+      const index = waiters.value.findIndex((w) => w.id === waiterId)
       if (index !== -1) {
         waiters.value[index] = updated
       }
@@ -187,7 +189,7 @@ export const useWaiterManagementStore = defineStore('waiterManagement', () => {
     isLoading.value = true
     try {
       await waiterManagementService.deleteWaiter(waiterId)
-      waiters.value = waiters.value.filter(w => w.id !== waiterId)
+      waiters.value = waiters.value.filter((w) => w.id !== waiterId)
       totalWaiters.value -= 1
     } catch (err: any) {
       console.error('[waiterManagementStore] Failed to delete waiter:', err)

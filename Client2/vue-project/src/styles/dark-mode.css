@@ -7,7 +7,9 @@
    ROOT ELEMENT - Controls everything
    ============================================================================ */
 html {
-  transition: background-color 0.3s ease, color 0.3s ease !important;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease !important;
 }
 
 html.dark {
@@ -27,7 +29,9 @@ html:not(.dark) {
 body {
   background-color: #ffffff;
   color: #1f2937;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 body.dark,
@@ -39,7 +43,9 @@ html.dark body {
 #app {
   background-color: #ffffff;
   color: #1f2937;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 html.dark #app {
@@ -50,7 +56,12 @@ html.dark #app {
 /* ============================================================================
    TEXT & TYPOGRAPHY
    ============================================================================ */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   color: #1f2937;
   transition: color 0.3s ease;
 }
@@ -64,15 +75,18 @@ html.dark h6 {
   color: #f1f5f9;
 }
 
-p:not([class*="text-"]), span:not([class*="text-"]), label:not([class*="text-"]), li:not([class*="text-"]) {
+p:not([class*='text-']),
+span:not([class*='text-']),
+label:not([class*='text-']),
+li:not([class*='text-']) {
   color: #4b5563;
   transition: color 0.3s ease;
 }
 
-html.dark p:not([class*="text-"]),
-html.dark span:not([class*="text-"]),
-html.dark label:not([class*="text-"]),
-html.dark li:not([class*="text-"]) {
+html.dark p:not([class*='text-']),
+html.dark span:not([class*='text-']),
+html.dark label:not([class*='text-']),
+html.dark li:not([class*='text-']) {
   color: #cbd5e1;
 }
 
@@ -114,27 +128,29 @@ html.dark .text-gray-400 {
   transition: background-color 0.3s ease;
 }
 
-html.dark .bg-white:not([class*="dark:bg-"]) {
+html.dark .bg-white:not([class*='dark:bg-']) {
   background-color: #0f172a;
 }
 
-.bg-gray-50, .bg-slate-50 {
+.bg-gray-50,
+.bg-slate-50 {
   background-color: #f9fafb;
   transition: background-color 0.3s ease;
 }
 
-html.dark .bg-gray-50:not([class*="dark:bg-"]),
-html.dark .bg-slate-50:not([class*="dark:bg-"]) {
+html.dark .bg-gray-50:not([class*='dark:bg-']),
+html.dark .bg-slate-50:not([class*='dark:bg-']) {
   background-color: #1e293b;
 }
 
-.bg-gray-100, .bg-slate-100 {
+.bg-gray-100,
+.bg-slate-100 {
   background-color: #f3f4f6;
   transition: background-color 0.3s ease;
 }
 
-html.dark .bg-gray-100:not([class*="dark:bg-"]),
-html.dark .bg-slate-100:not([class*="dark:bg-"]) {
+html.dark .bg-gray-100:not([class*='dark:bg-']),
+html.dark .bg-slate-100:not([class*='dark:bg-']) {
   background-color: #334155;
 }
 
@@ -158,7 +174,10 @@ html.dark .border {
   border-color: #334155;
 }
 
-.border-t, .border-b, .border-l, .border-r {
+.border-t,
+.border-b,
+.border-l,
+.border-r {
   border-color: #e5e7eb;
   transition: border-color 0.3s ease;
 }
@@ -184,14 +203,22 @@ html.dark .border-gray-100 {
    BUTTONS & INTERACTIVE
    ============================================================================ */
 button {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
   background-color: #ffffff;
   color: #1f2937;
   border-color: #d1d5db;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 html.dark input,
@@ -246,19 +273,25 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 /* ============================================================================
    CARDS & CONTAINERS
    ============================================================================ */
-.card, [class*="card"] {
+.card,
+[class*='card'] {
   background-color: #ffffff;
   color: #1f2937;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 html.dark .card,
-html.dark [class*="card"] {
+html.dark [class*='card'] {
   background-color: #1e293b;
   color: #f1f5f9;
 }
 
-.shadow-sm, .shadow, .shadow-md, .shadow-lg {
+.shadow-sm,
+.shadow,
+.shadow-md,
+.shadow-lg {
   transition: box-shadow 0.3s ease;
 }
 
@@ -275,7 +308,9 @@ html.dark .shadow-lg {
 table {
   background-color: #ffffff;
   color: #1f2937;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 html.dark table {
@@ -286,7 +321,9 @@ html.dark table {
 thead {
   background-color: #f3f4f6;
   color: #1f2937;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 html.dark thead {
@@ -315,13 +352,16 @@ html.dark tbody tr:hover {
 /* ============================================================================
    MODALS & DIALOGS
    ============================================================================ */
-[role="dialog"], .modal {
+[role='dialog'],
+.modal {
   background-color: #ffffff;
   color: #1f2937;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
-html.dark [role="dialog"],
+html.dark [role='dialog'],
 html.dark .modal {
   background-color: #1e293b;
   color: #f1f5f9;
@@ -339,17 +379,23 @@ html.dark .modal-overlay {
 /* ============================================================================
    DROPDOWNS & MENUS
    ============================================================================ */
-.dropdown, [class*="dropdown"], .menu, [class*="menu"] {
+.dropdown,
+[class*='dropdown'],
+.menu,
+[class*='menu'] {
   background-color: #ffffff;
   color: #1f2937;
   border-color: #e5e7eb;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 html.dark .dropdown,
-html.dark [class*="dropdown"],
+html.dark [class*='dropdown'],
 html.dark .menu,
-html.dark [class*="menu"] {
+html.dark [class*='menu'] {
   background-color: #1e293b;
   color: #f1f5f9;
   border-color: #334155;
@@ -358,16 +404,21 @@ html.dark [class*="menu"] {
 /* ============================================================================
    ALERTS & NOTIFICATIONS
    ============================================================================ */
-.alert, .notification, [class*="toast"] {
+.alert,
+.notification,
+[class*='toast'] {
   background-color: #f9fafb;
   color: #1f2937;
   border-color: #e5e7eb;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 html.dark .alert,
 html.dark .notification,
-html.dark [class*="toast"] {
+html.dark [class*='toast'] {
   background-color: #1e293b;
   color: #f1f5f9;
   border-color: #334155;
@@ -376,7 +427,8 @@ html.dark [class*="toast"] {
 /* ============================================================================
    FORM ELEMENTS
    ============================================================================ */
-.form-control, .form-group {
+.form-control,
+.form-group {
   color: #1f2937;
   transition: color 0.3s ease;
 }
@@ -389,11 +441,15 @@ html.dark .form-group {
 /* ============================================================================
    CODE BLOCKS & PRE
    ============================================================================ */
-code, pre {
+code,
+pre {
   background-color: #f3f4f6;
   color: #1f2937;
   border-color: #e5e7eb;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 html.dark code,
@@ -426,7 +482,8 @@ html.dark a:hover {
 /* ============================================================================
    DISABLED STATE
    ============================================================================ */
-:disabled, [disabled] {
+:disabled,
+[disabled] {
   opacity: 0.5;
   cursor: not-allowed;
 }

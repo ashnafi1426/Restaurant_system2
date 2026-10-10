@@ -19,10 +19,7 @@ export const usePageLoader = () => {
     loaderStore.updateText(text)
   }
 
-  const withLoader = async <T>(
-    operation: () => Promise<T>,
-    text?: string
-  ): Promise<T> => {
+  const withLoader = async <T>(operation: () => Promise<T>, text?: string): Promise<T> => {
     try {
       showLoader(text)
       const result = await operation()

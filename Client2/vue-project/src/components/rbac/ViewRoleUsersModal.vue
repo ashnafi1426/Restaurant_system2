@@ -1,16 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { Role, RbacUserSummary } from '../../types/rbacTypes'
-import {
-  X,
-  Users,
-  Search,
-  Mail,
-  Phone,
-  UserX,
-  ExternalLink,
-  Loader2
-} from 'lucide-vue-next'
+import { X, Users, Search, Mail, Phone, UserX, ExternalLink, Loader2 } from 'lucide-vue-next'
 
 const props = defineProps<{
   show: boolean
@@ -31,8 +22,8 @@ const roleUsers = computed(() => {
   const roleSlug = (props.role.slug || props.role.name).toLowerCase()
   const roleId = props.role.id
 
-  return props.users.filter(user => {
-    const matchesRoleId = user.roles?.some(r => r.id === roleId)
+  return props.users.filter((user) => {
+    const matchesRoleId = user.roles?.some((r) => r.id === roleId)
     const matchesSlug =
       (user.primary_role_slug || '').toLowerCase() === roleSlug ||
       (user.legacy_role || '').toLowerCase() === roleSlug
@@ -45,28 +36,46 @@ const filteredUsers = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return roleUsers.value
 
-  return roleUsers.value.filter(u =>
-    u.full_name.toLowerCase().includes(q) ||
-    u.email.toLowerCase().includes(q) ||
-    u.phone?.toLowerCase().includes(q)
+  return roleUsers.value.filter(
+    (u) =>
+      u.full_name.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      u.phone?.toLowerCase().includes(q),
   )
 })
 </script>
 
 <template>
   <Teleport to="body">
-    <div v-if="show" class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-hidden">
-      <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity" @click="emit('close')"></div>
+    <div
+      v-if="show"
+      class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 overflow-hidden"
+    >
+      <div
+        class="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity"
+        @click="emit('close')"
+      ></div>
 
-      <div class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in duration-150">
-        <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xs">
+      <div
+        class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in duration-150"
+      >
+        <div
+          class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xs"
+        >
           <div class="flex items-center gap-3.5">
-            <div class="p-3 rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 shadow-xs">
+            <div
+              class="p-3 rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 shadow-xs"
+            >
               <Users class="w-6 h-6" />
             </div>
             <div>
-              <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                Assigned Staff: <span class="capitalize text-indigo-600 dark:text-indigo-400">{{ role?.name }}</span>
+              <h2
+                class="text-lg font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2"
+              >
+                Assigned Staff:
+                <span class="capitalize text-indigo-600 dark:text-indigo-400">{{
+                  role?.name
+                }}</span>
               </h2>
               <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
                 List of system accounts inheriting access privileges from this role.
@@ -94,20 +103,31 @@ const filteredUsers = computed(() => {
               />
             </div>
 
-            <div class="px-3 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-black text-xs whitespace-nowrap self-start sm:self-auto">
+            <div
+              class="px-3 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-700 dark:text-indigo-300 font-black text-xs whitespace-nowrap self-start sm:self-auto"
+            >
               {{ roleUsers.length }} Users Assigned
             </div>
           </div>
 
           <div v-if="loading" class="py-12 text-center">
             <Loader2 class="w-8 h-8 text-indigo-500 animate-spin mx-auto mb-2" />
-            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Fetching assigned user accounts...</p>
+            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">
+              Fetching assigned user accounts...
+            </p>
           </div>
 
-          <div v-else-if="filteredUsers.length === 0" class="py-12 text-center bg-slate-50/50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-slate-800">
+          <div
+            v-else-if="filteredUsers.length === 0"
+            class="py-12 text-center bg-slate-50/50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-slate-800"
+          >
             <UserX class="w-10 h-10 text-slate-400 mx-auto mb-2 opacity-50" />
             <p class="text-sm font-bold text-slate-700 dark:text-slate-300">
-              {{ roleUsers.length === 0 ? 'No users are currently assigned to this role.' : 'No users match your search.' }}
+              {{
+                roleUsers.length === 0
+                  ? 'No users are currently assigned to this role.'
+                  : 'No users match your search.'
+              }}
             </p>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
               You can assign users to this role anytime from the User Role Assignments page.
@@ -121,7 +141,9 @@ const filteredUsers = computed(() => {
               class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80 hover:border-indigo-500/30 transition group"
             >
               <div class="flex items-center gap-3.5">
-                <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-black text-sm uppercase">
+                <div
+                  class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-black text-sm uppercase"
+                >
                   {{ u.full_name.charAt(0) }}
                 </div>
 
@@ -133,12 +155,14 @@ const filteredUsers = computed(() => {
                     <span
                       :class="[
                         'w-2 h-2 rounded-full',
-                        (u.is_active ?? true) ? 'bg-emerald-500' : 'bg-rose-500'
+                        (u.is_active ?? true) ? 'bg-emerald-500' : 'bg-rose-500',
                       ]"
                     ></span>
                   </div>
 
-                  <div class="flex items-center gap-4 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  <div
+                    class="flex items-center gap-4 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5"
+                  >
                     <span class="flex items-center gap-1">
                       <Mail class="w-3 h-3 text-slate-400" />
                       {{ u.email }}
@@ -152,7 +176,10 @@ const filteredUsers = computed(() => {
               </div>
 
               <div class="flex items-center gap-2">
-                <span v-if="u.roles?.some(r => r.id === role?.id && r.is_primary)" class="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold text-[10px] uppercase border border-emerald-500/20">
+                <span
+                  v-if="u.roles?.some((r) => r.id === role?.id && r.is_primary)"
+                  class="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold text-[10px] uppercase border border-emerald-500/20"
+                >
                   Primary Role
                 </span>
               </div>
@@ -160,7 +187,9 @@ const filteredUsers = computed(() => {
           </div>
         </div>
 
-        <div class="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xs">
+        <div
+          class="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xs"
+        >
           <button
             @click="emit('navigate-user-roles')"
             class="inline-flex items-center gap-1.5 text-xs font-extrabold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"

@@ -41,7 +41,10 @@ export const roomService = {
     if (token) {
       return api.get('/rooms', { params: { ...params, search: searchTerm } })
     }
-    return publicAxios.get('/rooms', { params: { ...params, search: searchTerm }, headers: getGuestHotelHeaders() })
+    return publicAxios.get('/rooms', {
+      params: { ...params, search: searchTerm },
+      headers: getGuestHotelHeaders(),
+    })
   },
 
   getRoom(id: string) {

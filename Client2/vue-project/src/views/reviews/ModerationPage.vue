@@ -8,7 +8,10 @@
       </div>
 
       <!-- Permission Check -->
-      <div v-if="!isManager" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+      <div
+        v-if="!isManager"
+        class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6"
+      >
         <p class="font-semibold">Access Denied</p>
         <p class="text-sm">You do not have permission to access this page.</p>
       </div>
@@ -28,7 +31,9 @@ import ModerationDashboard from '@/components/reviews/ModerationDashboard.vue'
 
 const authStore = useAuthStore()
 
-const isManager = computed(() => authStore.can('reviews.moderate') || authStore.hasAnyRole(['manager', 'admin']))
+const isManager = computed(
+  () => authStore.can('reviews.moderate') || authStore.hasAnyRole(['manager', 'admin']),
+)
 </script>
 
 <style scoped>

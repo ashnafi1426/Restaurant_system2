@@ -11,13 +11,21 @@ import {
   type OccupancyReportData,
   type GuestReportData,
   type RevenueReportData,
-  type CheckInOutReportData
+  type CheckInOutReportData,
 } from '@/services/receptionReportService'
 import { useHotelStore } from '@/stores/hotelStore'
 import { useLanguageStore } from '@/stores/language'
 import { jsPDF } from 'jspdf'
 import html2canvas from 'html2canvas'
-import { ChevronLeft, ChevronRight, Loader2, Calendar, FileText, Download, Building2 } from 'lucide-vue-next'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Calendar,
+  FileText,
+  Download,
+  Building2,
+} from 'lucide-vue-next'
 
 const hotelStore = useHotelStore()
 const languageStore = useLanguageStore()
@@ -31,7 +39,7 @@ const dateRange = ref({
   start_date: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
     .toISOString()
     .split('T')[0],
-  end_date: new Date().toISOString().split('T')[0]
+  end_date: new Date().toISOString().split('T')[0],
 })
 
 // Pagination State
@@ -50,7 +58,7 @@ const reportTabs = computed(() => [
   { id: 'occupancy', label: languageStore.t('occupancy', 'Occupancy'), icon: '🏨' },
   { id: 'guest', label: languageStore.t('guests', 'Guests'), icon: '👥' },
   { id: 'revenue', label: languageStore.t('revenue', 'Revenue'), icon: '💰' },
-  { id: 'checkinout', label: languageStore.t('check_in_out', 'Check-In/Out'), icon: '🚪' }
+  { id: 'checkinout', label: languageStore.t('check_in_out', 'Check-In/Out'), icon: '🚪' },
 ])
 
 // Computed Active Dataset Count
@@ -129,7 +137,7 @@ const loadReportData = async () => {
   try {
     const params = {
       start_date: dateRange.value.start_date,
-      end_date: dateRange.value.end_date
+      end_date: dateRange.value.end_date,
     }
 
     switch (activeReport.value) {
@@ -185,7 +193,7 @@ const exportToPDF = async () => {
       logging: false,
       backgroundColor: '#ffffff',
       windowWidth: reportElement.scrollWidth,
-      windowHeight: reportElement.scrollHeight
+      windowHeight: reportElement.scrollHeight,
     })
 
     const imgWidth = 210
@@ -194,7 +202,7 @@ const exportToPDF = async () => {
     let heightLeft = imgHeight
 
     const pdf = new jsPDF('p', 'mm', 'a4')
-    
+
     pdf.setFontSize(16)
     pdf.setTextColor(0, 128, 128)
     const reportTitles = {
@@ -202,20 +210,24 @@ const exportToPDF = async () => {
       occupancy: 'Occupancy Report',
       guest: 'Guest Report',
       revenue: 'Revenue Report',
-      checkinout: 'Check-In/Check-Out Report'
+      checkinout: 'Check-In/Check-Out Report',
     }
-    const hotelTitle = hotelStore.hotelName ? `${hotelStore.hotelName} - ${reportTitles[activeReport.value]}` : reportTitles[activeReport.value]
+    const hotelTitle = hotelStore.hotelName
+      ? `${hotelStore.hotelName} - ${reportTitles[activeReport.value]}`
+      : reportTitles[activeReport.value]
     pdf.text(hotelTitle, 105, 15, { align: 'center' })
-    
+
     pdf.setFontSize(10)
     pdf.setTextColor(100, 100, 100)
-    pdf.text(`Period: ${dateRange.value.start_date} to ${dateRange.value.end_date}`, 105, 22, { align: 'center' })
+    pdf.text(`Period: ${dateRange.value.start_date} to ${dateRange.value.end_date}`, 105, 22, {
+      align: 'center',
+    })
     pdf.text(`Generated: ${new Date().toLocaleString()}`, 105, 28, { align: 'center' })
 
     const imgData = canvas.toDataURL('image/png')
     let position = 35
     pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
-    heightLeft -= (pageHeight - position)
+    heightLeft -= pageHeight - position
 
     while (heightLeft >= 0) {
       position = heightLeft - imgHeight
@@ -229,7 +241,7 @@ const exportToPDF = async () => {
       occupancy: 'Occupancy_Report',
       guest: 'Guest_Report',
       revenue: 'Revenue_Report',
-      checkinout: 'CheckInOut_Report'
+      checkinout: 'CheckInOut_Report',
     }
     const filename = `${reportNames[activeReport.value]}_${dateRange.value.start_date}_to_${dateRange.value.end_date}.pdf`
 
@@ -246,31 +258,54 @@ onMounted(() => {
   loadReportData()
 })
 
-watch(() => hotelStore.hotelId, () => {
-  loadReportData()
-})
+watch(
+  () => hotelStore.hotelId,
+  () => {
+    loadReportData()
+  },
+)
 </script>
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans">
+    <div
+      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans"
+    >
       <!-- Header Banner -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
+      >
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{{ languageStore.t('reception_reports', 'Reception Reports') }}</h1>
-            <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+            <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              {{ languageStore.t('reception_reports', 'Reception Reports') }}
+            </h1>
+            <span
+              v-if="hotelStore.hotelName"
+              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
+            >
               <Building2 class="w-3 h-3" />
               {{ hotelStore.hotelName }}
             </span>
           </div>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('reception_reports_desc', 'Comprehensive hotel occupancy, reservation, and revenue analytics.') }}</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            {{
+              languageStore.t(
+                'reception_reports_desc',
+                'Comprehensive hotel occupancy, reservation, and revenue analytics.',
+              )
+            }}
+          </p>
         </div>
 
         <!-- Date Range Filter & Actions -->
         <div class="flex flex-wrap items-center gap-2.5">
-          <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
-            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ languageStore.t('from_date', 'From:') }}</span>
+          <div
+            class="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800"
+          >
+            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">{{
+              languageStore.t('from_date', 'From:')
+            }}</span>
             <input
               v-model="dateRange.start_date"
               type="date"
@@ -278,8 +313,12 @@ watch(() => hotelStore.hotelId, () => {
             />
           </div>
 
-          <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
-            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ languageStore.t('to_date', 'To:') }}</span>
+          <div
+            class="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800"
+          >
+            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">{{
+              languageStore.t('to_date', 'To:')
+            }}</span>
             <input
               v-model="dateRange.end_date"
               type="date"
@@ -301,13 +340,19 @@ watch(() => hotelStore.hotelId, () => {
           >
             <Loader2 v-if="exporting" class="w-4 h-4 animate-spin" />
             <Download v-else class="w-4 h-4" />
-            <span>{{ exporting ? languageStore.t('exporting', 'Exporting...') : languageStore.t('export_pdf', 'Export PDF') }}</span>
+            <span>{{
+              exporting
+                ? languageStore.t('exporting', 'Exporting...')
+                : languageStore.t('export_pdf', 'Export PDF')
+            }}</span>
           </button>
         </div>
       </div>
 
       <!-- Report Tab Selector Bar -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-1.5 shadow-xs">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-1.5 shadow-xs"
+      >
         <div class="grid grid-cols-2 sm:grid-cols-5 gap-1">
           <button
             v-for="tab in reportTabs"
@@ -317,7 +362,7 @@ watch(() => hotelStore.hotelId, () => {
               'py-2.5 px-3 font-black text-xs rounded-2xl transition cursor-pointer flex items-center justify-center gap-2',
               activeReport === tab.id
                 ? 'bg-teal-600 text-white shadow-md shadow-teal-600/20'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
             ]"
           >
             <span>{{ tab.icon }}</span>
@@ -327,9 +372,14 @@ watch(() => hotelStore.hotelId, () => {
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-16 text-center space-y-3">
+      <div
+        v-if="loading"
+        class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-16 text-center space-y-3"
+      >
         <Loader2 class="w-8 h-8 text-amber-500 animate-spin mx-auto" />
-        <p class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ languageStore.t('loading_data', 'Loading report data...') }}</p>
+        <p class="text-xs font-bold text-slate-500 dark:text-slate-400">
+          {{ languageStore.t('loading_data', 'Loading report data...') }}
+        </p>
       </div>
 
       <!-- Main Report Content -->
@@ -338,37 +388,93 @@ watch(() => hotelStore.hotelId, () => {
         <div v-if="activeReport === 'reservation' && reservationData" class="space-y-6">
           <!-- Summary Cards -->
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs">
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ languageStore.t('total', 'Total') }}</p>
-              <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ reservationData.summary.total }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs"
+            >
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                {{ languageStore.t('total', 'Total') }}
+              </p>
+              <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">
+                {{ reservationData.summary.total }}
+              </p>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-amber-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">{{ languageStore.t('pending', 'Pending') }}</p>
-              <p class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ reservationData.summary.pending }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-amber-500/30 shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider"
+              >
+                {{ languageStore.t('pending', 'Pending') }}
+              </p>
+              <p class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
+                {{ reservationData.summary.pending }}
+              </p>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-purple-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">{{ languageStore.t('confirmed', 'Confirmed') }}</p>
-              <p class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">{{ reservationData.summary.confirmed }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-purple-500/30 shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider"
+              >
+                {{ languageStore.t('confirmed', 'Confirmed') }}
+              </p>
+              <p class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">
+                {{ reservationData.summary.confirmed }}
+              </p>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-teal-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">{{ languageStore.t('checked_in', 'Checked In') }}</p>
-              <p class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">{{ reservationData.summary.checked_in }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-teal-500/30 shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider"
+              >
+                {{ languageStore.t('checked_in', 'Checked In') }}
+              </p>
+              <p class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">
+                {{ reservationData.summary.checked_in }}
+              </p>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-emerald-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">{{ languageStore.t('checked_out', 'Checked Out') }}</p>
-              <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ reservationData.summary.checked_out }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-emerald-500/30 shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider"
+              >
+                {{ languageStore.t('checked_out', 'Checked Out') }}
+              </p>
+              <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+                {{ reservationData.summary.checked_out }}
+              </p>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-rose-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">{{ languageStore.t('cancelled', 'Cancelled') }}</p>
-              <p class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{{ reservationData.summary.cancelled }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-rose-500/30 shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider"
+              >
+                {{ languageStore.t('cancelled', 'Cancelled') }}
+              </p>
+              <p class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
+                {{ reservationData.summary.cancelled }}
+              </p>
             </div>
           </div>
 
           <!-- Table Container -->
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
-            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
-              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('daily_reservation_statistics', 'Daily Reservation Statistics') }}</h3>
-              <span class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700">
+          <div
+            class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs"
+          >
+            <div
+              class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50"
+            >
+              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">
+                {{
+                  languageStore.t('daily_reservation_statistics', 'Daily Reservation Statistics')
+                }}
+              </h3>
+              <span
+                class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700"
+              >
                 {{ totalItems }} {{ languageStore.t('days_logged', 'Days Logged') }}
               </span>
             </div>
@@ -376,19 +482,49 @@ watch(() => hotelStore.hotelId, () => {
             <div class="overflow-x-auto w-full">
               <table class="w-full text-left border-collapse">
                 <thead>
-                  <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('date', 'Date') }}</th>
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('total', 'Total') }}</th>
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('pending', 'Pending') }}</th>
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('confirmed', 'Confirmed') }}</th>
+                  <tr
+                    class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider"
+                  >
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('date', 'Date') }}
+                    </th>
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('total', 'Total') }}
+                    </th>
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('pending', 'Pending') }}
+                    </th>
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('confirmed', 'Confirmed') }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
-                  <tr v-for="stat in paginatedDataset" :key="stat.date" class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
-                    <td class="px-4 py-3 font-extrabold text-slate-900 dark:text-white whitespace-nowrap">{{ stat.date }}</td>
-                    <td class="px-4 py-3 font-black text-slate-900 dark:text-white whitespace-nowrap">{{ stat.count }}</td>
-                    <td class="px-4 py-3 font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap">{{ stat.pending }}</td>
-                    <td class="px-4 py-3 font-bold text-purple-600 dark:text-purple-400 whitespace-nowrap">{{ stat.confirmed }}</td>
+                  <tr
+                    v-for="stat in paginatedDataset"
+                    :key="stat.date"
+                    class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition"
+                  >
+                    <td
+                      class="px-4 py-3 font-extrabold text-slate-900 dark:text-white whitespace-nowrap"
+                    >
+                      {{ stat.date }}
+                    </td>
+                    <td
+                      class="px-4 py-3 font-black text-slate-900 dark:text-white whitespace-nowrap"
+                    >
+                      {{ stat.count }}
+                    </td>
+                    <td
+                      class="px-4 py-3 font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap"
+                    >
+                      {{ stat.pending }}
+                    </td>
+                    <td
+                      class="px-4 py-3 font-bold text-purple-600 dark:text-purple-400 whitespace-nowrap"
+                    >
+                      {{ stat.confirmed }}
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -399,28 +535,66 @@ watch(() => hotelStore.hotelId, () => {
         <!-- Occupancy Report -->
         <div v-if="activeReport === 'occupancy' && occupancyData" class="space-y-6">
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs">
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ languageStore.t('total_rooms', 'Total Rooms') }}</p>
-              <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ occupancyData.summary.total_rooms }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs"
+            >
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                {{ languageStore.t('total_rooms', 'Total Rooms') }}
+              </p>
+              <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">
+                {{ occupancyData.summary.total_rooms }}
+              </p>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-emerald-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">{{ languageStore.t('available', 'Available') }}</p>
-              <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ occupancyData.summary.available }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-emerald-500/30 shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider"
+              >
+                {{ languageStore.t('available', 'Available') }}
+              </p>
+              <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+                {{ occupancyData.summary.available }}
+              </p>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-blue-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{{ languageStore.t('occupied', 'Occupied') }}</p>
-              <p class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">{{ occupancyData.summary.occupied }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-blue-500/30 shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider"
+              >
+                {{ languageStore.t('occupied', 'Occupied') }}
+              </p>
+              <p class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">
+                {{ occupancyData.summary.occupied }}
+              </p>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-teal-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">{{ languageStore.t('avg_occupancy_rate', 'Avg Occupancy Rate') }}</p>
-              <p class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">{{ occupancyData.summary.avg_occupancy_rate }}%</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-teal-500/30 shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider"
+              >
+                {{ languageStore.t('avg_occupancy_rate', 'Avg Occupancy Rate') }}
+              </p>
+              <p class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">
+                {{ occupancyData.summary.avg_occupancy_rate }}%
+              </p>
             </div>
           </div>
 
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
-            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
-              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('daily_occupancy_statistics', 'Daily Occupancy Statistics') }}</h3>
-              <span class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700">
+          <div
+            class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs"
+          >
+            <div
+              class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50"
+            >
+              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">
+                {{ languageStore.t('daily_occupancy_statistics', 'Daily Occupancy Statistics') }}
+              </h3>
+              <span
+                class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700"
+              >
                 {{ totalItems }} {{ languageStore.t('days_logged', 'Days Logged') }}
               </span>
             </div>
@@ -428,19 +602,49 @@ watch(() => hotelStore.hotelId, () => {
             <div class="overflow-x-auto w-full">
               <table class="w-full text-left border-collapse">
                 <thead>
-                  <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('date', 'Date') }}</th>
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('occupied', 'Occupied') }}</th>
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('available', 'Available') }}</th>
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('rate', 'Rate') }}</th>
+                  <tr
+                    class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider"
+                  >
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('date', 'Date') }}
+                    </th>
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('occupied', 'Occupied') }}
+                    </th>
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('available', 'Available') }}
+                    </th>
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('rate', 'Rate') }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
-                  <tr v-for="stat in paginatedDataset" :key="stat.date" class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
-                    <td class="px-4 py-3 font-extrabold text-slate-900 dark:text-white whitespace-nowrap">{{ stat.date }}</td>
-                    <td class="px-4 py-3 font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">{{ stat.occupied }}</td>
-                    <td class="px-4 py-3 font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">{{ stat.available }}</td>
-                    <td class="px-4 py-3 font-black text-teal-600 dark:text-teal-400 whitespace-nowrap">{{ stat.occupancy_rate }}%</td>
+                  <tr
+                    v-for="stat in paginatedDataset"
+                    :key="stat.date"
+                    class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition"
+                  >
+                    <td
+                      class="px-4 py-3 font-extrabold text-slate-900 dark:text-white whitespace-nowrap"
+                    >
+                      {{ stat.date }}
+                    </td>
+                    <td
+                      class="px-4 py-3 font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap"
+                    >
+                      {{ stat.occupied }}
+                    </td>
+                    <td
+                      class="px-4 py-3 font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap"
+                    >
+                      {{ stat.available }}
+                    </td>
+                    <td
+                      class="px-4 py-3 font-black text-teal-600 dark:text-teal-400 whitespace-nowrap"
+                    >
+                      {{ stat.occupancy_rate }}%
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -451,20 +655,42 @@ watch(() => hotelStore.hotelId, () => {
         <!-- Guest Report -->
         <div v-if="activeReport === 'guest' && guestData" class="space-y-6">
           <div class="grid grid-cols-2 gap-4">
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs">
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ languageStore.t('total_guests', 'Total Guests') }}</p>
-              <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ guestData.summary.total_guests }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs"
+            >
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                {{ languageStore.t('total_guests', 'Total Guests') }}
+              </p>
+              <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">
+                {{ guestData.summary.total_guests }}
+              </p>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-teal-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">{{ languageStore.t('new_guests_period', 'New Guests (Period)') }}</p>
-              <p class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">{{ guestData.summary.new_guests }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-teal-500/30 shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider"
+              >
+                {{ languageStore.t('new_guests_period', 'New Guests (Period)') }}
+              </p>
+              <p class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">
+                {{ guestData.summary.new_guests }}
+              </p>
             </div>
           </div>
 
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
-            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
-              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('top_guests_reservations', 'Top Guests (By Reservations)') }}</h3>
-              <span class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700">
+          <div
+            class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs"
+          >
+            <div
+              class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50"
+            >
+              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">
+                {{ languageStore.t('top_guests_reservations', 'Top Guests (By Reservations)') }}
+              </h3>
+              <span
+                class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700"
+              >
                 {{ totalItems }} {{ languageStore.t('guests', 'Guests') }}
               </span>
             </div>
@@ -472,19 +698,49 @@ watch(() => hotelStore.hotelId, () => {
             <div class="overflow-x-auto w-full">
               <table class="w-full text-left border-collapse">
                 <thead>
-                  <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('name', 'Name') }}</th>
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('email', 'Email') }}</th>
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('phone', 'Phone') }}</th>
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('reservations', 'Reservations') }}</th>
+                  <tr
+                    class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider"
+                  >
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('name', 'Name') }}
+                    </th>
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('email', 'Email') }}
+                    </th>
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('phone', 'Phone') }}
+                    </th>
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('reservations', 'Reservations') }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
-                  <tr v-for="guest in paginatedDataset" :key="guest.id" class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
-                    <td class="px-4 py-3 font-extrabold text-slate-900 dark:text-white whitespace-nowrap">{{ guest.first_name }} {{ guest.last_name }}</td>
-                    <td class="px-4 py-3 font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">{{ guest.email }}</td>
-                    <td class="px-4 py-3 font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">{{ guest.phone }}</td>
-                    <td class="px-4 py-3 font-black text-teal-600 dark:text-teal-400 whitespace-nowrap">{{ guest.reservations_count }}</td>
+                  <tr
+                    v-for="guest in paginatedDataset"
+                    :key="guest.id"
+                    class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition"
+                  >
+                    <td
+                      class="px-4 py-3 font-extrabold text-slate-900 dark:text-white whitespace-nowrap"
+                    >
+                      {{ guest.first_name }} {{ guest.last_name }}
+                    </td>
+                    <td
+                      class="px-4 py-3 font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap"
+                    >
+                      {{ guest.email }}
+                    </td>
+                    <td
+                      class="px-4 py-3 font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap"
+                    >
+                      {{ guest.phone }}
+                    </td>
+                    <td
+                      class="px-4 py-3 font-black text-teal-600 dark:text-teal-400 whitespace-nowrap"
+                    >
+                      {{ guest.reservations_count }}
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -495,28 +751,66 @@ watch(() => hotelStore.hotelId, () => {
         <!-- Revenue Report -->
         <div v-if="activeReport === 'revenue' && revenueData" class="space-y-6">
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-teal-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">{{ languageStore.t('total_revenue', 'Total Revenue') }}</p>
-              <p class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">ETB {{ (revenueData.summary.total_revenue || 0).toLocaleString() }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-teal-500/30 shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider"
+              >
+                {{ languageStore.t('total_revenue', 'Total Revenue') }}
+              </p>
+              <p class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">
+                ETB {{ (revenueData.summary.total_revenue || 0).toLocaleString() }}
+              </p>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-blue-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{{ languageStore.t('reservations_revenue', 'Reservations Revenue') }}</p>
-              <p class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">ETB {{ (revenueData.summary.reservation_revenue || 0).toLocaleString() }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-blue-500/30 shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider"
+              >
+                {{ languageStore.t('reservations_revenue', 'Reservations Revenue') }}
+              </p>
+              <p class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">
+                ETB {{ (revenueData.summary.reservation_revenue || 0).toLocaleString() }}
+              </p>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-purple-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">{{ languageStore.t('orders_revenue', 'Orders Revenue') }}</p>
-              <p class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">ETB {{ (revenueData.summary.order_revenue || 0).toLocaleString() }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-purple-500/30 shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider"
+              >
+                {{ languageStore.t('orders_revenue', 'Orders Revenue') }}
+              </p>
+              <p class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">
+                ETB {{ (revenueData.summary.order_revenue || 0).toLocaleString() }}
+              </p>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs">
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ languageStore.t('payment_count', 'Payment Count') }}</p>
-              <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ revenueData.summary.payment_count }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs"
+            >
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                {{ languageStore.t('payment_count', 'Payment Count') }}
+              </p>
+              <p class="text-2xl font-black text-slate-900 dark:text-white mt-1">
+                {{ revenueData.summary.payment_count }}
+              </p>
             </div>
           </div>
 
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
-            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
-              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('daily_revenue_statistics', 'Daily Revenue Statistics') }}</h3>
-              <span class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700">
+          <div
+            class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs"
+          >
+            <div
+              class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50"
+            >
+              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">
+                {{ languageStore.t('daily_revenue_statistics', 'Daily Revenue Statistics') }}
+              </h3>
+              <span
+                class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700"
+              >
                 {{ totalItems }} {{ languageStore.t('days_logged', 'Days Logged') }}
               </span>
             </div>
@@ -524,17 +818,41 @@ watch(() => hotelStore.hotelId, () => {
             <div class="overflow-x-auto w-full">
               <table class="w-full text-left border-collapse">
                 <thead>
-                  <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('date', 'Date') }}</th>
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('revenue', 'Revenue') }}</th>
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('transactions', 'Transactions') }}</th>
+                  <tr
+                    class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider"
+                  >
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('date', 'Date') }}
+                    </th>
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('revenue', 'Revenue') }}
+                    </th>
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('transactions', 'Transactions') }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
-                  <tr v-for="stat in paginatedDataset" :key="stat.date" class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
-                    <td class="px-4 py-3 font-extrabold text-slate-900 dark:text-white whitespace-nowrap">{{ stat.date }}</td>
-                    <td class="px-4 py-3 font-black text-teal-600 dark:text-teal-400 whitespace-nowrap">ETB {{ (stat.total || 0).toLocaleString() }}</td>
-                    <td class="px-4 py-3 font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">{{ stat.count }}</td>
+                  <tr
+                    v-for="stat in paginatedDataset"
+                    :key="stat.date"
+                    class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition"
+                  >
+                    <td
+                      class="px-4 py-3 font-extrabold text-slate-900 dark:text-white whitespace-nowrap"
+                    >
+                      {{ stat.date }}
+                    </td>
+                    <td
+                      class="px-4 py-3 font-black text-teal-600 dark:text-teal-400 whitespace-nowrap"
+                    >
+                      ETB {{ (stat.total || 0).toLocaleString() }}
+                    </td>
+                    <td
+                      class="px-4 py-3 font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap"
+                    >
+                      {{ stat.count }}
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -545,24 +863,61 @@ watch(() => hotelStore.hotelId, () => {
         <!-- Check-In/Out Report -->
         <div v-if="activeReport === 'checkinout' && checkInOutData" class="space-y-6">
           <div class="grid grid-cols-3 gap-4">
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-teal-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">{{ languageStore.t('total_checkins', 'Total Check-Ins') }}</p>
-              <p class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">{{ checkInOutData.summary.total_check_ins }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-teal-500/30 shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider"
+              >
+                {{ languageStore.t('total_checkins', 'Total Check-Ins') }}
+              </p>
+              <p class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-1">
+                {{ checkInOutData.summary.total_check_ins }}
+              </p>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-rose-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">{{ languageStore.t('total_checkouts', 'Total Check-Outs') }}</p>
-              <p class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{{ checkInOutData.summary.total_check_outs }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-rose-500/30 shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider"
+              >
+                {{ languageStore.t('total_checkouts', 'Total Check-Outs') }}
+              </p>
+              <p class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
+                {{ checkInOutData.summary.total_check_outs }}
+              </p>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-blue-500/30 shadow-xs">
-              <p class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{{ languageStore.t('active_guests', 'Active Guests') }}</p>
-              <p class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">{{ checkInOutData.summary.active_guests }}</p>
+            <div
+              class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-blue-500/30 shadow-xs"
+            >
+              <p
+                class="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider"
+              >
+                {{ languageStore.t('active_guests', 'Active Guests') }}
+              </p>
+              <p class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">
+                {{ checkInOutData.summary.active_guests }}
+              </p>
             </div>
           </div>
 
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
-            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50">
-              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('daily_checkin_checkout_activity', 'Daily Check-In / Check-Out Activity') }}</h3>
-              <span class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700">
+          <div
+            class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs"
+          >
+            <div
+              class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/50"
+            >
+              <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">
+                {{
+                  languageStore.t(
+                    'daily_checkin_checkout_activity',
+                    'Daily Check-In / Check-Out Activity',
+                  )
+                }}
+              </h3>
+              <span
+                class="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-300/60 dark:border-slate-700"
+              >
                 {{ totalItems }} {{ languageStore.t('days_logged', 'Days Logged') }}
               </span>
             </div>
@@ -570,17 +925,41 @@ watch(() => hotelStore.hotelId, () => {
             <div class="overflow-x-auto w-full">
               <table class="w-full text-left border-collapse">
                 <thead>
-                  <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('date', 'Date') }}</th>
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('check_ins', 'Check-Ins') }}</th>
-                    <th class="px-4 py-3 whitespace-nowrap">{{ languageStore.t('check_outs', 'Check-Outs') }}</th>
+                  <tr
+                    class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider"
+                  >
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('date', 'Date') }}
+                    </th>
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('check_ins', 'Check-Ins') }}
+                    </th>
+                    <th class="px-4 py-3 whitespace-nowrap">
+                      {{ languageStore.t('check_outs', 'Check-Outs') }}
+                    </th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
-                  <tr v-for="stat in paginatedDataset" :key="stat.date" class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
-                    <td class="px-4 py-3 font-extrabold text-slate-900 dark:text-white whitespace-nowrap">{{ stat.date }}</td>
-                    <td class="px-4 py-3 font-bold text-teal-600 dark:text-teal-400 whitespace-nowrap">{{ stat.check_ins }}</td>
-                    <td class="px-4 py-3 font-bold text-rose-600 dark:text-rose-400 whitespace-nowrap">{{ stat.check_outs }}</td>
+                  <tr
+                    v-for="stat in paginatedDataset"
+                    :key="stat.date"
+                    class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition"
+                  >
+                    <td
+                      class="px-4 py-3 font-extrabold text-slate-900 dark:text-white whitespace-nowrap"
+                    >
+                      {{ stat.date }}
+                    </td>
+                    <td
+                      class="px-4 py-3 font-bold text-teal-600 dark:text-teal-400 whitespace-nowrap"
+                    >
+                      {{ stat.check_ins }}
+                    </td>
+                    <td
+                      class="px-4 py-3 font-bold text-rose-600 dark:text-rose-400 whitespace-nowrap"
+                    >
+                      {{ stat.check_outs }}
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -596,7 +975,9 @@ watch(() => hotelStore.hotelId, () => {
           <!-- Left Side: Per Page Selector & Showing Count -->
           <div class="flex flex-wrap items-center gap-4 text-slate-600 dark:text-slate-400">
             <div class="flex items-center gap-2">
-              <span class="font-bold text-slate-700 dark:text-slate-300">{{ languageStore.t('items_per_page', 'Items per page:') }}</span>
+              <span class="font-bold text-slate-700 dark:text-slate-300">{{
+                languageStore.t('items_per_page', 'Items per page:')
+              }}</span>
               <select
                 :value="perPage"
                 @change="changePerPage"
@@ -610,9 +991,13 @@ watch(() => hotelStore.hotelId, () => {
             </div>
 
             <div class="text-xs font-medium">
-              {{ languageStore.t('showing', 'Showing') }} <span class="font-extrabold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
-              <span class="font-extrabold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
-              <span class="font-extrabold text-slate-900 dark:text-white">{{ totalItems }}</span> {{ languageStore.t('records', 'records') }}
+              {{ languageStore.t('showing', 'Showing') }}
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ showingFrom }}</span>
+              {{ languageStore.t('to', 'to') }}
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ showingTo }}</span>
+              {{ languageStore.t('of', 'of') }}
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ totalItems }}</span>
+              {{ languageStore.t('records', 'records') }}
             </div>
           </div>
 
@@ -637,7 +1022,7 @@ watch(() => hotelStore.hotelId, () => {
                   'w-8 h-8 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center border',
                   currentPage === p
                     ? 'bg-amber-500 border-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20'
-                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800',
                 ]"
               >
                 {{ p }}

@@ -74,12 +74,19 @@ onMounted(loadGuest)
   <DashboardLayout>
     <div class="max-w-6xl mx-auto bg-white dark:bg-slate-900 p-6 rounded-lg">
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-white">{{ languageStore.t('edit_guest', 'Edit Guest') }}</h1>
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
+          {{ languageStore.t('edit_guest', 'Edit Guest') }}
+        </h1>
 
-        <p class="text-gray-500 dark:text-slate-400 mt-2">{{ languageStore.t('update_guest_info', 'Update guest information.') }}</p>
+        <p class="text-gray-500 dark:text-slate-400 mt-2">
+          {{ languageStore.t('update_guest_info', 'Update guest information.') }}
+        </p>
       </div>
 
-      <div v-if="loading" class="bg-white dark:bg-slate-800 rounded-xl shadow p-10 text-center text-gray-800 dark:text-white font-medium">
+      <div
+        v-if="loading"
+        class="bg-white dark:bg-slate-800 rounded-xl shadow p-10 text-center text-gray-800 dark:text-white font-medium"
+      >
         {{ languageStore.t('loading', 'Loading...') }}
       </div>
 

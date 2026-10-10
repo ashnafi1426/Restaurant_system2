@@ -51,10 +51,13 @@ watch(
     if (!newVal) {
       resetForm()
     } else {
-      customName.value = props.guestName && props.guestName !== 'Guest' ? props.guestName : (authStore.user?.name || '')
-      customEmail.value = props.guestEmail || (authStore.user?.email || '')
+      customName.value =
+        props.guestName && props.guestName !== 'Guest'
+          ? props.guestName
+          : authStore.user?.name || ''
+      customEmail.value = props.guestEmail || authStore.user?.email || ''
     }
-  }
+  },
 )
 
 const resetForm = () => {
@@ -106,7 +109,11 @@ const handleSubmit = async () => {
     }
   } catch (error: any) {
     console.error('[GuestReviewModal] Error submitting review:', error)
-    const errorMsg = error.response?.data?.message || error.response?.data?.errors?.review_text?.[0] || error.message || 'Failed to submit review'
+    const errorMsg =
+      error.response?.data?.message ||
+      error.response?.data?.errors?.review_text?.[0] ||
+      error.message ||
+      'Failed to submit review'
     emit('error', errorMsg)
   } finally {
     isSubmitting.value = false
@@ -135,7 +142,9 @@ const renderStars = (count: number): string => {
           class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
           @click.stop
         >
-          <div class="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-5 text-white sticky top-0 z-10">
+          <div
+            class="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-5 text-white sticky top-0 z-10"
+          >
             <div class="flex items-start justify-between gap-4">
               <div>
                 <h2 class="text-2xl font-bold">Write a Review</h2>
@@ -146,7 +155,12 @@ const renderStars = (count: number): string => {
                 class="text-white hover:bg-white/20 p-2 rounded-lg transition-colors flex-shrink-0"
               >
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -164,13 +178,22 @@ const renderStars = (count: number): string => {
                 <div class="flex-1 min-w-0">
                   <h3 class="font-bold text-gray-800 truncate">{{ menuItem.name }}</h3>
                   <p class="text-sm text-gray-600 line-clamp-2 mt-1">{{ menuItem.description }}</p>
-                  <p class="text-lg font-bold text-amber-600 mt-2">${{ ((menuItem.total_price !== undefined && menuItem.total_price !== null) ? Number(menuItem.total_price) : Number(menuItem.price)).toFixed(2) }}</p>
+                  <p class="text-lg font-bold text-amber-600 mt-2">
+                    ${{
+                      (menuItem.total_price !== undefined && menuItem.total_price !== null
+                        ? Number(menuItem.total_price)
+                        : Number(menuItem.price)
+                      ).toFixed(2)
+                    }}
+                  </p>
                 </div>
               </div>
             </div>
 
             <div class="space-y-2">
-              <label class="block text-sm font-bold text-gray-800">How would you rate this item?</label>
+              <label class="block text-sm font-bold text-gray-800"
+                >How would you rate this item?</label
+              >
               <div class="flex gap-2 justify-center">
                 <button
                   v-for="star in 5"
@@ -210,18 +233,18 @@ const renderStars = (count: number): string => {
               />
               <div class="flex items-center justify-between">
                 <p v-if="errorMessage" class="text-sm text-red-600 font-medium">
-                   {{ errorMessage }}
+                  {{ errorMessage }}
                 </p>
-                <p v-else class="text-xs text-gray-500">
-                  {{ reviewText.length }} / 500 characters
-                </p>
+                <p v-else class="text-xs text-gray-500">{{ reviewText.length }} / 500 characters</p>
               </div>
             </div>
 
             <!-- Optional Name & Email -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Your Name (optional)</label>
+                <label class="block text-xs font-semibold text-gray-700 mb-1"
+                  >Your Name (optional)</label
+                >
                 <input
                   v-model="customName"
                   type="text"
@@ -230,7 +253,9 @@ const renderStars = (count: number): string => {
                 />
               </div>
               <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Email (optional)</label>
+                <label class="block text-xs font-semibold text-gray-700 mb-1"
+                  >Email (optional)</label
+                >
                 <input
                   v-model="customEmail"
                   type="email"
@@ -240,7 +265,9 @@ const renderStars = (count: number): string => {
               </div>
             </div>
 
-            <div class="bg-emerald-50 rounded-lg p-3 border border-emerald-200 flex items-center gap-2">
+            <div
+              class="bg-emerald-50 rounded-lg p-3 border border-emerald-200 flex items-center gap-2"
+            >
               <span class="text-emerald-600 font-bold text-base">✓</span>
               <p class="text-xs text-emerald-800 font-medium">
                 Your rating and review will be published immediately for other guests to see.
@@ -262,14 +289,22 @@ const renderStars = (count: number): string => {
               class="flex-1 px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg font-semibold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-shadow"
             >
               <span v-if="isSubmitting" class="inline-flex items-center gap-1">
-                <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v20m0-20a9.978 9.978 0 00-9 18m18 0a9.978 9.978 0 00-9-18" />
+                <svg
+                  class="w-4 h-4 animate-spin"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 2v20m0-20a9.978 9.978 0 00-9 18m18 0a9.978 9.978 0 00-9-18"
+                  />
                 </svg>
                 Submitting...
               </span>
-              <span v-else class="inline-flex items-center gap-1">
-                ⭐ Submit Review
-              </span>
+              <span v-else class="inline-flex items-center gap-1"> ⭐ Submit Review </span>
             </button>
           </div>
         </div>

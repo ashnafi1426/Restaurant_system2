@@ -112,7 +112,7 @@ class FloorManagementService {
       description?: string
       is_active?: boolean
       total_rooms?: number
-    }
+    },
   ): Promise<Floor> {
     const response = await api.put(`/manager/floors/${floorId}`, data)
     return response.data.data

@@ -62,7 +62,8 @@ const filteredTasks = computed(() => {
 
   return tasksList.value.filter((task) => {
     const matchesPriority = priority === 'all' || task.priority.toLowerCase() === priority
-    const matchesSearch = !q || task.title.toLowerCase().includes(q) || task.area.toLowerCase().includes(q)
+    const matchesSearch =
+      !q || task.title.toLowerCase().includes(q) || task.area.toLowerCase().includes(q)
     return matchesPriority && matchesSearch
   })
 })
@@ -115,7 +116,9 @@ const refreshData = async () => {
 
     const pendingCount = tasks.filter((t) => t.status.toLowerCase() === 'pending').length
     const completedCount = tasks.filter((t) => t.status.toLowerCase() === 'completed').length
-    const urgentCount = tasks.filter((t) => ['urgent', 'high'].includes(t.priority.toLowerCase())).length
+    const urgentCount = tasks.filter((t) =>
+      ['urgent', 'high'].includes(t.priority.toLowerCase()),
+    ).length
 
     operationsData.value = {
       pending_tasks: pendingCount || stats.pending_orders_count || 0,
@@ -142,9 +145,13 @@ watch(() => hotelStore.hotelId, refreshData)
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
       <!-- Header -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+      >
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center shadow-md flex-shrink-0 text-white">
+          <div
+            class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center shadow-md flex-shrink-0 text-white"
+          >
             <ClipboardList class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
@@ -152,13 +159,21 @@ watch(() => hotelStore.hotelId, refreshData)
               <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                 {{ languageStore.t('daily_operations', 'Daily Operations') }}
               </h1>
-              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+              <span
+                v-if="hotelStore.hotelName"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
+              >
                 <Building2 class="w-3 h-3" />
                 {{ hotelStore.hotelName }}
               </span>
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              {{ languageStore.t('daily_operations_desc', 'Manage daily floor tasks, checklists, and operations status.') }}
+              {{
+                languageStore.t(
+                  'daily_operations_desc',
+                  'Manage daily floor tasks, checklists, and operations status.',
+                )
+              }}
             </p>
           </div>
         </div>
@@ -166,48 +181,72 @@ watch(() => hotelStore.hotelId, refreshData)
 
       <!-- Stats Grid -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div
+          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+        >
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <p
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+            >
               {{ languageStore.t('pending_tasks', 'Pending Tasks') }}
             </p>
-            <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ operationsData.pending_tasks }}</h3>
+            <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
+              {{ operationsData.pending_tasks }}
+            </h3>
           </div>
           <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
             <Clock class="w-5 h-5" />
           </div>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div
+          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+        >
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <p
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+            >
               {{ languageStore.t('completed', 'Completed') }}
             </p>
-            <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ operationsData.completed_tasks }}</h3>
+            <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+              {{ operationsData.completed_tasks }}
+            </h3>
           </div>
           <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
             <CheckCircle class="w-5 h-5" />
           </div>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div
+          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+        >
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <p
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+            >
               {{ languageStore.t('urgent_attention', 'Urgent Attention') }}
             </p>
-            <h3 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{{ operationsData.urgent_tasks }}</h3>
+            <h3 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
+              {{ operationsData.urgent_tasks }}
+            </h3>
           </div>
           <div class="p-3 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
             <AlertCircle class="w-5 h-5" />
           </div>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div
+          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+        >
           <div>
-            <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <p
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+            >
               {{ languageStore.t('Staff On Duty', 'Staff On Duty') }}
             </p>
-            <h3 class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">{{ operationsData.total_staff }}</h3>
+            <h3 class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">
+              {{ operationsData.total_staff }}
+            </h3>
           </div>
           <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
             <ClipboardList class="w-5 h-5" />
@@ -223,7 +262,9 @@ watch(() => hotelStore.hotelId, refreshData)
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
           <!-- Search Input -->
           <div class="relative flex-1">
-            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <Search
+              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+            />
             <input
               v-model="searchQuery"
               type="text"
@@ -240,12 +281,16 @@ watch(() => hotelStore.hotelId, refreshData)
             :class="[
               isFilterOpen
                 ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
-                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
             <X v-if="isFilterOpen" class="w-4 h-4" />
             <Filter v-else class="w-4 h-4" />
-            <span>{{ isFilterOpen ? languageStore.t('hide_filters', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
+            <span>{{
+              isFilterOpen
+                ? languageStore.t('hide_filters', 'Hide Filter')
+                : languageStore.t('filter', 'Filter')
+            }}</span>
           </button>
         </div>
 
@@ -298,8 +343,12 @@ watch(() => hotelStore.hotelId, refreshData)
                 v-model="selectedPriority"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="all">{{ languageStore.t('all_priorities', 'All Priorities') }}</option>
-                <option value="high">{{ languageStore.t('high_priority', 'High Priority') }}</option>
+                <option value="all">
+                  {{ languageStore.t('all_priorities', 'All Priorities') }}
+                </option>
+                <option value="high">
+                  {{ languageStore.t('high_priority', 'High Priority') }}
+                </option>
                 <option value="normal">{{ languageStore.t('normal', 'Normal') }}</option>
               </select>
             </div>
@@ -338,16 +387,30 @@ watch(() => hotelStore.hotelId, refreshData)
       </div>
 
       <!-- Tasks Table -->
-      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
+      <div
+        class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
+      >
         <div class="overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
-            <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+            <thead
+              class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
+            >
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-                <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('task_description', 'Task Description') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('area_floor', 'Area / Floor') }}</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('priority', 'Priority') }}</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('status', 'Status') }}</th>
-                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">{{ languageStore.t('scheduled_time', 'Scheduled Time') }}</th>
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">
+                  {{ languageStore.t('task_description', 'Task Description') }}
+                </th>
+                <th class="py-3 px-4 whitespace-nowrap">
+                  {{ languageStore.t('area_floor', 'Area / Floor') }}
+                </th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">
+                  {{ languageStore.t('priority', 'Priority') }}
+                </th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">
+                  {{ languageStore.t('status', 'Status') }}
+                </th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">
+                  {{ languageStore.t('scheduled_time', 'Scheduled Time') }}
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
@@ -356,14 +419,21 @@ watch(() => hotelStore.hotelId, refreshData)
                 <td colspan="5" class="py-16 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
                     <Loader2 class="w-7 h-7 text-blue-600 dark:text-blue-400 animate-spin" />
-                    <span class="text-xs font-bold text-slate-500">{{ languageStore.t('loading_tasks', 'Loading tasks...') }}</span>
+                    <span class="text-xs font-bold text-slate-500">{{
+                      languageStore.t('loading_tasks', 'Loading tasks...')
+                    }}</span>
                   </div>
                 </td>
               </tr>
               <!-- Empty State Row -->
               <tr v-else-if="filteredTasks.length === 0">
-                <td colspan="5" class="py-12 text-center text-slate-400 dark:text-slate-500 font-medium">
-                  {{ languageStore.t('no_tasks_found', 'No operations tasks match your criteria.') }}
+                <td
+                  colspan="5"
+                  class="py-12 text-center text-slate-400 dark:text-slate-500 font-medium"
+                >
+                  {{
+                    languageStore.t('no_tasks_found', 'No operations tasks match your criteria.')
+                  }}
                 </td>
               </tr>
               <tr
@@ -371,16 +441,24 @@ watch(() => hotelStore.hotelId, refreshData)
                 :key="task.id"
                 class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
               >
-                <td class="py-3 px-4 pl-5 whitespace-nowrap font-bold text-slate-900 dark:text-white">
+                <td
+                  class="py-3 px-4 pl-5 whitespace-nowrap font-bold text-slate-900 dark:text-white"
+                >
                   {{ task.title }}
                 </td>
-                <td class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 font-medium">
+                <td
+                  class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 font-medium"
+                >
                   {{ task.area }}
                 </td>
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                   <span
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
-                    :class="task.priority === 'High' ? 'bg-rose-500/10 text-rose-600 border-rose-500/20' : 'bg-blue-500/10 text-blue-600 border-blue-500/20'"
+                    :class="
+                      task.priority === 'High'
+                        ? 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+                        : 'bg-blue-500/10 text-blue-600 border-blue-500/20'
+                    "
                   >
                     {{ task.priority }}
                   </span>
@@ -388,12 +466,18 @@ watch(() => hotelStore.hotelId, refreshData)
                 <td class="py-3 px-4 text-center whitespace-nowrap">
                   <span
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold"
-                    :class="task.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'"
+                    :class="
+                      task.status === 'Completed'
+                        ? 'bg-emerald-500/10 text-emerald-600'
+                        : 'bg-amber-500/10 text-amber-600'
+                    "
                   >
                     {{ task.status }}
                   </span>
                 </td>
-                <td class="py-3 px-4 text-right pr-5 whitespace-nowrap text-slate-600 dark:text-slate-400 font-mono font-medium">
+                <td
+                  class="py-3 px-4 text-right pr-5 whitespace-nowrap text-slate-600 dark:text-slate-400 font-mono font-medium"
+                >
                   {{ task.time }}
                 </td>
               </tr>

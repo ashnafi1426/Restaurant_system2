@@ -61,8 +61,12 @@ const resetFilters = () => {
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h3 class="text-lg font-semibold text-slate-800">{{ languageStore.t('Search & Filter', 'Search & Filter') }}</h3>
-        <p class="text-sm text-slate-500 mt-1">{{ languageStore.t('find_guests_quickly', 'Find guests quickly using filters below') }}</p>
+        <h3 class="text-lg font-semibold text-slate-800">
+          {{ languageStore.t('Search & Filter', 'Search & Filter') }}
+        </h3>
+        <p class="text-sm text-slate-500 mt-1">
+          {{ languageStore.t('find_guests_quickly', 'Find guests quickly using filters below') }}
+        </p>
       </div>
       <span class="material-symbols-rounded text-slate-400">filter_list</span>
     </div>
@@ -149,7 +153,9 @@ const resetFilters = () => {
       class="mt-4 pt-4 border-t border-slate-200"
     >
       <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-sm text-slate-600 font-medium">{{ languageStore.t('Filters', 'Active Filters:') }}</span>
+        <span class="text-sm text-slate-600 font-medium">{{
+          languageStore.t('Filters', 'Active Filters:')
+        }}</span>
 
         <span
           v-if="localFilters.search"

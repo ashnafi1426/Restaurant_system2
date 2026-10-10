@@ -140,7 +140,9 @@ function toggleFilter(): void {
       <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
         <!-- Search Input -->
         <div class="relative flex-1">
-          <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+          <Search
+            class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+          />
           <input
             v-model="localFilters.search"
             @input="onSearchInput"
@@ -159,7 +161,7 @@ function toggleFilter(): void {
           :class="[
             isFilterOpen
               ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
-              : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+              : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
           ]"
         >
           <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
@@ -292,7 +294,9 @@ function toggleFilter(): void {
         </div>
 
         <!-- Filter Actions / Reset -->
-        <div class="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800/60">
+        <div
+          class="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800/60"
+        >
           <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
             Filters update list results automatically
           </span>
@@ -309,4 +313,3 @@ function toggleFilter(): void {
     </Transition>
   </div>
 </template>
-

@@ -43,9 +43,12 @@ onMounted(async () => {
   await kitchenStore.fetchDashboard()
 })
 
-watch(() => hotelStore.hotelId, async () => {
-  await kitchenStore.fetchDashboard()
-})
+watch(
+  () => hotelStore.hotelId,
+  async () => {
+    await kitchenStore.fetchDashboard()
+  },
+)
 
 const filteredOrders = computed(() => {
   let list = pendingOrders.value || []
@@ -54,7 +57,12 @@ const filteredOrders = computed(() => {
     if (selectedType.value === 'room') {
       list = list.filter((order) => Boolean(order.room?.room_number))
     } else if (selectedType.value === 'walk_in') {
-      list = list.filter((order) => Boolean(order.table?.table_number) || order.order_type === 'walk_in' || !order.room?.room_number)
+      list = list.filter(
+        (order) =>
+          Boolean(order.table?.table_number) ||
+          order.order_type === 'walk_in' ||
+          !order.room?.room_number,
+      )
     }
   }
 
@@ -62,12 +70,23 @@ const filteredOrders = computed(() => {
     const q = searchQuery.value.toLowerCase().trim()
     list = list.filter((order) => {
       const roomNum = order.room?.room_number ? String(order.room.room_number).toLowerCase() : ''
-      const tableNum = order.table?.table_number ? String(order.table.table_number).toLowerCase() : ''
+      const tableNum = order.table?.table_number
+        ? String(order.table.table_number).toLowerCase()
+        : ''
       const tableName = order.table?.table_name ? String(order.table.table_name).toLowerCase() : ''
       const ordNum = (order.order_number || '').toLowerCase()
       const guestName = (order.guest?.full_name || '').toLowerCase()
-      const itemsMatch = (order.items || []).some((item) => (item.name || '').toLowerCase().includes(q))
-      return roomNum.includes(q) || tableNum.includes(q) || tableName.includes(q) || ordNum.includes(q) || guestName.includes(q) || itemsMatch
+      const itemsMatch = (order.items || []).some((item) =>
+        (item.name || '').toLowerCase().includes(q),
+      )
+      return (
+        roomNum.includes(q) ||
+        tableNum.includes(q) ||
+        tableName.includes(q) ||
+        ordNum.includes(q) ||
+        guestName.includes(q) ||
+        itemsMatch
+      )
     })
   }
 
@@ -167,26 +186,45 @@ const formatTime = (dateTime: string) => {
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
       <!-- Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs">
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
+      >
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md flex-shrink-0 text-white">
+          <div
+            class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md flex-shrink-0 text-white"
+          >
             <Clock class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{{ languageStore.t('pending_orders', 'Pending Orders') }}</h1>
-              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                {{ languageStore.t('pending_orders', 'Pending Orders') }}
+              </h1>
+              <span
+                v-if="hotelStore.hotelName"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
+              >
                 <Building2 class="w-3 h-3" />
                 {{ hotelStore.hotelName }}
               </span>
             </div>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('pending_orders_desc', 'New incoming orders awaiting kitchen acceptance and preparation.') }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {{
+                languageStore.t(
+                  'pending_orders_desc',
+                  'New incoming orders awaiting kitchen acceptance and preparation.',
+                )
+              }}
+            </p>
           </div>
         </div>
 
         <div class="flex items-center gap-2">
-          <div class="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-extrabold text-xs sm:text-sm">
-            {{ languageStore.t('pending', 'Pending') }}: {{ pendingOrders?.length || 0 }} {{ languageStore.t('orders', 'Orders') }}
+          <div
+            class="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-extrabold text-xs sm:text-sm"
+          >
+            {{ languageStore.t('pending', 'Pending') }}: {{ pendingOrders?.length || 0 }}
+            {{ languageStore.t('orders', 'Orders') }}
           </div>
         </div>
       </div>
@@ -199,11 +237,18 @@ const formatTime = (dateTime: string) => {
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
           <!-- Search Input -->
           <div class="relative flex-1">
-            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <Search
+              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+            />
             <input
               v-model="searchQuery"
               type="text"
-              :placeholder="languageStore.t('search_pending_orders_placeholder', 'Search pending orders by #, room, guest, or food...')"
+              :placeholder="
+                languageStore.t(
+                  'search_pending_orders_placeholder',
+                  'Search pending orders by #, room, guest, or food...',
+                )
+              "
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 dark:focus:border-amber-400 transition outline-none"
             />
           </div>
@@ -216,11 +261,15 @@ const formatTime = (dateTime: string) => {
             :class="[
               isFilterOpen
                 ? 'bg-amber-600/10 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-500/40'
-                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{ isFilterOpen ? languageStore.t('hide_filter', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
+            <span>{{
+              isFilterOpen
+                ? languageStore.t('hide_filter', 'Hide Filter')
+                : languageStore.t('filter', 'Filter')
+            }}</span>
           </button>
         </div>
 
@@ -271,9 +320,13 @@ const formatTime = (dateTime: string) => {
                 v-model="selectedType"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 dark:focus:border-amber-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="all">{{ languageStore.t('all_pending_orders', 'All Pending Orders') }}</option>
+                <option value="all">
+                  {{ languageStore.t('all_pending_orders', 'All Pending Orders') }}
+                </option>
                 <option value="room">{{ languageStore.t('room_service', 'Room Service') }}</option>
-                <option value="walk_in">{{ languageStore.t('takeout_walk_in', 'Takeout / Walk-in') }}</option>
+                <option value="walk_in">
+                  {{ languageStore.t('takeout_walk_in', 'Takeout / Walk-in') }}
+                </option>
               </select>
             </div>
 
@@ -293,19 +346,35 @@ const formatTime = (dateTime: string) => {
       </Transition>
 
       <!-- Table Container -->
-      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
+      <div
+        class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
+      >
         <!-- Desktop Table View -->
         <div class="hidden md:block overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
-            <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+            <thead
+              class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
+            >
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-                <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('order_ref', 'Order Ref') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('room_service', 'Room / Service') }}</th>
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">
+                  {{ languageStore.t('order_ref', 'Order Ref') }}
+                </th>
+                <th class="py-3 px-4 whitespace-nowrap">
+                  {{ languageStore.t('room_service', 'Room / Service') }}
+                </th>
                 <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('guest', 'Guest') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('dishes', 'Dishes') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('order_time', 'Order Time') }}</th>
-                <th class="py-3 px-4 text-right whitespace-nowrap">{{ languageStore.t('total', 'Total') }}</th>
-                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">{{ languageStore.t('action', 'Action') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">
+                  {{ languageStore.t('dishes', 'Dishes') }}
+                </th>
+                <th class="py-3 px-4 whitespace-nowrap">
+                  {{ languageStore.t('order_time', 'Order Time') }}
+                </th>
+                <th class="py-3 px-4 text-right whitespace-nowrap">
+                  {{ languageStore.t('total', 'Total') }}
+                </th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">
+                  {{ languageStore.t('action', 'Action') }}
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
@@ -314,7 +383,9 @@ const formatTime = (dateTime: string) => {
                 <td colspan="7" class="px-6 py-20 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
                     <Loader2 class="w-8 h-8 text-amber-600 dark:text-amber-400 animate-spin" />
-                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_pending_orders', 'Loading pending orders...') }}</span>
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{
+                      languageStore.t('loading_pending_orders', 'Loading pending orders...')
+                    }}</span>
                   </div>
                 </td>
               </tr>
@@ -327,7 +398,9 @@ const formatTime = (dateTime: string) => {
                   class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
                 >
                   <!-- Order Ref -->
-                  <td class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs">
+                  <td
+                    class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs"
+                  >
                     {{ order.order_number || `ORD-${String(order.id).padStart(6, '0')}` }}
                   </td>
 
@@ -338,7 +411,10 @@ const formatTime = (dateTime: string) => {
                       class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-200 dark:border-emerald-800"
                     >
                       <UtensilsCrossed class="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                      {{ order.table?.table_name || `${languageStore.t('table', 'Table')} ${order.table?.table_number || ''}` }}
+                      {{
+                        order.table?.table_name ||
+                        `${languageStore.t('table', 'Table')} ${order.table?.table_number || ''}`
+                      }}
                     </span>
                     <span
                       v-else-if="order.room?.room_number"
@@ -357,8 +433,12 @@ const formatTime = (dateTime: string) => {
                   </td>
 
                   <!-- Guest -->
-                  <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white">
-                    {{ order.guest?.full_name || languageStore.t('walk_in_guest', 'Walk-in Guest') }}
+                  <td
+                    class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white"
+                  >
+                    {{
+                      order.guest?.full_name || languageStore.t('walk_in_guest', 'Walk-in Guest')
+                    }}
                   </td>
 
                   <!-- Dishes -->
@@ -369,21 +449,31 @@ const formatTime = (dateTime: string) => {
                         :key="idx"
                         class="text-xs text-slate-700 dark:text-slate-300 font-medium"
                       >
-                        <span class="font-bold text-amber-600 dark:text-amber-400">{{ item.quantity }}x</span> {{ item.name }}
+                        <span class="font-bold text-amber-600 dark:text-amber-400"
+                          >{{ item.quantity }}x</span
+                        >
+                        {{ item.name }}
                       </div>
-                      <div v-if="(order.items || []).length > 2" class="text-[10px] text-slate-400 font-bold">
+                      <div
+                        v-if="(order.items || []).length > 2"
+                        class="text-[10px] text-slate-400 font-bold"
+                      >
                         +{{ (order.items || []).length - 2 }} {{ languageStore.t('more', 'more') }}
                       </div>
                     </div>
                   </td>
 
                   <!-- Time -->
-                  <td class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 font-medium">
+                  <td
+                    class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 font-medium"
+                  >
                     {{ formatTime(order.order_time) }}
                   </td>
 
                   <!-- Total -->
-                  <td class="py-3 px-4 text-right whitespace-nowrap font-extrabold text-slate-900 dark:text-white font-mono text-xs sm:text-sm">
+                  <td
+                    class="py-3 px-4 text-right whitespace-nowrap font-extrabold text-slate-900 dark:text-white font-mono text-xs sm:text-sm"
+                  >
                     ${{ parseFloat(String(order.total || 0)).toFixed(2) }}
                   </td>
 
@@ -402,7 +492,10 @@ const formatTime = (dateTime: string) => {
 
                 <!-- Empty State -->
                 <tr v-if="paginatedOrders.length === 0">
-                  <td colspan="7" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+                  <td
+                    colspan="7"
+                    class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
+                  >
                     {{ languageStore.t('no_pending_orders', 'No pending orders at this moment.') }}
                   </td>
                 </tr>
@@ -413,9 +506,14 @@ const formatTime = (dateTime: string) => {
 
         <!-- Mobile Card View -->
         <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-          <div v-if="loading" class="py-16 text-center flex flex-col items-center justify-center gap-3">
+          <div
+            v-if="loading"
+            class="py-16 text-center flex flex-col items-center justify-center gap-3"
+          >
             <Loader2 class="w-8 h-8 text-amber-600 dark:text-amber-400 animate-spin" />
-            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_pending_orders', 'Loading pending orders...') }}</span>
+            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{
+              languageStore.t('loading_pending_orders', 'Loading pending orders...')
+            }}</span>
           </div>
           <template v-else>
             <div
@@ -434,13 +532,18 @@ const formatTime = (dateTime: string) => {
                   {{ languageStore.t('prepare', 'Prepare') }}
                 </button>
               </div>
-              <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+              <div
+                class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400"
+              >
                 <div class="flex items-center gap-1.5 truncate mr-2">
                   <span
                     v-if="order.table?.table_number || order.order_type === 'walk_in'"
                     class="font-bold text-emerald-600 dark:text-emerald-400"
                   >
-                    {{ order.table?.table_name || `${languageStore.t('table', 'Table')} ${order.table?.table_number || ''}` }}
+                    {{
+                      order.table?.table_name ||
+                      `${languageStore.t('table', 'Table')} ${order.table?.table_number || ''}`
+                    }}
                   </span>
                   <span
                     v-else-if="order.room?.room_number"
@@ -449,12 +552,22 @@ const formatTime = (dateTime: string) => {
                     {{ languageStore.t('room', 'Room') }} {{ order.room.room_number }}
                   </span>
                   <span>•</span>
-                  <span class="truncate">{{ order.guest?.full_name || (order.table ? languageStore.t('walk_in_guest', 'Walk-in Guest') : languageStore.t('qr_guest', 'QR Guest')) }}</span>
+                  <span class="truncate">{{
+                    order.guest?.full_name ||
+                    (order.table
+                      ? languageStore.t('walk_in_guest', 'Walk-in Guest')
+                      : languageStore.t('qr_guest', 'QR Guest'))
+                  }}</span>
                 </div>
-                <span class="font-extrabold text-slate-900 dark:text-white flex-shrink-0">${{ parseFloat(String(order.total || 0)).toFixed(2) }}</span>
+                <span class="font-extrabold text-slate-900 dark:text-white flex-shrink-0"
+                  >${{ parseFloat(String(order.total || 0)).toFixed(2) }}</span
+                >
               </div>
             </div>
-            <div v-if="paginatedOrders.length === 0" class="p-8 text-center text-slate-500 text-xs font-bold">
+            <div
+              v-if="paginatedOrders.length === 0"
+              class="p-8 text-center text-slate-500 text-xs font-bold"
+            >
               {{ languageStore.t('no_pending_orders', 'No pending orders at this moment.') }}
             </div>
           </template>
@@ -466,14 +579,20 @@ const formatTime = (dateTime: string) => {
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
           <div class="text-slate-500 dark:text-slate-400 font-medium">
-            {{ languageStore.t('showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> {{ languageStore.t('orders', 'orders') }}
+            {{ languageStore.t('showing', 'Showing') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
+            {{ languageStore.t('to', 'to') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span>
+            {{ languageStore.t('of', 'of') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span>
+            {{ languageStore.t('orders', 'orders') }}
           </div>
 
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="flex items-center gap-1.5">
-              <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page:') }}</span>
+              <span class="text-slate-500 dark:text-slate-400 font-medium">{{
+                languageStore.t('per_page', 'Per page:')
+              }}</span>
               <select
                 :value="itemsPerPage"
                 @change="changeItemsPerPage"
@@ -502,7 +621,7 @@ const formatTime = (dateTime: string) => {
                 :class="[
                   currentPage === page
                     ? 'bg-amber-600 text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
                 ]"
               >
                 {{ page }}

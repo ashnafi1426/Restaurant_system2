@@ -73,7 +73,7 @@ watch(
   () => hotelStore.hotelId,
   () => {
     loadMeta()
-  }
+  },
 )
 </script>
 
@@ -82,8 +82,14 @@ watch(
     <div class="max-w-3xl mx-auto space-y-6 bg-white dark:bg-slate-900 p-6 rounded-lg">
       <!-- Header -->
       <div>
-        <h1 class="text-2xl font-bold text-slate-800 dark:text-white">{{ languageStore.t('create_reservation', 'Create Reservation') }}</h1>
-        <p class="text-slate-500 dark:text-slate-400 mt-1">{{ languageStore.t('create_reservation_desc', 'Book a room for a new or existing guest.') }}</p>
+        <h1 class="text-2xl font-bold text-slate-800 dark:text-white">
+          {{ languageStore.t('create_reservation', 'Create Reservation') }}
+        </h1>
+        <p class="text-slate-500 dark:text-slate-400 mt-1">
+          {{
+            languageStore.t('create_reservation_desc', 'Book a room for a new or existing guest.')
+          }}
+        </p>
       </div>
 
       <!-- Loading State -->
@@ -91,17 +97,34 @@ watch(
         v-if="guests.length === 0 || rooms.length === 0 || guestStore.loading || roomStore.loading"
         class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700/50 rounded-lg p-4"
       >
-        <p v-if="guestStore.loading || roomStore.loading" class="text-yellow-800 dark:text-yellow-200">
-          <span class="inline-block animate-spin mr-2">⏳</span> {{ languageStore.t('loading_data', 'Loading data...') }}
+        <p
+          v-if="guestStore.loading || roomStore.loading"
+          class="text-yellow-800 dark:text-yellow-200"
+        >
+          <span class="inline-block animate-spin mr-2">⏳</span>
+          {{ languageStore.t('loading_data', 'Loading data...') }}
         </p>
         <p v-else-if="guests.length === 0" class="text-red-800 dark:text-red-300">
-          <span class="font-semibold">{{ languageStore.t('no_guests', 'No Guests') }}</span> - {{ languageStore.t('create_guest_first', 'Create a guest first before making a reservation.') }}
+          <span class="font-semibold">{{ languageStore.t('no_guests', 'No Guests') }}</span> -
+          {{
+            languageStore.t(
+              'create_guest_first',
+              'Create a guest first before making a reservation.',
+            )
+          }}
         </p>
         <p v-else-if="roomStore.error" class="text-red-800 dark:text-red-300">
-          <span class="font-semibold">{{ languageStore.t('error', 'Error') }}:</span> {{ roomStore.error }}
+          <span class="font-semibold">{{ languageStore.t('error', 'Error') }}:</span>
+          {{ roomStore.error }}
         </p>
         <p v-else-if="rooms.length === 0" class="text-red-800 dark:text-red-300">
-          <span class="font-semibold">{{ languageStore.t('no_rooms', 'No Rooms') }}</span> - {{ languageStore.t('no_available_rooms', 'No available rooms found. Please contact the administrator.') }}
+          <span class="font-semibold">{{ languageStore.t('no_rooms', 'No Rooms') }}</span> -
+          {{
+            languageStore.t(
+              'no_available_rooms',
+              'No available rooms found. Please contact the administrator.',
+            )
+          }}
         </p>
       </div>
 

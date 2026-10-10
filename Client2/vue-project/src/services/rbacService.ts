@@ -4,7 +4,7 @@ import type {
   Permission,
   RbacUserSummary,
   TemporaryRoleAssignment,
-  RbacAuditLogItem
+  RbacAuditLogItem,
 } from '../types/rbacTypes'
 
 export const rbacService = {
@@ -12,7 +12,7 @@ export const rbacService = {
     try {
       const response = await api.get('/roles', {
         params: options?.refresh ? { refresh: 1 } : undefined,
-        headers: options?.refresh ? { 'X-Refresh': 'true' } : undefined
+        headers: options?.refresh ? { 'X-Refresh': 'true' } : undefined,
       })
       return response.data.data
     } catch (e) {
@@ -25,13 +25,13 @@ export const rbacService = {
     try {
       const response = await api.get('/roles/active', {
         params: options?.refresh ? { refresh: 1 } : undefined,
-        headers: options?.refresh ? { 'X-Refresh': 'true' } : undefined
+        headers: options?.refresh ? { 'X-Refresh': 'true' } : undefined,
       })
       return response.data.data
     } catch (e) {
       console.warn('[RbacService] /roles/active endpoint failed, falling back to /public/roles:', e)
       const response = await api.get('/public/roles', {
-        params: options?.refresh ? { refresh: 1 } : undefined
+        params: options?.refresh ? { refresh: 1 } : undefined,
       })
       return response.data.data
     }
@@ -42,12 +42,20 @@ export const rbacService = {
     return response.data.data
   },
 
-  async createRole(data: { name: string; description?: string; is_active?: boolean; permissions?: number[] }): Promise<Role> {
+  async createRole(data: {
+    name: string
+    description?: string
+    is_active?: boolean
+    permissions?: number[]
+  }): Promise<Role> {
     const response = await api.post('/roles', data)
     return response.data.data
   },
 
-  async updateRole(id: number | string, data: { name?: string; description?: string; is_active?: boolean }): Promise<Role> {
+  async updateRole(
+    id: number | string,
+    data: { name?: string; description?: string; is_active?: boolean },
+  ): Promise<Role> {
     const response = await api.put(`/roles/${id}`, data)
     return response.data.data
   },
@@ -56,27 +64,39 @@ export const rbacService = {
     await api.delete(`/roles/${id}`)
   },
 
-  async getRolePermissions(roleId: number | string, options?: { refresh?: boolean }): Promise<{ permission_ids: number[]; data: Permission[] }> {
+  async getRolePermissions(
+    roleId: number | string,
+    options?: { refresh?: boolean },
+  ): Promise<{ permission_ids: number[]; data: Permission[] }> {
     const response = await api.get(`/roles/${roleId}/permissions`, {
-      params: options?.refresh ? { refresh: 1 } : undefined
+      params: options?.refresh ? { refresh: 1 } : undefined,
     })
     return response.data
   },
 
   async syncRolePermissions(roleId: number | string, permissionIds: number[]): Promise<Role> {
-    const response = await api.post(`/roles/${roleId}/permissions`, { permission_ids: permissionIds })
+    const response = await api.post(`/roles/${roleId}/permissions`, {
+      permission_ids: permissionIds,
+    })
     return response.data.data
   },
 
-  async getPermissions(options?: { refresh?: boolean }): Promise<{ data: Permission[]; grouped: Record<string, Permission[]> }> {
+  async getPermissions(options?: {
+    refresh?: boolean
+  }): Promise<{ data: Permission[]; grouped: Record<string, Permission[]> }> {
     const response = await api.get('/permissions', {
       params: options?.refresh ? { refresh: 1 } : undefined,
-      headers: options?.refresh ? { 'X-Refresh': 'true' } : undefined
+      headers: options?.refresh ? { 'X-Refresh': 'true' } : undefined,
     })
     return response.data
   },
 
-  async createPermission(data: { name: string; module: string; action: string; description?: string }): Promise<Permission> {
+  async createPermission(data: {
+    name: string
+    module: string
+    action: string
+    description?: string
+  }): Promise<Permission> {
     const response = await api.post('/permissions', data)
     return response.data.data
   },
@@ -103,7 +123,7 @@ export const rbacService = {
   async assignUserRoles(userId: string, roleIds: number[], primaryRoleId?: number): Promise<any> {
     const response = await api.post(`/users/${userId}/roles`, {
       role_ids: roleIds,
-      primary_role_id: primaryRoleId
+      primary_role_id: primaryRoleId,
     })
     return response.data
   },
@@ -140,7 +160,7 @@ export const rbacService = {
   async saveUserDirectPermissions(
     userId: string,
     permissionIds: number[],
-    options?: { starts_at?: string | null; expires_at?: string | null }
+    options?: { starts_at?: string | null; expires_at?: string | null },
   ): Promise<any> {
     const response = await api.post(`/users/${userId}/direct-permissions`, {
       permission_ids: permissionIds,
@@ -158,5 +178,5 @@ export const rbacService = {
   async getAuditLogs(page = 1): Promise<{ data: RbacAuditLogItem[]; pagination: any }> {
     const response = await api.get(`/audit-logs?page=${page}`)
     return response.data
-  }
+  },
 }

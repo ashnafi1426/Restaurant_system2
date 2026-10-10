@@ -4,16 +4,29 @@
     <div class="bg-gray-800 px-4 py-4 flex items-center gap-3 sticky top-0 z-10">
       <button @click="goBack" class="text-white hover:text-gray-300 p-1">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 19l-7-7 7-7"
+          ></path>
         </svg>
       </button>
       <div class="flex-1">
         <h1 class="text-xl font-bold text-red-500">Pay Your Order</h1>
         <p class="text-sm text-gray-400 flex items-center gap-1">
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+            <path
+              d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"
+            ></path>
           </svg>
-          {{ orderData?.room_number ? 'Room ' + orderData.room_number : orderData?.table_number ? 'Table ' + orderData.table_number : 'Table' }}
+          {{
+            orderData?.room_number
+              ? 'Room ' + orderData.room_number
+              : orderData?.table_number
+                ? 'Table ' + orderData.table_number
+                : 'Table'
+          }}
         </p>
       </div>
     </div>
@@ -25,14 +38,15 @@
 
     <!-- Content -->
     <div v-else-if="orderData" class="p-4 space-y-4 pb-8">
-      
       <!-- Your Order Summary Card -->
       <div class="bg-gradient-to-r from-red-700 to-red-600 rounded-2xl p-5 shadow-xl">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-14 h-14 bg-red-800/50 rounded-xl flex items-center justify-center">
               <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
+                <path
+                  d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"
+                ></path>
               </svg>
             </div>
             <div>
@@ -59,7 +73,9 @@
               <p class="text-sm text-gray-400 mt-1">Qty: {{ item.quantity }}</p>
             </div>
             <div class="text-right ml-4">
-              <p class="text-lg font-bold text-red-500">ETB {{ ((item.price || 0) * item.quantity).toFixed(2) }}</p>
+              <p class="text-lg font-bold text-red-500">
+                ETB {{ ((item.price || 0) * item.quantity).toFixed(2) }}
+              </p>
             </div>
           </div>
         </div>
@@ -70,7 +86,7 @@
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-white">🎁 Add Tip?</h3>
         </div>
-        
+
         <!-- Tip Options -->
         <div class="grid grid-cols-4 gap-2 mb-3">
           <button
@@ -81,21 +97,25 @@
               'py-3 rounded-xl text-center transition-all',
               selectedTip === tipOption
                 ? 'bg-yellow-500 text-gray-900'
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600',
             ]"
           >
-            <div class="text-2xl mb-1">{{ tipOption === 10 ? '👍' : tipOption === 15 ? '😊' : '🌟' }}</div>
+            <div class="text-2xl mb-1">
+              {{ tipOption === 10 ? '👍' : tipOption === 15 ? '😊' : '🌟' }}
+            </div>
             <div class="text-xs font-semibold">{{ tipOption }}%</div>
-            <div class="text-xs">ETB {{ ((orderData.total || 0) * tipOption / 100).toFixed(2) }}</div>
+            <div class="text-xs">
+              ETB {{ (((orderData.total || 0) * tipOption) / 100).toFixed(2) }}
+            </div>
           </button>
-          
+
           <button
             @click="selectTip(0)"
             :class="[
               'py-3 rounded-xl text-center transition-all',
               selectedTip === 0
                 ? 'bg-red-500 text-white'
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600',
             ]"
           >
             <div class="text-sm font-semibold">No Tip</div>
@@ -127,7 +147,7 @@
           <span>Order Total</span>
           <span class="font-semibold">ETB {{ (orderData.total || 0).toFixed(2) }}</span>
         </div>
-        
+
         <div v-if="tipAmount > 0" class="flex justify-between text-gray-300">
           <span>Tip ({{ selectedTip }}%)</span>
           <span class="font-semibold">ETB {{ tipAmount.toFixed(2) }}</span>
@@ -150,7 +170,11 @@
       >
         <svg v-if="!isProcessing" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
           <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path>
-          <path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"></path>
+          <path
+            fill-rule="evenodd"
+            d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+            clip-rule="evenodd"
+          ></path>
         </svg>
         <span v-if="isProcessing">Processing...</span>
         <span v-else>Pay Now</span>
@@ -159,7 +183,11 @@
       <!-- Security Badge -->
       <div class="flex items-center justify-center gap-2 text-sm text-gray-400">
         <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+          <path
+            fill-rule="evenodd"
+            d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clip-rule="evenodd"
+          ></path>
         </svg>
         <span>Secure Payment • Double-click Protected</span>
       </div>
@@ -183,9 +211,7 @@ const customTipAmount = ref(0)
 
 const orderId = route.params.orderId as string
 const hotelId = ref(
-  localStorage.getItem('hotel_id') || 
-  localStorage.getItem('active_hotel_id') || 
-  ''
+  localStorage.getItem('hotel_id') || localStorage.getItem('active_hotel_id') || '',
 )
 
 // Computed
@@ -193,7 +219,7 @@ const tipAmount = computed(() => {
   if (selectedTip.value === -1) {
     return customTipAmount.value
   }
-  return (orderData.value?.total || 0) * selectedTip.value / 100
+  return ((orderData.value?.total || 0) * selectedTip.value) / 100
 })
 
 const finalTotal = computed(() => {
@@ -215,36 +241,39 @@ const selectCustomTip = () => {
 
 const proceedToPayment = async () => {
   if (isProcessing.value) return
-  
+
   isProcessing.value = true
-  
+
   try {
     const guestInfo = {
       first_name: localStorage.getItem('guest_first_name') || 'Guest',
       last_name: localStorage.getItem('guest_last_name') || 'User',
       email: localStorage.getItem('guest_email') || `guest${Date.now()}@hotel.com`,
-      phone: localStorage.getItem('guest_phone') || '+251911000000'
+      phone: localStorage.getItem('guest_phone') || '+251911000000',
     }
-    
+
     const paymentPayload = {
       order_id: orderData.value.id || orderData.value.order_id,
-      ...guestInfo
+      ...guestInfo,
     }
-    
+
     console.log('[PaymentSummary] Initializing payment:', paymentPayload)
-    
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/order-payments/initialize-existing`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-Hotel-ID': hotelId.value
+
+    const response = await fetch(
+      `${import.meta.env.VITE_API_BASE_URL}/api/order-payments/initialize-existing`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-Hotel-ID': hotelId.value,
+        },
+        body: JSON.stringify(paymentPayload),
       },
-      body: JSON.stringify(paymentPayload)
-    })
-    
+    )
+
     const result = await response.json()
-    
+
     if (result.success && result.checkout_url) {
       console.log('[PaymentSummary] Redirecting to Chapa:', result.checkout_url)
       // Redirect to Chapa checkout
@@ -282,11 +311,11 @@ onMounted(async () => {
         {
           headers: {
             'X-Hotel-ID': hotelId.value,
-            'Accept': 'application/json'
-          }
-        }
+            Accept: 'application/json',
+          },
+        },
       )
-      
+
       const result = await response.json()
       if (result.success && result.data) {
         orderData.value = result.data

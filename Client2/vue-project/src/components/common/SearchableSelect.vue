@@ -41,7 +41,7 @@ const props = withDefaults(
     hasError: false,
     triggerClass: '',
     dropdownClass: '',
-  }
+  },
 )
 
 const emit = defineEmits<{
@@ -62,7 +62,7 @@ const openUpwards = ref(false)
 const getOptionValue = (option: SelectOption): any => {
   if (!option) return ''
   if (typeof option !== 'object') return option
-  return option[props.valueKey] !== undefined ? option[props.valueKey] : option.id ?? option.value
+  return option[props.valueKey] !== undefined ? option[props.valueKey] : (option.id ?? option.value)
 }
 
 const getOptionLabel = (option: SelectOption): string => {
@@ -70,7 +70,7 @@ const getOptionLabel = (option: SelectOption): string => {
   if (typeof option !== 'object') return String(option)
   return option[props.labelKey] !== undefined
     ? String(option[props.labelKey])
-    : option.name ?? option.label ?? option.title ?? ''
+    : (option.name ?? option.label ?? option.title ?? '')
 }
 
 const getOptionSublabel = (option: SelectOption): string => {
@@ -87,7 +87,9 @@ const selectedOption = computed(() => {
   if (props.modelValue === null || props.modelValue === undefined || props.modelValue === '') {
     return null
   }
-  return props.options.find(opt => String(getOptionValue(opt)) === String(props.modelValue)) || null
+  return (
+    props.options.find((opt) => String(getOptionValue(opt)) === String(props.modelValue)) || null
+  )
 })
 
 const formatDisplayValue = computed(() => {
@@ -105,11 +107,11 @@ const filteredOptions = computed(() => {
   if (!query) return props.options
 
   if (props.searchFilter) {
-    return props.options.filter(opt => props.searchFilter!(opt, query))
+    return props.options.filter((opt) => props.searchFilter!(opt, query))
   }
 
   const tokens = query.split(/\s+/).filter(Boolean)
-  return props.options.filter(opt => {
+  return props.options.filter((opt) => {
     const label = getOptionLabel(opt).toLowerCase()
     const sublabel = getOptionSublabel(opt).toLowerCase()
     const extra = [
@@ -120,10 +122,12 @@ const filteredOptions = computed(() => {
       opt.slug || '',
       opt.country || '',
       opt.description || '',
-    ].join(' ').toLowerCase()
+    ]
+      .join(' ')
+      .toLowerCase()
     const fullText = `${label} ${sublabel} ${extra}`
 
-    return tokens.every(token => fullText.includes(token))
+    return tokens.every((token) => fullText.includes(token))
   })
 })
 
@@ -134,7 +138,7 @@ const isSelected = (option: SelectOption): boolean => {
 
 const openDropdown = () => {
   if (props.disabled) return
-  
+
   if (triggerRef.value) {
     const rect = triggerRef.value.getBoundingClientRect()
     const spaceBelow = window.innerHeight - rect.bottom
@@ -149,12 +153,12 @@ const openDropdown = () => {
   nextTick(() => {
     searchInputRef.value?.focus()
     if (selectedOption.value && listRef.value) {
-      const selectedIndex = filteredOptions.value.findIndex(o => isSelected(o))
+      const selectedIndex = filteredOptions.value.findIndex((o) => isSelected(o))
       if (selectedIndex >= 0) {
         highlightedIndex.value = selectedIndex
         const items = listRef.value.querySelectorAll('li[role="option"]')
         if (items[selectedIndex]) {
-          (items[selectedIndex] as HTMLElement).scrollIntoView({ block: 'nearest' })
+          ;(items[selectedIndex] as HTMLElement).scrollIntoView({ block: 'nearest' })
         }
       }
     }
@@ -208,10 +212,7 @@ const navigateUp = () => {
 }
 
 const selectHighlighted = () => {
-  if (
-    highlightedIndex.value >= 0 &&
-    highlightedIndex.value < filteredOptions.value.length
-  ) {
+  if (highlightedIndex.value >= 0 && highlightedIndex.value < filteredOptions.value.length) {
     selectOption(filteredOptions.value[highlightedIndex.value])
   } else if (filteredOptions.value.length === 1) {
     selectOption(filteredOptions.value[0])
@@ -223,7 +224,7 @@ const scrollToHighlighted = () => {
     if (!listRef.value) return
     const items = listRef.value.querySelectorAll('li[role="option"]')
     if (items[highlightedIndex.value]) {
-      (items[highlightedIndex.value] as HTMLElement).scrollIntoView({ block: 'nearest' })
+      ;(items[highlightedIndex.value] as HTMLElement).scrollIntoView({ block: 'nearest' })
     }
   })
 }
@@ -265,9 +266,9 @@ watch(searchQuery, () => {
         hasError
           ? 'border-red-400 bg-red-50/20 dark:bg-red-950/20 ring-1 ring-red-400'
           : isOpen
-          ? 'border-blue-500 ring-2 ring-blue-500/20'
-          : 'border-slate-300 dark:border-slate-700',
-        triggerClass
+            ? 'border-blue-500 ring-2 ring-blue-500/20'
+            : 'border-slate-300 dark:border-slate-700',
+        triggerClass,
       ]"
       :aria-expanded="isOpen"
       aria-haspopup="listbox"
@@ -319,12 +320,11 @@ watch(searchQuery, () => {
       <div
         v-if="isOpen"
         class="absolute left-0 right-0 z-[100] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-xl shadow-slate-900/10 dark:shadow-black/40 overflow-hidden flex flex-col"
-        :class="[
-          openUpwards ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
-          dropdownClass
-        ]"
+        :class="[openUpwards ? 'bottom-full mb-1.5' : 'top-full mt-1.5', dropdownClass]"
       >
-        <div class="p-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60">
+        <div
+          class="p-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60"
+        >
           <div class="relative flex items-center">
             <Search class="w-4 h-4 text-slate-400 absolute left-2.5 pointer-events-none" />
             <input
@@ -351,8 +351,13 @@ watch(searchQuery, () => {
             v-if="filteredOptions.length > 0"
             class="flex items-center justify-between px-1 pt-1.5 text-[10px] text-slate-400 font-medium"
           >
-            <span>{{ filteredOptions.length }} {{ filteredOptions.length === 1 ? itemType : `${itemType}s` }}</span>
-            <span v-if="searchQuery" class="text-blue-600 dark:text-blue-400 font-semibold">Filtered results</span>
+            <span
+              >{{ filteredOptions.length }}
+              {{ filteredOptions.length === 1 ? itemType : `${itemType}s` }}</span
+            >
+            <span v-if="searchQuery" class="text-blue-600 dark:text-blue-400 font-semibold"
+              >Filtered results</span
+            >
           </div>
         </div>
 
@@ -373,8 +378,8 @@ watch(searchQuery, () => {
               isSelected(option)
                 ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 font-bold border border-blue-200/50 dark:border-blue-800/50'
                 : highlightedIndex === index
-                ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-medium'
-                : 'text-slate-700 dark:text-slate-300 font-medium'
+                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-medium'
+                  : 'text-slate-700 dark:text-slate-300 font-medium',
             ]"
           >
             <slot name="option" :option="option" :selected="isSelected(option)">
@@ -412,7 +417,10 @@ watch(searchQuery, () => {
             />
             <p class="font-bold text-slate-600 dark:text-slate-400">{{ emptyText }}</p>
             <p v-if="searchQuery" class="text-[11px] text-slate-400">
-              No matches for "<span class="text-blue-600 dark:text-blue-400 font-semibold">{{ searchQuery }}</span>"
+              No matches for "<span class="text-blue-600 dark:text-blue-400 font-semibold">{{
+                searchQuery
+              }}</span
+              >"
             </p>
           </li>
         </ul>

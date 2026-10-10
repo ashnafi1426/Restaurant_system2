@@ -64,7 +64,10 @@
           class="flex-1 min-w-[120px] inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition"
         >
           <CookingPot class="w-3 h-3 sm:w-4 sm:h-4" />
-          <span class="hidden sm:inline">{{ languageStore.t('start_preparing', 'START PREPARING') }}</span><span class="sm:hidden">{{ languageStore.t('start', 'START') }}</span>
+          <span class="hidden sm:inline">{{
+            languageStore.t('start_preparing', 'START PREPARING')
+          }}</span
+          ><span class="sm:hidden">{{ languageStore.t('start', 'START') }}</span>
         </button>
       </template>
 
@@ -74,7 +77,8 @@
           class="flex-1 min-w-[120px] inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition"
         >
           <CheckCircle2 class="w-3 h-3 sm:w-4 sm:h-4" />
-          <span class="hidden sm:inline">{{ languageStore.t('mark_ready', 'MARK READY') }}</span><span class="sm:hidden">{{ languageStore.t('ready', 'READY') }}</span>
+          <span class="hidden sm:inline">{{ languageStore.t('mark_ready', 'MARK READY') }}</span
+          ><span class="sm:hidden">{{ languageStore.t('ready', 'READY') }}</span>
         </button>
       </template>
 
@@ -84,7 +88,8 @@
           class="flex-1 min-w-[120px] inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition"
         >
           <CheckCircle2 class="w-3 h-3 sm:w-4 sm:h-4" />
-          <span class="hidden sm:inline">{{ languageStore.t('mark_served', 'MARK SERVED') }}</span><span class="sm:hidden">{{ languageStore.t('serve', 'SERVED') }}</span>
+          <span class="hidden sm:inline">{{ languageStore.t('mark_served', 'MARK SERVED') }}</span
+          ><span class="sm:hidden">{{ languageStore.t('serve', 'SERVED') }}</span>
         </button>
       </template>
 

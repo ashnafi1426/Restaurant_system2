@@ -105,10 +105,13 @@ watch([search, selectedType, selectedCapacity], () => {
 })
 
 // Re-fetch rooms when guest switches hotel
-watch(() => guestHotelStore.hotelId, () => {
-  clearFilters()
-  loadRooms()
-})
+watch(
+  () => guestHotelStore.hotelId,
+  () => {
+    clearFilters()
+    loadRooms()
+  },
+)
 </script>
 
 <template>
@@ -119,11 +122,7 @@ watch(() => guestHotelStore.hotelId, () => {
 
       <!-- Unified Search + Filters -->
       <section class="mx-auto -mt-14 max-w-6xl px-4 sm:px-6 relative z-20">
-        <RoomSearchBar
-          v-model="search"
-          :type="selectedType"
-          @update:type="selectedType = $event"
-        />
+        <RoomSearchBar v-model="search" :type="selectedType" @update:type="selectedType = $event" />
       </section>
 
       <!-- Loading State -->
@@ -132,15 +131,37 @@ watch(() => guestHotelStore.hotelId, () => {
           <div class="flex flex-col items-center gap-4">
             <div class="relative w-12 h-12">
               <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="#0EA5E9" stroke-width="6" opacity="0.3" />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="45"
+                  fill="none"
+                  stroke="#0EA5E9"
+                  stroke-width="6"
+                  opacity="0.3"
+                />
               </svg>
-              <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
+              <div
+                class="absolute inset-0 animate-spin"
+                style="animation: spin 1.5s linear infinite"
+              >
                 <svg viewBox="0 0 100 100" class="w-full h-full">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="#FBBF24" stroke-width="8" stroke-linecap="round" stroke-dasharray="70 280" />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    fill="none"
+                    stroke="#FBBF24"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                    stroke-dasharray="70 280"
+                  />
                 </svg>
               </div>
             </div>
-            <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm">{{ languageStore.t('loading_rooms', 'Loading rooms...') }}</p>
+            <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm">
+              {{ languageStore.t('loading_rooms', 'Loading rooms...') }}
+            </p>
           </div>
         </div>
       </section>
@@ -159,7 +180,11 @@ watch(() => guestHotelStore.hotelId, () => {
       </section>
 
       <!-- Rooms -->
-      <section v-else id="rooms-section" class="mx-auto mt-8 max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8">
+      <section
+        v-else
+        id="rooms-section"
+        class="mx-auto mt-8 max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8"
+      >
         <RoomGrid v-if="paginatedRooms.length" :rooms="paginatedRooms" />
         <NoRoomsFound v-else @clear-filters="clearFilters" />
       </section>
@@ -179,7 +204,6 @@ watch(() => guestHotelStore.hotelId, () => {
     </div>
   </GuestLayout>
 </template>
-
 
 <style scoped>
 @keyframes spin {

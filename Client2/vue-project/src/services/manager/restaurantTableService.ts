@@ -5,11 +5,13 @@ import type {
   UpdateTableRequest,
   TableFilters,
   TableStatistics,
-  PaginatedTablesResponse
+  PaginatedTablesResponse,
 } from '@/types/restaurantTable'
 
 export const restaurantTableService = {
-  async getTables(filters?: TableFilters): Promise<{ success: boolean; data: PaginatedTablesResponse }> {
+  async getTables(
+    filters?: TableFilters,
+  ): Promise<{ success: boolean; data: PaginatedTablesResponse }> {
     try {
       const response = await axios.get('/manager/restaurant-tables', { params: filters })
       return response.data
@@ -24,15 +26,14 @@ export const restaurantTableService = {
       const response = await axios.get('/manager/restaurant-tables', {
         params: {
           per_page: 1000,
-          is_active: true
-        }
+          is_active: true,
+        },
       })
 
       if (response.data?.success && response.data?.data) {
         if (response.data.data.data && Array.isArray(response.data.data.data)) {
           return response.data.data.data
-        }
-        else if (Array.isArray(response.data.data)) {
+        } else if (Array.isArray(response.data.data)) {
           return response.data.data
         }
       }
@@ -49,7 +50,9 @@ export const restaurantTableService = {
     return response.data
   },
 
-  async createTable(data: CreateTableRequest): Promise<{ success: boolean; message: string; data: RestaurantTable }> {
+  async createTable(
+    data: CreateTableRequest,
+  ): Promise<{ success: boolean; message: string; data: RestaurantTable }> {
     try {
       const response = await axios.post('/manager/restaurant-tables', data)
       return response.data
@@ -67,7 +70,7 @@ export const restaurantTableService = {
 
   async updateTable(
     id: string,
-    data: UpdateTableRequest
+    data: UpdateTableRequest,
   ): Promise<{ success: boolean; message: string; data: RestaurantTable }> {
     const response = await axios.put(`/manager/restaurant-tables/${id}`, data)
     return response.data
@@ -116,7 +119,10 @@ export const restaurantTableService = {
       document.body.removeChild(link)
       setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000)
     } catch (err) {
-      console.error('[RestaurantTableService] Download QR API failed, attempting canvas fallback:', err)
+      console.error(
+        '[RestaurantTableService] Download QR API failed, attempting canvas fallback:',
+        err,
+      )
       if (table.qr_code_url) {
         const img = new Image()
         img.crossOrigin = 'anonymous'
@@ -146,7 +152,7 @@ export const restaurantTableService = {
         img.src = table.qr_code_url
       }
     }
-  }
+  },
 }
 
 export default restaurantTableService

@@ -38,7 +38,9 @@ const loadStorage = <T>(key: string, fallback: T): T => {
 export const useAuthStore = defineStore('auth', () => {
   const token = ref<string | null>(localStorage.getItem('token'))
   const user = ref<any>(loadStorage<any>('user', null))
-  const currentHotel = ref<CurrentHotelContext | null>(loadStorage<CurrentHotelContext | null>('current_hotel', null))
+  const currentHotel = ref<CurrentHotelContext | null>(
+    loadStorage<CurrentHotelContext | null>('current_hotel', null),
+  )
   const isInitialized = ref<boolean>(false)
 
   const isAuthenticated = computed<boolean>(() => Boolean(token.value && user.value))
@@ -49,7 +51,7 @@ export const useAuthStore = defineStore('auth', () => {
     return Boolean(
       user.value.is_platform_admin === true ||
       user.value.is_platform_admin === 1 ||
-      user.value.email?.toLowerCase() === 'admin@hotel.com'
+      user.value.email?.toLowerCase() === 'admin@hotel.com',
     )
   })
 
@@ -62,7 +64,9 @@ export const useAuthStore = defineStore('auth', () => {
 
     if (user.value?.roles && Array.isArray(user.value.roles)) {
       user.value.roles.forEach((r: any) => {
-        const slug = String(r?.slug || r?.name || '').toLowerCase().trim()
+        const slug = String(r?.slug || r?.name || '')
+          .toLowerCase()
+          .trim()
         if (slug) rolesSet.add(slug)
       })
     }
@@ -78,7 +82,9 @@ export const useAuthStore = defineStore('auth', () => {
     if (isPlatformAdmin.value) return 'admin'
     if (currentHotel.value?.role) return String(currentHotel.value.role).toLowerCase().trim()
     if (userRoles.value.length > 0) return userRoles.value[0]
-    return String(user.value?.role || 'guest').toLowerCase().trim()
+    return String(user.value?.role || 'guest')
+      .toLowerCase()
+      .trim()
   })
 
   const userPermissions = computed<string[]>(() => {
@@ -219,15 +225,15 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       // Set a flag to indicate logout is in progress
       isInitialized.value = false
-      
+
       // Capture current token before clearing local state
       const currentToken = token.value || localStorage.getItem('token')
-      
+
       // Clear auth data immediately for instant UI response
       setToken(null)
       setUser(null)
       setCurrentHotel(null)
-      
+
       // Stop notification polling on logout
       try {
         const { useNotificationStore } = await import('./notificationStore')
@@ -240,24 +246,26 @@ export const useAuthStore = defineStore('auth', () => {
       // Disconnect WebSocket if active
       if (typeof window !== 'undefined' && (window as any).Echo?.disconnect) {
         try {
-          (window as any).Echo.disconnect()
+          ;(window as any).Echo.disconnect()
         } catch {
           // Ignore echo disconnect errors
         }
       }
-      
+
       // Make logout API call in background with the captured token
       if (currentToken) {
-        api.post('/logout', null, {
-          headers: {
-            Authorization: `Bearer ${currentToken}`
-          }
-        }).catch((err: any) => {
-          // If status is 401, the token was already expired or revoked on the server; ignore silently
-          if (err?.response?.status !== 401) {
-            console.warn('[AuthStore] Logout API call warning:', err?.message || err)
-          }
-        })
+        api
+          .post('/logout', null, {
+            headers: {
+              Authorization: `Bearer ${currentToken}`,
+            },
+          })
+          .catch((err: any) => {
+            // If status is 401, the token was already expired or revoked on the server; ignore silently
+            if (err?.response?.status !== 401) {
+              console.warn('[AuthStore] Logout API call warning:', err?.message || err)
+            }
+          })
       }
     } catch (err: any) {
       console.error('[AuthStore] Error during logout:', err)

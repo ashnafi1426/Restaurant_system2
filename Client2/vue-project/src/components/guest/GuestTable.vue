@@ -65,8 +65,12 @@ onBeforeUnmount(() => {
           <span class="material-symbols-rounded text-blue-600">groups</span>
         </div>
         <div>
-          <h2 class="text-lg font-semibold text-slate-800">{{ languageStore.t('Guest Records', 'Guest Records') }}</h2>
-          <p class="text-sm text-slate-500">{{ languageStore.t('complete_guest_list', 'Complete list of registered guests') }}</p>
+          <h2 class="text-lg font-semibold text-slate-800">
+            {{ languageStore.t('Guest Records', 'Guest Records') }}
+          </h2>
+          <p class="text-sm text-slate-500">
+            {{ languageStore.t('complete_guest_list', 'Complete list of registered guests') }}
+          </p>
         </div>
       </div>
       <div v-if="!loading && guests.length > 0" class="text-sm text-slate-500">
@@ -80,13 +84,30 @@ onBeforeUnmount(() => {
       <div class="relative w-12 h-12 mb-4">
         <!-- Static background - BRIGHT CYAN -->
         <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
+          <circle
+            cx="50"
+            cy="50"
+            r="40"
+            fill="none"
+            stroke="#0EA5E9"
+            stroke-width="5"
+            opacity="0.3"
+          />
         </svg>
-        
+
         <!-- Animated spinner - BRIGHT YELLOW -->
-        <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
+        <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite">
           <svg viewBox="0 0 100 100" class="w-full h-full">
-            <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              fill="none"
+              stroke="#FBBF24"
+              stroke-width="6"
+              stroke-linecap="round"
+              stroke-dasharray="60 240"
+            />
           </svg>
         </div>
       </div>
@@ -100,8 +121,14 @@ onBeforeUnmount(() => {
       >
         <span class="material-symbols-rounded text-4xl text-slate-400">groups</span>
       </div>
-      <h3 class="text-xl font-semibold text-slate-700 mb-2">{{ languageStore.t('No Guests Found', 'No Guests Found') }}</h3>
-      <p class="text-slate-500">{{ languageStore.t('no_guests_match_filters', 'No guest records match your current filters') }}</p>
+      <h3 class="text-xl font-semibold text-slate-700 mb-2">
+        {{ languageStore.t('No Guests Found', 'No Guests Found') }}
+      </h3>
+      <p class="text-slate-500">
+        {{
+          languageStore.t('no_guests_match_filters', 'No guest records match your current filters')
+        }}
+      </p>
     </div>
 
     <!-- Table -->
@@ -234,7 +261,9 @@ onBeforeUnmount(() => {
                       class="flex w-full items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors text-left"
                     >
                       <span class="material-symbols-rounded text-blue-600">visibility</span>
-                      <span class="font-medium text-slate-700">{{ languageStore.t('View Details', 'View Details') }}</span>
+                      <span class="font-medium text-slate-700">{{
+                        languageStore.t('View Details', 'View Details')
+                      }}</span>
                     </button>
 
                     <!-- Edit -->
@@ -248,7 +277,9 @@ onBeforeUnmount(() => {
                       class="flex w-full items-center gap-3 px-4 py-3 hover:bg-green-50 transition-colors text-left"
                     >
                       <span class="material-symbols-rounded text-green-600">edit</span>
-                      <span class="font-medium text-slate-700">{{ languageStore.t('Edit', 'Edit Guest') }}</span>
+                      <span class="font-medium text-slate-700">{{
+                        languageStore.t('Edit', 'Edit Guest')
+                      }}</span>
                     </button>
 
                     <div class="border-t border-slate-200"></div>
@@ -264,7 +295,9 @@ onBeforeUnmount(() => {
                       class="flex w-full items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition-colors text-left"
                     >
                       <span class="material-symbols-rounded">delete</span>
-                      <span class="font-medium">{{ languageStore.t('Delete', 'Delete Guest') }}</span>
+                      <span class="font-medium">{{
+                        languageStore.t('Delete', 'Delete Guest')
+                      }}</span>
                     </button>
                   </div>
                 </transition>

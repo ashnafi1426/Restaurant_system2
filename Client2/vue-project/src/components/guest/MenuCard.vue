@@ -113,12 +113,29 @@ const addToCart = () => {
       >
         <div class="relative w-8 h-8">
           <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
+            <circle
+              cx="50"
+              cy="50"
+              r="40"
+              fill="none"
+              stroke="#0EA5E9"
+              stroke-width="5"
+              opacity="0.3"
+            />
           </svg>
-          
-          <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
+
+          <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite">
             <svg viewBox="0 0 100 100" class="w-full h-full">
-              <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                fill="none"
+                stroke="#FBBF24"
+                stroke-width="6"
+                stroke-linecap="round"
+                stroke-dasharray="60 240"
+              />
             </svg>
           </div>
         </div>
@@ -176,10 +193,22 @@ const addToCart = () => {
         <div class="flex flex-col">
           <span class="text-xs text-slate-500 font-medium">Price (incl. tax)</span>
           <span class="text-xl sm:text-2xl font-bold text-amber-600">
-            ${{ ((item.total_price !== undefined && item.total_price !== null) ? Number(item.total_price) : Number(item.price)).toFixed(2) }}
+            ${{
+              (item.total_price !== undefined && item.total_price !== null
+                ? Number(item.total_price)
+                : Number(item.price)
+              ).toFixed(2)
+            }}
           </span>
-          <span v-if="item.tax_rate && Number(item.tax_rate.rate) > 0" class="text-[10px] text-slate-400">
-            {{ item.tax_included ? `Incl. ${item.tax_rate.rate}% ${item.tax_rate.name || 'tax'}` : `+$${(item.tax_amount || 0).toFixed(2)} tax` }}
+          <span
+            v-if="item.tax_rate && Number(item.tax_rate.rate) > 0"
+            class="text-[10px] text-slate-400"
+          >
+            {{
+              item.tax_included
+                ? `Incl. ${item.tax_rate.rate}% ${item.tax_rate.name || 'tax'}`
+                : `+$${(item.tax_amount || 0).toFixed(2)} tax`
+            }}
           </span>
         </div>
 

@@ -1,5 +1,7 @@
 <template>
-  <div class="pending-container min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 py-12 flex items-center justify-center">
+  <div
+    class="pending-container min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 py-12 flex items-center justify-center"
+  >
     <!-- Main Pending Card -->
     <div class="max-w-2xl w-full mx-auto px-4">
       <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
@@ -7,7 +9,9 @@
         <div class="bg-gradient-to-r from-amber-500 to-orange-600 px-8 py-12 text-center">
           <!-- Pending Icon -->
           <div class="flex justify-center mb-6">
-            <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center animate-bounce">
+            <div
+              class="w-20 h-20 bg-white rounded-full flex items-center justify-center animate-bounce"
+            >
               <svg
                 class="w-12 h-12 text-amber-600"
                 fill="none"
@@ -25,9 +29,7 @@
           </div>
 
           <h1 class="text-4xl font-bold text-white mb-3">Payment Pending</h1>
-          <p class="text-amber-50 text-lg">
-            Your payment is being processed
-          </p>
+          <p class="text-amber-50 text-lg">Your payment is being processed</p>
         </div>
 
         <!-- Content -->
@@ -35,11 +37,11 @@
           <!-- Status Message -->
           <div class="mb-8 text-center">
             <div class="inline-block mb-6">
-              <div class="w-16 h-16 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin"></div>
+              <div
+                class="w-16 h-16 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin"
+              ></div>
             </div>
-            <h2 class="text-2xl font-semibold text-slate-900 mb-3">
-              Processing Your Payment
-            </h2>
+            <h2 class="text-2xl font-semibold text-slate-900 mb-3">Processing Your Payment</h2>
             <p class="text-slate-600">
               Please do not close this page or press the back button while we process your payment.
             </p>
@@ -62,7 +64,8 @@
               <div>
                 <h3 class="font-semibold text-blue-900">Processing...</h3>
                 <p class="text-blue-700 text-sm mt-1">
-                  We're securely processing your payment. You will be notified once the payment is complete.
+                  We're securely processing your payment. You will be notified once the payment is
+                  complete.
                 </p>
               </div>
             </div>
@@ -135,7 +138,9 @@
             <h3 class="font-semibold text-slate-900 mb-4">Processing Steps</h3>
             <div class="space-y-3">
               <div class="flex items-start gap-3">
-                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                <div
+                  class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                >
                   ✓
                 </div>
                 <div>
@@ -145,7 +150,9 @@
               </div>
 
               <div class="flex items-start gap-3">
-                <div class="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 animate-pulse">
+                <div
+                  class="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 animate-pulse"
+                >
                   ⏳
                 </div>
                 <div>
@@ -155,7 +162,9 @@
               </div>
 
               <div class="flex items-start gap-3">
-                <div class="w-8 h-8 bg-slate-300 rounded-full flex items-center justify-center text-slate-600 text-sm font-bold flex-shrink-0">
+                <div
+                  class="w-8 h-8 bg-slate-300 rounded-full flex items-center justify-center text-slate-600 text-sm font-bold flex-shrink-0"
+                >
                   •
                 </div>
                 <div>
@@ -165,7 +174,9 @@
               </div>
 
               <div class="flex items-start gap-3">
-                <div class="w-8 h-8 bg-slate-300 rounded-full flex items-center justify-center text-slate-600 text-sm font-bold flex-shrink-0">
+                <div
+                  class="w-8 h-8 bg-slate-300 rounded-full flex items-center justify-center text-slate-600 text-sm font-bold flex-shrink-0"
+                >
                   •
                 </div>
                 <div>
@@ -223,54 +234,54 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { usePaymentStore } from '@/stores/paymentStore';
+import { onMounted, onUnmounted, ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { usePaymentStore } from '@/stores/paymentStore'
 
 // ============================================================================
 // Setup
 // ============================================================================
 
-const router = useRouter();
-const route = useRoute();
-const paymentStore = usePaymentStore();
+const router = useRouter()
+const route = useRoute()
+const paymentStore = usePaymentStore()
 
 // ============================================================================
 // State
 // ============================================================================
 
-let pollInterval: NodeJS.Timeout | null = null;
-const maxChecks = ref(60); // 60 checks = 2 minutes
-const checksPerformed = ref(0);
+let pollInterval: NodeJS.Timeout | null = null
+const maxChecks = ref(60) // 60 checks = 2 minutes
+const checksPerformed = ref(0)
 
 // ============================================================================
 // Lifecycle
 // ============================================================================
 
 onMounted(async () => {
-  const txRef = route.query.tx_ref as string;
+  const txRef = route.query.tx_ref as string
 
   if (!txRef) {
-    router.push('/');
-    return;
+    router.push('/')
+    return
   }
 
   try {
     // Initial fetch
-    await paymentStore.verifyPayment(txRef);
+    await paymentStore.verifyPayment(txRef)
 
     // Start polling
-    startPolling(txRef);
+    startPolling(txRef)
   } catch (error) {
-    console.error('Failed to fetch payment:', error);
+    console.error('Failed to fetch payment:', error)
   }
-});
+})
 
 onUnmounted(() => {
   if (pollInterval) {
-    clearInterval(pollInterval);
+    clearInterval(pollInterval)
   }
-});
+})
 
 // ============================================================================
 // Methods
@@ -282,43 +293,36 @@ onUnmounted(() => {
 function startPolling(txRef: string): void {
   pollInterval = setInterval(async () => {
     try {
-      checksPerformed.value++;
+      checksPerformed.value++
 
       // Check payment status
-      await paymentStore.verifyPayment(txRef);
+      await paymentStore.verifyPayment(txRef)
 
       // Payment verified or failed
-      if (
-        paymentStore.currentPayment?.is_verified ||
-        paymentStore.currentPayment?.is_failed
-      ) {
+      if (paymentStore.currentPayment?.is_verified || paymentStore.currentPayment?.is_failed) {
         if (pollInterval) {
-          clearInterval(pollInterval);
+          clearInterval(pollInterval)
         }
 
         // Redirect to appropriate page
         if (paymentStore.currentPayment.is_verified) {
-          router.push(
-            `/payment/success?tx_ref=${txRef}`
-          );
+          router.push(`/payment/success?tx_ref=${txRef}`)
         } else {
-          router.push(
-            `/payment/failed?tx_ref=${txRef}`
-          );
+          router.push(`/payment/failed?tx_ref=${txRef}`)
         }
       }
 
       // Max checks reached
       if (checksPerformed.value >= maxChecks.value) {
         if (pollInterval) {
-          clearInterval(pollInterval);
+          clearInterval(pollInterval)
         }
-        router.push(`/payment/failed?tx_ref=${txRef}`);
+        router.push(`/payment/failed?tx_ref=${txRef}`)
       }
     } catch (error) {
-      console.error('Polling error:', error);
+      console.error('Polling error:', error)
     }
-  }, 2000); // Poll every 2 seconds
+  }, 2000) // Poll every 2 seconds
 }
 
 /**
@@ -331,7 +335,7 @@ function formatDate(dateString: string): string {
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(new Date(dateString));
+  }).format(new Date(dateString))
 }
 
 /**
@@ -339,9 +343,9 @@ function formatDate(dateString: string): string {
  */
 function cancelPayment(): void {
   if (pollInterval) {
-    clearInterval(pollInterval);
+    clearInterval(pollInterval)
   }
-  router.push('/');
+  router.push('/')
 }
 </script>
 

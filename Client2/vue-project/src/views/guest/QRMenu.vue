@@ -1,6 +1,5 @@
 <template>
   <div class="qr-menu-page">
-
     <QRMenuLayout
       ref="menuLayoutRef"
       :guest-name="guestName"
@@ -75,8 +74,14 @@
                     d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                   ></path>
                 </svg>
-                <p class="text-gray-500 text-lg font-medium">{{ languageStore.t('cart_empty', 'Your cart is empty') }}</p>
-                <p class="text-gray-400 text-sm mt-1">{{ languageStore.t('add_items_from_menu', 'Add items from the menu to get started') }}</p>
+                <p class="text-gray-500 text-lg font-medium">
+                  {{ languageStore.t('cart_empty', 'Your cart is empty') }}
+                </p>
+                <p class="text-gray-400 text-sm mt-1">
+                  {{
+                    languageStore.t('add_items_from_menu', 'Add items from the menu to get started')
+                  }}
+                </p>
                 <button
                   @click="closeCartModal"
                   class="mt-4 inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-6 py-2 rounded-lg font-medium hover:bg-amber-200 transition-colors cursor-pointer"
@@ -106,9 +111,11 @@
                       <div class="flex-1">
                         <h3 class="font-bold text-gray-900 text-base">{{ item.name }}</h3>
                         <p class="text-xs text-gray-500 mt-0.5">{{ item.description || 'ETB' }}</p>
-                        <p class="text-sm font-bold text-gray-900 mt-1">${{ item.price.toFixed(2) }}</p>
+                        <p class="text-sm font-bold text-gray-900 mt-1">
+                          ${{ item.price.toFixed(2) }}
+                        </p>
                       </div>
-                      
+
                       <!-- Remove/Delete Button -->
                       <button
                         @click="removeFromCart(item.id)"
@@ -125,7 +132,7 @@
                         </svg>
                       </button>
                     </div>
-                    
+
                     <!-- Quantity Controls + Total Price (Inline like second screenshot) -->
                     <div class="flex items-center justify-between mt-2">
                       <!-- -  1  + Controls -->
@@ -137,9 +144,12 @@
                         >
                           −
                         </button>
-                        
-                        <span class="text-lg font-bold text-gray-900 px-3 min-w-[2rem] text-center">{{ item.quantity }}</span>
-                        
+
+                        <span
+                          class="text-lg font-bold text-gray-900 px-3 min-w-[2rem] text-center"
+                          >{{ item.quantity }}</span
+                        >
+
                         <button
                           @click="incrementQuantity(item.id)"
                           class="w-8 h-8 flex items-center justify-center text-gray-700 hover:bg-gray-200 rounded transition-colors cursor-pointer font-bold text-lg"
@@ -149,7 +159,9 @@
                         </button>
                       </div>
                       <!-- Item Total Price -->
-                      <span class="text-base font-bold text-gray-900">ETB ${{ (item.price * item.quantity).toFixed(2) }}</span>
+                      <span class="text-base font-bold text-gray-900"
+                        >ETB ${{ (item.price * item.quantity).toFixed(2) }}</span
+                      >
                     </div>
                   </div>
                 </div>
@@ -165,7 +177,9 @@
               </div>
 
               <!-- Total -->
-              <div class="flex items-center justify-between text-gray-900 text-lg font-bold pt-2 border-t border-gray-200">
+              <div
+                class="flex items-center justify-between text-gray-900 text-lg font-bold pt-2 border-t border-gray-200"
+              >
                 <span>{{ languageStore.t('total', 'Total') }}</span>
                 <span class="text-red-600">{{ formatPrice(cartTotal) }}</span>
               </div>
@@ -208,7 +222,7 @@
                   </svg>
                   🍽️ {{ languageStore.t('order_now_pay_after', 'Order Now (Pay After Meal)') }}
                 </button>
-                
+
                 <!-- Pay with Chapa Button -->
                 <button
                   @click="openPaymentDialog"
@@ -231,16 +245,21 @@
                   </svg>
                   💳 {{ languageStore.t('pay_now_with_chapa', 'Pay Now with Chapa') }}
                 </button>
-                
+
                 <button
                   @click="closeCartModal"
                   class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   {{ languageStore.t('continue_shopping', 'Continue Shopping') }}
                 </button>
-                
+
                 <p class="text-xs text-gray-500 text-center mt-2">
-                  {{ languageStore.t('payment_choice_desc', 'Choose: Order now and pay after eating, or pay online now') }}
+                  {{
+                    languageStore.t(
+                      'payment_choice_desc',
+                      'Choose: Order now and pay after eating, or pay online now',
+                    )
+                  }}
                 </p>
               </div>
             </div>
@@ -260,18 +279,31 @@
             <div
               class="bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-4 text-white flex-shrink-0 rounded-t-2xl"
             >
-              <h3 class="text-xl font-bold mb-1">💳 {{ languageStore.t('payment_confirmation', 'Payment Confirmation') }}</h3>
+              <h3 class="text-xl font-bold mb-1">
+                💳 {{ languageStore.t('payment_confirmation', 'Payment Confirmation') }}
+              </h3>
               <p class="text-amber-100 text-sm">
-                {{ orderContext?.type === 'table' ? languageStore.t('enter_details_proceed', 'Enter details to proceed') : languageStore.t('review_order_before_payment', 'Review your order before payment') }}
+                {{
+                  orderContext?.type === 'table'
+                    ? languageStore.t('enter_details_proceed', 'Enter details to proceed')
+                    : languageStore.t(
+                        'review_order_before_payment',
+                        'Review your order before payment',
+                      )
+                }}
               </p>
             </div>
 
             <div class="p-5 space-y-3 overflow-y-auto flex-1">
               <div v-if="orderContext?.type === 'table'" class="space-y-3">
-                <h4 class="font-semibold text-sm mb-2">{{ languageStore.t('customer_details', 'Customer Details') }}</h4>
-                
+                <h4 class="font-semibold text-sm mb-2">
+                  {{ languageStore.t('customer_details', 'Customer Details') }}
+                </h4>
+
                 <div>
-                  <label class="text-xs text-slate-600 mb-1 block">{{ languageStore.t('first_name', 'First Name') }} *</label>
+                  <label class="text-xs text-slate-600 mb-1 block"
+                    >{{ languageStore.t('first_name', 'First Name') }} *</label
+                  >
                   <input
                     v-model="paymentForm.first_name"
                     type="text"
@@ -282,7 +314,9 @@
                 </div>
 
                 <div>
-                  <label class="text-xs text-slate-600 mb-1 block">{{ languageStore.t('last_name', 'Last Name') }} *</label>
+                  <label class="text-xs text-slate-600 mb-1 block"
+                    >{{ languageStore.t('last_name', 'Last Name') }} *</label
+                  >
                   <input
                     v-model="paymentForm.last_name"
                     type="text"
@@ -293,7 +327,9 @@
                 </div>
 
                 <div>
-                  <label class="text-xs text-slate-600 mb-1 block">{{ languageStore.t('email', 'Email') }} *</label>
+                  <label class="text-xs text-slate-600 mb-1 block"
+                    >{{ languageStore.t('email', 'Email') }} *</label
+                  >
                   <input
                     v-model="paymentForm.email"
                     type="email"
@@ -304,7 +340,9 @@
                 </div>
 
                 <div>
-                  <label class="text-xs text-slate-600 mb-1 block">{{ languageStore.t('phone_number', 'Phone Number') }} *</label>
+                  <label class="text-xs text-slate-600 mb-1 block"
+                    >{{ languageStore.t('phone_number', 'Phone Number') }} *</label
+                  >
                   <input
                     v-model="paymentForm.phone"
                     type="tel"
@@ -318,7 +356,9 @@
               </div>
 
               <div>
-                <h4 class="font-semibold text-sm mb-2">{{ languageStore.t('order_summary', 'Order Summary') }}</h4>
+                <h4 class="font-semibold text-sm mb-2">
+                  {{ languageStore.t('order_summary', 'Order Summary') }}
+                </h4>
                 <div class="space-y-2 text-xs">
                   <div class="flex justify-between">
                     <span class="text-slate-600">{{ languageStore.t('room', 'Room') }}:</span>
@@ -336,7 +376,9 @@
               </div>
 
               <div class="border-t pt-3">
-                <h4 class="font-semibold text-sm mb-2">{{ languageStore.t('your_items', 'Your Items') }}</h4>
+                <h4 class="font-semibold text-sm mb-2">
+                  {{ languageStore.t('your_items', 'Your Items') }}
+                </h4>
                 <div class="space-y-2">
                   <div
                     v-for="item in cartItems"
@@ -359,7 +401,9 @@
                   <span class="font-medium">{{ formatPrice(tax) }}</span>
                 </div>
                 <div class="flex justify-between text-xs">
-                  <span class="text-slate-600">{{ languageStore.t('service_charge', 'Service Charge') }} (10%):</span>
+                  <span class="text-slate-600"
+                    >{{ languageStore.t('service_charge', 'Service Charge') }} (10%):</span
+                  >
                   <span class="font-medium">{{ formatPrice(serviceCharge) }}</span>
                 </div>
                 <div class="flex justify-between text-sm font-bold pt-1.5 border-t">
@@ -372,7 +416,8 @@
                 v-if="orderContext?.type === 'table'"
                 class="bg-amber-50 border border-amber-200 rounded-lg p-2 text-xs text-amber-700"
               >
-                 {{ languageStore.t('walk_in_order_for', 'Walk-in order for') }} {{ orderContext.displayName }}
+                {{ languageStore.t('walk_in_order_for', 'Walk-in order for') }}
+                {{ orderContext.displayName }}
               </div>
 
               <div class="bg-blue-50 border border-blue-200 rounded-lg p-2 text-xs text-blue-700">
@@ -393,7 +438,9 @@
                 :disabled="isPlacingOrder"
                 class="flex-1 px-4 py-2 text-sm font-medium bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
-                <span v-if="isPlacingOrder">⌛ {{ languageStore.t('processing', 'Processing...') }}</span>
+                <span v-if="isPlacingOrder"
+                  >⌛ {{ languageStore.t('processing', 'Processing...') }}</span
+                >
                 <span v-else>💳 {{ languageStore.t('pay_now', 'Pay Now') }}</span>
               </button>
             </div>
@@ -420,26 +467,41 @@
               </div>
             </div>
 
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">{{ languageStore.t('order_placed_success', 'Order Placed Successfully!') }}</h2>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">
+              {{ languageStore.t('order_placed_success', 'Order Placed Successfully!') }}
+            </h2>
             <p class="text-gray-600 mb-4">
-              {{ languageStore.t('order_placed_desc', 'Your delicious meal is being prepared and will be delivered to your room shortly.') }}
+              {{
+                languageStore.t(
+                  'order_placed_desc',
+                  'Your delicious meal is being prepared and will be delivered to your room shortly.',
+                )
+              }}
             </p>
 
             <div class="bg-amber-50 rounded-lg p-4 mb-6 text-left space-y-2">
               <div class="flex justify-between">
-                <span class="text-gray-600">{{ languageStore.t('order_number', 'Order Number') }}:</span>
+                <span class="text-gray-600"
+                  >{{ languageStore.t('order_number', 'Order Number') }}:</span
+                >
                 <span class="font-bold text-gray-800">#{{ orderNumber }}</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-gray-600">{{ languageStore.t('room_number', 'Room Number') }}:</span>
+                <span class="text-gray-600"
+                  >{{ languageStore.t('room_number', 'Room Number') }}:</span
+                >
                 <span class="font-bold text-gray-800">{{ roomNumber }}</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-gray-600">{{ languageStore.t('estimated_time', 'Estimated Time') }}:</span>
+                <span class="text-gray-600"
+                  >{{ languageStore.t('estimated_time', 'Estimated Time') }}:</span
+                >
                 <span class="font-bold text-gray-800">{{ estimatedTime }} mins</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-gray-600">{{ languageStore.t('total_amount', 'Total Amount') }}:</span>
+                <span class="text-gray-600"
+                  >{{ languageStore.t('total_amount', 'Total Amount') }}:</span
+                >
                 <span class="font-bold text-amber-600">{{ formatPrice(cartTotal) }}</span>
               </div>
             </div>
@@ -513,9 +575,9 @@ const menuLayoutRef = ref<InstanceType<typeof QRMenuLayout> | null>(null)
 
 const qrToken = ref(
   (route.params.qrToken as string) ||
-  (route.query.token as string) ||
-  localStorage.getItem('qrToken') ||
-  ''
+    (route.query.token as string) ||
+    localStorage.getItem('qrToken') ||
+    '',
 )
 const hotelId = ref<string>(guestHotelStore.hotelId || localStorage.getItem('hotel_id') || '')
 const hotelName = ref<string>(guestHotelStore.hotelName || '')
@@ -580,7 +642,10 @@ const handleLogout = () => {
 
 const handleAddToCart = (item: MenuItem, quantity: number) => {
   if (orderContext.value?.type === 'room' && !canOrderRoomService.value) {
-    alert(eligibilityMessage.value || 'Room service ordering is only available for checked-in guests. Please contact the front desk.')
+    alert(
+      eligibilityMessage.value ||
+        'Room service ordering is only available for checked-in guests. Please contact the front desk.',
+    )
     return
   }
   const existingItem = cartItems.value.find((ci) => ci.id === item.id)
@@ -609,7 +674,7 @@ const incrementQuantity = (itemId: string | number) => {
     const oldQuantity = item.quantity
     item.quantity++
     console.log(`[QRMenu] Increased ${item.name} quantity from ${oldQuantity} to ${item.quantity}`)
-    
+
     // Optional: Add a brief visual feedback
     // You could add a toast notification here if desired
   }
@@ -665,20 +730,20 @@ const placeOrderWithRoomCharge = async () => {
       orderNumber.value = orderResponse.data.order_number
       roomNumber.value = orderResponse.data.room_number || roomNumber.value
       estimatedTime.value = 30
-      
+
       // Build complete order data object with items for OrderStatusPage
       const completeOrderData = {
         ...orderResponse.data,
         id: createdOrderId,
         order_id: createdOrderId,
-        items: cartItems.value.map(item => ({
+        items: cartItems.value.map((item) => ({
           id: item.id,
           name: item.name,
           description: item.description,
           quantity: item.quantity,
           price: item.price,
           image: item.image,
-          total: item.price * item.quantity
+          total: item.price * item.quantity,
         })),
         subtotal: subtotal.value,
         tax: tax.value,
@@ -688,9 +753,9 @@ const placeOrderWithRoomCharge = async () => {
         payment_status: 'pending',
         payment_type: 'room_charge',
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       }
-      
+
       // Store order data for OrderStatusPage
       if (orderResponse.data.hotel_id) {
         localStorage.setItem('hotel_id', orderResponse.data.hotel_id)
@@ -698,31 +763,31 @@ const placeOrderWithRoomCharge = async () => {
       if (qrToken.value) {
         localStorage.setItem('guest_qr_token', qrToken.value)
       }
-      
+
       // Store the complete order data for immediate display
       console.log('[QRMenu] Storing complete order data:', completeOrderData)
       console.log('[QRMenu] Created order ID:', createdOrderId)
       localStorage.setItem('pending_order_data', JSON.stringify(completeOrderData))
-      
+
       // Verify it was stored
       const verifyStored = localStorage.getItem('pending_order_data')
       console.log('[QRMenu] Verified stored data:', verifyStored ? 'Success ' : 'Failed ❌')
-      
+
       // Clear cart
       cartItems.value = []
       showPaymentDialog.value = false
       showCartModal.value = false
-      
+
       // Redirect to real-time Order Status page with all necessary params
       console.log('[QRMenu] Redirecting to order status with ID:', createdOrderId)
       router.push({
         name: 'order-status',
         params: { orderId: createdOrderId },
-        query: { 
+        query: {
           hotel_id: orderResponse.data.hotel_id,
           qr_token: qrToken.value,
-          order_number: orderResponse.data.order_number
-        }
+          order_number: orderResponse.data.order_number,
+        },
       })
       return
     } else {
@@ -747,7 +812,7 @@ const openPaymentDialog = () => {
 
   // For "Pay with Chapa" button: ALWAYS go to OrderPaymentPage (with tip selection)
   // This works for both table orders and general menu access
-  
+
   // Store payment data for the OrderPaymentPage (without customer details)
   const paymentData = {
     qr_token: qrToken.value,
@@ -756,7 +821,7 @@ const openPaymentDialog = () => {
     customer_name: 'Guest', // Default name
     customer_phone: '', // Will be collected by Chapa
     customer_email: '', // Will be collected by Chapa
-    items: cartItems.value.map(item => ({
+    items: cartItems.value.map((item) => ({
       id: item.id,
       name: item.name,
       quantity: item.quantity,
@@ -767,7 +832,7 @@ const openPaymentDialog = () => {
       tax: 0,
       service_charge: 0,
       total: subtotal.value,
-    }
+    },
   }
 
   localStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
@@ -775,14 +840,17 @@ const openPaymentDialog = () => {
     localStorage.setItem('guest_qr_token', qrToken.value)
     sessionStorage.setItem('guest_qr_token', qrToken.value)
   }
-  console.log('[QRMenu] Pay with Chapa clicked - Stored payment data, navigating to OrderPaymentPage:', paymentData)
+  console.log(
+    '[QRMenu] Pay with Chapa clicked - Stored payment data, navigating to OrderPaymentPage:',
+    paymentData,
+  )
 
   // Navigate directly to OrderPaymentPage (dark theme with tip selection)
   router.push({
     path: '/order/payment',
     query: {
-      qr_token: qrToken.value
-    }
+      qr_token: qrToken.value,
+    },
   })
 }
 
@@ -803,7 +871,9 @@ const proceedToPayment = () => {
 const handlePlaceOrder = async () => {
   if (isPlacingOrder.value) return
   if (orderContext.value?.type === 'room' && !canOrderRoomService.value) {
-    alert(eligibilityMessage.value || 'Room service ordering is only available for checked-in guests.')
+    alert(
+      eligibilityMessage.value || 'Room service ordering is only available for checked-in guests.',
+    )
     return
   }
   if (cartItems.value.length === 0) {
@@ -844,7 +914,7 @@ const handlePlaceOrder = async () => {
           amount: paymentResponse.amount,
           qr_token: qrToken.value,
           table_number: orderContext.value.displayName,
-          items: cartItems.value.map(item => ({
+          items: cartItems.value.map((item) => ({
             name: item.name,
             quantity: item.quantity,
             price: item.price,
@@ -852,17 +922,17 @@ const handlePlaceOrder = async () => {
           })),
           calculation: paymentResponse.calculation,
         }
-        
+
         localStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
         sessionStorage.setItem('walk_in_payment_data', JSON.stringify(paymentData))
         if (qrToken.value) {
           localStorage.setItem('guest_qr_token', qrToken.value)
           sessionStorage.setItem('guest_qr_token', qrToken.value)
         }
-        
+
         console.log('[QRMenu] Stored payment data before redirect:', paymentData)
         console.log('[QRMenu] Redirecting to Chapa:', paymentResponse.checkout_url)
-        
+
         window.location.href = paymentResponse.checkout_url
         return
       } else {
@@ -883,21 +953,21 @@ const handlePlaceOrder = async () => {
         orderNumber.value = orderResponse.data.order_number
         roomNumber.value = orderResponse.data.room_number || roomNumber.value
         estimatedTime.value = 30
-        
+
         // Store hotel_id for OrderStatusPage
         if (orderResponse.data.hotel_id) {
           localStorage.setItem('hotel_id', orderResponse.data.hotel_id)
         }
-        
+
         // Clear cart
         cartItems.value = []
         showPaymentDialog.value = false
         showCartModal.value = false
-        
+
         // Redirect to real-time Order Status page instead of showing modal
         router.push({
           name: 'order-status',
-          params: { orderId: createdOrderId }
+          params: { orderId: createdOrderId },
         })
         return
       } else {
@@ -941,7 +1011,9 @@ const detectOrderContext = async () => {
     if (result.context === 'room') {
       const isCheckedIn = result.data.is_checked_in === true || result.data.can_order === true
       const resStatus = result.data.reservation_status || (isCheckedIn ? 'checked_in' : 'none')
-      const eligMsg = result.data.eligibility_message || (isCheckedIn ? '' : 'Only checked-in guests can place room-service orders.')
+      const eligMsg =
+        result.data.eligibility_message ||
+        (isCheckedIn ? '' : 'Only checked-in guests can place room-service orders.')
 
       canOrderRoomService.value = isCheckedIn
       eligibilityMessage.value = eligMsg
@@ -971,7 +1043,7 @@ const detectOrderContext = async () => {
       roomNumber.value = result.data.room_number || '101'
       heroHeading.value = 'Room Service Menu'
       heroSubheading.value = `Room ${result.data.room_number}`
-      
+
       if (result.data.guest) {
         guestName.value = result.data.guest.guest_name
         guestEmail.value = result.data.guest.guest_email || 'guest@hotel.com'
@@ -1017,7 +1089,7 @@ const detectOrderContext = async () => {
   } catch (error: any) {
     console.error('[QRMenu] Failed to detect order context:', error)
     contextError.value = error.message || 'Failed to load menu'
-    
+
     if (!orderContext.value || !orderContext.value.type) {
       orderContext.value = {
         type: 'table',

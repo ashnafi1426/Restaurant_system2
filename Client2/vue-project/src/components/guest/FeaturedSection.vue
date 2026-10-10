@@ -81,7 +81,14 @@ const getImageUrl = (imagePath?: string | null) => {
           <p class="text-sm text-gray-600 mb-3 line-clamp-2">{{ item.description }}</p>
 
           <div class="flex justify-between items-center">
-            <span class="text-2xl font-bold text-teal-700">{{ (item.total_price != null ? Number(item.total_price).toFixed(2) : Number(item.price).toFixed(2)) }} ETB</span>
+            <span class="text-2xl font-bold text-teal-700"
+              >{{
+                item.total_price != null
+                  ? Number(item.total_price).toFixed(2)
+                  : Number(item.price).toFixed(2)
+              }}
+              ETB</span
+            >
             <button
               @click="emit('add-to-cart', item)"
               class="lg:hidden bg-teal-600 text-white px-3 py-1 rounded-lg font-semibold text-sm hover:bg-teal-700"

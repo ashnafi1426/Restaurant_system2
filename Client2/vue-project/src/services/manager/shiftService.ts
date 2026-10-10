@@ -24,5 +24,5 @@ export const shiftService = {
       console.error('[ShiftService] Error fetching shifts:', error)
       throw error
     }
-  }
+  },
 }

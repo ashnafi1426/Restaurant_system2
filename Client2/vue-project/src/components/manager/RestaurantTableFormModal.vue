@@ -5,15 +5,23 @@
         class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
         @click.self="$emit('close')"
       >
-        <div class="bg-white dark:bg-[#0b1527] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto text-slate-900 dark:text-white">
+        <div
+          class="bg-white dark:bg-[#0b1527] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto text-slate-900 dark:text-white"
+        >
           <!-- Header -->
-          <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between">
+          <div
+            class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between"
+          >
             <div>
               <h2 class="text-lg font-bold text-slate-900 dark:text-white">
                 {{ isEdit ? 'Edit Restaurant Table' : 'Add New Table' }}
               </h2>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                {{ isEdit ? 'Update table configuration and section assignment' : 'Configure a new dining table and generate QR code' }}
+                {{
+                  isEdit
+                    ? 'Update table configuration and section assignment'
+                    : 'Configure a new dining table and generate QR code'
+                }}
               </p>
             </div>
             <button
@@ -39,7 +47,9 @@
                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900 text-slate-900 dark:text-white text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 :class="{ 'border-rose-500 dark:border-rose-500': errors.table_number }"
               />
-              <p v-if="errors.table_number" class="text-rose-500 text-[11px] mt-1">{{ errors.table_number }}</p>
+              <p v-if="errors.table_number" class="text-rose-500 text-[11px] mt-1">
+                {{ errors.table_number }}
+              </p>
             </div>
 
             <!-- Table Display Name -->
@@ -67,14 +77,12 @@
                 @change="handleSectionChange"
                 required
                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900 text-slate-900 dark:text-white text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
-                :class="{ 'border-rose-500 dark:border-rose-500': errors.section_id || errors.section }"
+                :class="{
+                  'border-rose-500 dark:border-rose-500': errors.section_id || errors.section,
+                }"
               >
                 <option value="">-- Select Restaurant Section --</option>
-                <option
-                  v-for="sec in sectionStore.sections"
-                  :key="sec.id"
-                  :value="sec.id"
-                >
+                <option v-for="sec in sectionStore.sections" :key="sec.id" :value="sec.id">
                   {{ sec.name }} {{ sec.description ? `(${sec.description})` : '' }}
                 </option>
               </select>
@@ -82,7 +90,8 @@
                 {{ errors.section_id || errors.section }}
               </p>
               <p class="text-[11px] text-slate-400 mt-1">
-                Waiters assigned to this section will automatically receive orders created at this table.
+                Waiters assigned to this section will automatically receive orders created at this
+                table.
               </p>
             </div>
 
@@ -102,7 +111,9 @@
                   class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900 text-slate-900 dark:text-white text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                   :class="{ 'border-rose-500 dark:border-rose-500': errors.capacity }"
                 />
-                <p v-if="errors.capacity" class="text-rose-500 text-[11px] mt-1">{{ errors.capacity }}</p>
+                <p v-if="errors.capacity" class="text-rose-500 text-[11px] mt-1">
+                  {{ errors.capacity }}
+                </p>
               </div>
 
               <!-- Status -->
@@ -125,7 +136,9 @@
 
             <!-- Active Checkbox -->
             <div class="flex items-center pt-1">
-              <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-slate-300">
+              <label
+                class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-slate-300"
+              >
                 <input
                   v-model="formData.is_active"
                   type="checkbox"
@@ -137,12 +150,18 @@
             </div>
 
             <!-- Error Banner -->
-            <div v-if="submitError" class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs">
+            <div
+              v-if="submitError"
+              class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs"
+            >
               {{ submitError }}
             </div>
 
             <!-- Success Banner -->
-            <div v-if="submitSuccess" class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs">
+            <div
+              v-if="submitSuccess"
+              class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs"
+            >
               {{ submitSuccess }}
             </div>
 
@@ -162,7 +181,9 @@
                 class="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-md shadow-blue-600/20"
               >
                 <Loader2 v-if="submitting" class="w-4 h-4 animate-spin" />
-                <span>{{ submitting ? 'Saving...' : (isEdit ? 'Update Table' : 'Create Table') }}</span>
+                <span>{{
+                  submitting ? 'Saving...' : isEdit ? 'Update Table' : 'Create Table'
+                }}</span>
               </button>
             </div>
           </form>
@@ -176,7 +197,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRestaurantTableStore } from '@/stores/restaurantTableStore'
 import { useRestaurantSectionStore } from '@/stores/restaurantSectionStore'
-import type { RestaurantTable, CreateTableRequest, UpdateTableRequest } from '@/types/restaurantTable'
+import type {
+  RestaurantTable,
+  CreateTableRequest,
+  UpdateTableRequest,
+} from '@/types/restaurantTable'
 import { X, Loader2 } from 'lucide-vue-next'
 
 interface Props {
@@ -213,7 +238,7 @@ const isEdit = computed(() => !!props.table)
 
 const handleSectionChange = () => {
   if (formData.value.section_id) {
-    const sec = sectionStore.sections.find(s => s.id === formData.value.section_id)
+    const sec = sectionStore.sections.find((s) => s.id === formData.value.section_id)
     if (sec) {
       formData.value.section = sec.name
       formData.value.location = sec.name
@@ -275,9 +300,10 @@ const handleSubmit = async () => {
       const errorMessages: string[] = []
       Object.entries(error.errors).forEach(([field, messages]) => {
         const msgArray = Array.isArray(messages) ? messages : [messages]
-        msgArray.forEach(msg => errorMessages.push(String(msg)))
+        msgArray.forEach((msg) => errorMessages.push(String(msg)))
       })
-      submitError.value = errorMessages.length > 0 ? errorMessages.join('. ') : (error.message || 'Validation failed')
+      submitError.value =
+        errorMessages.length > 0 ? errorMessages.join('. ') : error.message || 'Validation failed'
     }
   } finally {
     submitting.value = false
@@ -291,7 +317,9 @@ onMounted(async () => {
     // Attempt matching section by section_id or name
     let secId = props.table.section_id || ''
     if (!secId && props.table.section) {
-      const match = sectionStore.sections.find(s => s.name.toLowerCase() === props.table?.section?.toLowerCase())
+      const match = sectionStore.sections.find(
+        (s) => s.name.toLowerCase() === props.table?.section?.toLowerCase(),
+      )
       if (match) secId = match.id
     }
 

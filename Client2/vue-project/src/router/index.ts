@@ -49,7 +49,8 @@ const RoleManagementView = () => import('@/views/Admin/rbac/RoleManagementView.v
 const PermissionManagementView = () => import('@/views/Admin/rbac/PermissionManagementView.vue')
 const RolePermissionMatrixView = () => import('@/views/Admin/rbac/RolePermissionMatrixView.vue')
 const UserRoleAssignmentView = () => import('@/views/Admin/rbac/UserRoleAssignmentView.vue')
-const TemporaryRoleAssignmentView = () => import('@/views/Admin/rbac/TemporaryRoleAssignmentView.vue')
+const TemporaryRoleAssignmentView = () =>
+  import('@/views/Admin/rbac/TemporaryRoleAssignmentView.vue')
 const AuditLogView = () => import('@/views/Admin/rbac/AuditLogView.vue')
 const UnauthorizedView = () => import('@/views/UnauthorizedView.vue')
 
@@ -79,31 +80,31 @@ const router = createRouter({
       path: '/activate/:token',
       name: 'activation',
       component: ActivationPage,
-      meta: { public: true }
+      meta: { public: true },
     },
     {
       path: '/forgot-password',
       name: 'forgot-password',
       component: () => import('../views/ForgotPasswordPage.vue'),
-      meta: { public: true }
+      meta: { public: true },
     },
     {
       path: '/reset-password',
       name: 'reset-password',
       component: () => import('../views/ResetPasswordPage.vue'),
-      meta: { public: true }
+      meta: { public: true },
     },
     {
       path: '/rooms',
       name: 'guest-rooms',
       component: roomPage,
-      meta: { public: true }
+      meta: { public: true },
     },
     {
       path: '/roomsPage',
       name: 'room',
       component: roomPage,
-      meta: { public: true }
+      meta: { public: true },
     },
     {
       path: '/about',
@@ -673,7 +674,11 @@ const router = createRouter({
       path: '/admin/permission-matrix',
       name: 'admin-permission-matrix',
       component: RolePermissionMatrixView,
-      meta: { requiresAuth: true, permission: 'roles.assign_permissions', title: 'Permission Matrix' },
+      meta: {
+        requiresAuth: true,
+        permission: 'roles.assign_permissions',
+        title: 'Permission Matrix',
+      },
     },
     {
       path: '/admin/user-roles',
@@ -753,21 +758,63 @@ router.beforeEach(async (to) => {
   const hasPermission = targetPermission ? authStore.can(targetPermission) : true
 
   const hasRole = targetRole ? authStore.hasRole(targetRole) : true
-  const hasAnyRole = targetRoles ? targetRoles.some(r => authStore.hasRole(r)) : true
+  const hasAnyRole = targetRoles ? targetRoles.some((r) => authStore.hasRole(r)) : true
 
-  const isAdmin = authStore.hasRole('admin') || authStore.currentRole === 'admin' || authStore.user?.role === 'admin' || authStore.isPlatformAdmin
+  const isAdmin =
+    authStore.hasRole('admin') ||
+    authStore.currentRole === 'admin' ||
+    authStore.user?.role === 'admin' ||
+    authStore.isPlatformAdmin
   if (isAdmin) {
     return true
   }
 
-  const isManagerSection = (to.path.startsWith('/manager') || to.path.startsWith('/admin/rooms') || to.path.startsWith('/admin/room-types')) && (authStore.hasRole('manager') || authStore.currentRole === 'manager' || authStore.user?.role === 'manager')
-  const isAdminSection = to.path.startsWith('/admin') && (authStore.hasRole('admin') || authStore.currentRole === 'admin' || authStore.user?.role === 'admin')
-  const isReceptionistSection = (to.path.startsWith('/receptionist') || to.path.startsWith('/reservations') || to.path.startsWith('/check-in') || to.path.startsWith('/check-out') || to.path.startsWith('/guests') || to.path.startsWith('/admin/rooms') || to.path.startsWith('/admin/room-types')) && (authStore.hasRole('receptionist') || authStore.currentRole === 'receptionist' || authStore.user?.role === 'receptionist')
-  const isCashierSection = to.path.startsWith('/cashier') && (authStore.hasRole('cashier') || authStore.currentRole === 'cashier' || authStore.user?.role === 'cashier')
-  const isChefSection = to.path.startsWith('/chef') && (authStore.hasRole('chef') || authStore.currentRole === 'chef' || authStore.user?.role === 'chef')
-  const isWaiterSection = to.path.startsWith('/waiter') && (authStore.hasRole('waiter') || authStore.currentRole === 'waiter' || authStore.user?.role === 'waiter')
+  const isManagerSection =
+    (to.path.startsWith('/manager') ||
+      to.path.startsWith('/admin/rooms') ||
+      to.path.startsWith('/admin/room-types')) &&
+    (authStore.hasRole('manager') ||
+      authStore.currentRole === 'manager' ||
+      authStore.user?.role === 'manager')
+  const isAdminSection =
+    to.path.startsWith('/admin') &&
+    (authStore.hasRole('admin') ||
+      authStore.currentRole === 'admin' ||
+      authStore.user?.role === 'admin')
+  const isReceptionistSection =
+    (to.path.startsWith('/receptionist') ||
+      to.path.startsWith('/reservations') ||
+      to.path.startsWith('/check-in') ||
+      to.path.startsWith('/check-out') ||
+      to.path.startsWith('/guests') ||
+      to.path.startsWith('/admin/rooms') ||
+      to.path.startsWith('/admin/room-types')) &&
+    (authStore.hasRole('receptionist') ||
+      authStore.currentRole === 'receptionist' ||
+      authStore.user?.role === 'receptionist')
+  const isCashierSection =
+    to.path.startsWith('/cashier') &&
+    (authStore.hasRole('cashier') ||
+      authStore.currentRole === 'cashier' ||
+      authStore.user?.role === 'cashier')
+  const isChefSection =
+    to.path.startsWith('/chef') &&
+    (authStore.hasRole('chef') ||
+      authStore.currentRole === 'chef' ||
+      authStore.user?.role === 'chef')
+  const isWaiterSection =
+    to.path.startsWith('/waiter') &&
+    (authStore.hasRole('waiter') ||
+      authStore.currentRole === 'waiter' ||
+      authStore.user?.role === 'waiter')
 
-  const isRoleSectionMatch = isManagerSection || isAdminSection || isReceptionistSection || isCashierSection || isChefSection || isWaiterSection
+  const isRoleSectionMatch =
+    isManagerSection ||
+    isAdminSection ||
+    isReceptionistSection ||
+    isCashierSection ||
+    isChefSection ||
+    isWaiterSection
 
   if (isRoleSectionMatch) {
     return true

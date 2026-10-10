@@ -87,7 +87,7 @@ export const useActivationStore = defineStore('activation', () => {
   async function activateAccount(
     token: string,
     password: string,
-    passwordConfirmation: string
+    passwordConfirmation: string,
   ): Promise<ActivationResult> {
     activating.value = true
     error.value = null

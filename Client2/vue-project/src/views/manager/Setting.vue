@@ -61,19 +61,32 @@ const saveSettings = () => {
       <!-- Header -->
 
       <div>
-        <h1 class="text-3xl font-bold text-slate-800">{{ languageStore.t('manager_settings', 'Manager Settings') }}</h1>
+        <h1 class="text-3xl font-bold text-slate-800">
+          {{ languageStore.t('manager_settings', 'Manager Settings') }}
+        </h1>
 
-        <p class="text-slate-500 mt-2">{{ languageStore.t('manage_hotel_operational_preferences', 'Manage hotel operational preferences') }}</p>
+        <p class="text-slate-500 mt-2">
+          {{
+            languageStore.t(
+              'manage_hotel_operational_preferences',
+              'Manage hotel operational preferences',
+            )
+          }}
+        </p>
       </div>
 
       <!-- Hotel Information -->
 
       <div class="bg-white rounded-3xl shadow-sm p-8">
-        <h2 class="text-xl font-bold mb-6">{{ languageStore.t('hotel_information', 'Hotel Information') }}</h2>
+        <h2 class="text-xl font-bold mb-6">
+          {{ languageStore.t('hotel_information', 'Hotel Information') }}
+        </h2>
 
         <div class="grid md:grid-cols-2 gap-6">
           <div>
-            <label class="text-sm text-slate-500"> {{ languageStore.t('hotel_name', 'Hotel Name') }} </label>
+            <label class="text-sm text-slate-500">
+              {{ languageStore.t('hotel_name', 'Hotel Name') }}
+            </label>
 
             <input v-model="hotelSettings.hotelName" class="mt-2 w-full rounded-xl border p-3" />
           </div>
@@ -91,7 +104,9 @@ const saveSettings = () => {
           </div>
 
           <div>
-            <label class="text-sm text-slate-500"> {{ languageStore.t('address', 'Address') }} </label>
+            <label class="text-sm text-slate-500">
+              {{ languageStore.t('address', 'Address') }}
+            </label>
 
             <input v-model="hotelSettings.address" class="mt-2 w-full rounded-xl border p-3" />
           </div>
@@ -101,7 +116,9 @@ const saveSettings = () => {
       <!-- Restaurant Settings -->
 
       <div class="bg-white rounded-3xl shadow-sm p-8">
-        <h2 class="text-xl font-bold mb-6">{{ languageStore.t('restaurant_settings', 'Restaurant Settings') }}</h2>
+        <h2 class="text-xl font-bold mb-6">
+          {{ languageStore.t('restaurant_settings', 'Restaurant Settings') }}
+        </h2>
 
         <div class="grid md:grid-cols-2 gap-6">
           <div>
@@ -125,7 +142,9 @@ const saveSettings = () => {
           </div>
 
           <div>
-            <label> {{ languageStore.t('delivery_time_minutes', 'Delivery Time (minutes)') }} </label>
+            <label>
+              {{ languageStore.t('delivery_time_minutes', 'Delivery Time (minutes)') }}
+            </label>
 
             <input
               type="number"
@@ -145,7 +164,9 @@ const saveSettings = () => {
       <!-- Notification Settings -->
 
       <div class="bg-white rounded-3xl shadow-sm p-8">
-        <h2 class="text-xl font-bold mb-6">{{ languageStore.t('notifications', 'Notifications') }}</h2>
+        <h2 class="text-xl font-bold mb-6">
+          {{ languageStore.t('notifications', 'Notifications') }}
+        </h2>
 
         <div class="space-y-4">
           <label class="flex justify-between">

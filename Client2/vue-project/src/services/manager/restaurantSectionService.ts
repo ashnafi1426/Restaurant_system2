@@ -2,7 +2,7 @@ import axios from '../axios'
 import type {
   RestaurantSection,
   CreateSectionRequest,
-  UpdateSectionRequest
+  UpdateSectionRequest,
 } from '@/types/restaurantSection'
 
 export const restaurantSectionService = {
@@ -24,7 +24,9 @@ export const restaurantSectionService = {
     return response.data?.data || response.data
   },
 
-  async createSection(data: CreateSectionRequest): Promise<{ success: boolean; message: string; data: RestaurantSection }> {
+  async createSection(
+    data: CreateSectionRequest,
+  ): Promise<{ success: boolean; message: string; data: RestaurantSection }> {
     try {
       const response = await axios.post('/manager/restaurant-sections', data)
       return response.data
@@ -40,7 +42,10 @@ export const restaurantSectionService = {
     }
   },
 
-  async updateSection(id: string, data: UpdateSectionRequest): Promise<{ success: boolean; message: string; data: RestaurantSection }> {
+  async updateSection(
+    id: string,
+    data: UpdateSectionRequest,
+  ): Promise<{ success: boolean; message: string; data: RestaurantSection }> {
     try {
       const response = await axios.put(`/manager/restaurant-sections/${id}`, data)
       return response.data
@@ -59,7 +64,7 @@ export const restaurantSectionService = {
   async deleteSection(id: string): Promise<{ success: boolean; message: string }> {
     const response = await axios.delete(`/manager/restaurant-sections/${id}`)
     return response.data
-  }
+  },
 }
 
 export default restaurantSectionService

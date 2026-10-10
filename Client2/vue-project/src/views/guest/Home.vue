@@ -10,7 +10,9 @@ import GuestLayout from '@/Layouts/GuestLayout.vue'
 
 <template>
   <GuestLayout>
-    <div class="bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-white transition-colors duration-300">
+    <div
+      class="bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-white transition-colors duration-300"
+    >
       <HeroSection />
       <FeaturedRooms />
       <HotelFacilitaties />

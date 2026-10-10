@@ -48,20 +48,33 @@ const testimonials: Testimonial[] = [
 </script>
 
 <template>
-  <section class="bg-slate-50 dark:bg-slate-950 py-12 sm:py-16 md:py-20 lg:py-24 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 font-sans">
+  <section
+    class="bg-slate-50 dark:bg-slate-950 py-12 sm:py-16 md:py-20 lg:py-24 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300 font-sans"
+  >
     <div class="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10 space-y-12">
       <!-- Header -->
       <div class="mx-auto max-w-3xl text-center space-y-3">
-        <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+        <span
+          class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+        >
           {{ languageStore.t('guest_reviews', 'Guest Reviews') }}
         </span>
 
-        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+        <h2
+          class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight"
+        >
           {{ languageStore.t('what_guests_say', 'What Our Guests Say') }}
         </h2>
 
         <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
-          {{ languageStore.t('what_guests_say_desc', 'Read real reviews from international travelers who experienced the luxury of ' + guestHotelStore.hotelName + '.') }}
+          {{
+            languageStore.t(
+              'what_guests_say_desc',
+              'Read real reviews from international travelers who experienced the luxury of ' +
+                guestHotelStore.hotelName +
+                '.',
+            )
+          }}
         </p>
       </div>
 
@@ -80,13 +93,19 @@ const testimonials: Testimonial[] = [
               <Quote class="w-6 h-6 text-slate-300 dark:text-slate-700" />
             </div>
 
-            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium italic">
+            <p
+              class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium italic"
+            >
               "{{ item.comment }}"
             </p>
           </div>
 
           <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3">
-            <img :src="item.image" :alt="item.name" class="w-10 h-10 rounded-full object-cover border border-amber-500/30" />
+            <img
+              :src="item.image"
+              :alt="item.name"
+              class="w-10 h-10 rounded-full object-cover border border-amber-500/30"
+            />
             <div>
               <h3 class="text-xs font-black text-slate-900 dark:text-white">{{ item.name }}</h3>
               <p class="text-[10px] text-slate-400 font-bold uppercase">{{ item.country }}</p>

@@ -31,18 +31,28 @@ const goToCheckIn = () => {
 </script>
 
 <template>
-  <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
-    <div class="flex items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+  <div
+    class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs"
+  >
+    <div
+      class="flex items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800"
+    >
       <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm">
+        <div
+          class="w-8 h-8 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm"
+        >
           <LogIn class="w-4 h-4" />
         </div>
         <div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">Today's Expected Arrivals</h3>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">
+            Today's Expected Arrivals
+          </h3>
           <p class="text-xs text-slate-500 dark:text-slate-400">Scheduled guest check-ins</p>
         </div>
       </div>
-      <span class="px-2.5 py-1 text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-full">
+      <span
+        class="px-2.5 py-1 text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-full"
+      >
         {{ arrivals.length }} Total
       </span>
     </div>
@@ -54,7 +64,9 @@ const goToCheckIn = () => {
         class="py-3 flex items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 px-2 rounded-xl transition"
       >
         <div class="flex items-center gap-3 min-w-0">
-          <div class="w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-300 font-extrabold flex items-center justify-center text-xs flex-shrink-0">
+          <div
+            class="w-9 h-9 rounded-full bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-300 font-extrabold flex items-center justify-center text-xs flex-shrink-0"
+          >
             {{ getInitials(arrival.guest?.first_name || '', arrival.guest?.last_name || '') }}
           </div>
           <div class="min-w-0">
@@ -83,7 +95,9 @@ const goToCheckIn = () => {
 
     <div v-else class="text-center py-8">
       <UserCheck class="w-7 h-7 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-      <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">No expected arrivals for today</p>
+      <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+        No expected arrivals for today
+      </p>
     </div>
   </div>
 </template>

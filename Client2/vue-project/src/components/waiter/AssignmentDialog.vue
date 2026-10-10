@@ -2,11 +2,10 @@
   <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
     <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
       <div class="border-b border-gray-200 p-6 flex items-center justify-between">
-        <h2 class="text-xl font-bold text-gray-900">{{ languageStore.t('order_details', 'Order Details') }}</h2>
-        <button
-          @click="$emit('close')"
-          class="text-gray-400 hover:text-gray-600 text-2xl"
-        >
+        <h2 class="text-xl font-bold text-gray-900">
+          {{ languageStore.t('order_details', 'Order Details') }}
+        </h2>
+        <button @click="$emit('close')" class="text-gray-400 hover:text-gray-600 text-2xl">
           ×
         </button>
       </div>
@@ -14,7 +13,9 @@
       <div class="p-6 space-y-4">
         <div v-if="assignment">
           <div class="bg-gray-50 rounded-lg p-4 mb-4">
-            <p class="text-sm text-gray-600">{{ languageStore.t('order_number', 'Order Number') }}</p>
+            <p class="text-sm text-gray-600">
+              {{ languageStore.t('order_number', 'Order Number') }}
+            </p>
             <p class="text-lg font-semibold text-gray-900">#{{ assignment.order?.order_number }}</p>
           </div>
 
@@ -32,7 +33,16 @@
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="bg-gray-50 rounded-lg p-4">
               <p class="text-sm text-gray-600">{{ languageStore.t('priority', 'Priority') }}</p>
-              <p class="font-semibold text-gray-900">{{ assignment.order?.priority ? languageStore.t(assignment.order.priority.toLowerCase(), assignment.order.priority) : '-' }}</p>
+              <p class="font-semibold text-gray-900">
+                {{
+                  assignment.order?.priority
+                    ? languageStore.t(
+                        assignment.order.priority.toLowerCase(),
+                        assignment.order.priority,
+                      )
+                    : '-'
+                }}
+              </p>
             </div>
             <div class="bg-gray-50 rounded-lg p-4">
               <p class="text-sm text-gray-600">{{ languageStore.t('status', 'Status') }}</p>
@@ -43,24 +53,41 @@
           <div class="space-y-2 text-sm mb-4">
             <div class="flex items-center gap-2">
               <CheckCircle :size="16" class="text-gray-400" />
-              <span class="text-gray-600">{{ languageStore.t('assigned', 'Assigned') }}: {{ formatDateTime(assignment.assigned_at) }}</span>
+              <span class="text-gray-600"
+                >{{ languageStore.t('assigned', 'Assigned') }}:
+                {{ formatDateTime(assignment.assigned_at) }}</span
+              >
             </div>
             <div v-if="assignment.accepted_at" class="flex items-center gap-2">
               <CheckCircle :size="16" class="text-green-500" />
-              <span class="text-gray-600">{{ languageStore.t('accepted', 'Accepted') }}: {{ formatDateTime(assignment.accepted_at) }}</span>
+              <span class="text-gray-600"
+                >{{ languageStore.t('accepted', 'Accepted') }}:
+                {{ formatDateTime(assignment.accepted_at) }}</span
+              >
             </div>
             <div v-if="assignment.picked_up_at" class="flex items-center gap-2">
               <CheckCircle :size="16" class="text-green-500" />
-              <span class="text-gray-600">{{ languageStore.t('picked_up', 'Picked Up') }}: {{ formatDateTime(assignment.picked_up_at) }}</span>
+              <span class="text-gray-600"
+                >{{ languageStore.t('picked_up', 'Picked Up') }}:
+                {{ formatDateTime(assignment.picked_up_at) }}</span
+              >
             </div>
             <div v-if="assignment.delivered_at" class="flex items-center gap-2">
               <CheckCircle :size="16" class="text-green-500" />
-              <span class="text-gray-600">{{ languageStore.t('delivered', 'Delivered') }}: {{ formatDateTime(assignment.delivered_at) }}</span>
+              <span class="text-gray-600"
+                >{{ languageStore.t('delivered', 'Delivered') }}:
+                {{ formatDateTime(assignment.delivered_at) }}</span
+              >
             </div>
           </div>
 
-          <div v-if="assignment.remarks" class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
-            <p class="text-gray-600 font-semibold mb-1">{{ languageStore.t('remarks', 'Remarks') }}</p>
+          <div
+            v-if="assignment.remarks"
+            class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm"
+          >
+            <p class="text-gray-600 font-semibold mb-1">
+              {{ languageStore.t('remarks', 'Remarks') }}
+            </p>
             <p class="text-gray-900">{{ assignment.remarks }}</p>
           </div>
         </div>

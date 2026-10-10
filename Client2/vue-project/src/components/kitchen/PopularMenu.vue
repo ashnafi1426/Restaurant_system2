@@ -1,9 +1,17 @@
 <template>
-  <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
-    <div class="border-b border-slate-200 dark:border-slate-800 px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50 dark:bg-slate-800/80">
+  <div
+    class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden"
+  >
+    <div
+      class="border-b border-slate-200 dark:border-slate-800 px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50 dark:bg-slate-800/80"
+    >
       <div class="flex items-center gap-2">
         <TrendingUp class="w-5 h-5 text-amber-500" />
-        <h2 class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">{{ languageStore.t('popular_today', 'Popular Today') }}</h2>
+        <h2
+          class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white"
+        >
+          {{ languageStore.t('popular_today', 'Popular Today') }}
+        </h2>
       </div>
     </div>
 
@@ -33,18 +41,30 @@
               <p class="font-bold text-slate-900 dark:text-white text-xs sm:text-sm truncate">
                 {{ item.name }}
               </p>
-              <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate font-medium hidden sm:block">{{ item.category }}</p>
+              <p
+                class="text-[10px] text-slate-500 dark:text-slate-400 truncate font-medium hidden sm:block"
+              >
+                {{ item.category }}
+              </p>
             </div>
           </div>
 
           <div class="text-right flex-shrink-0 ml-2">
-            <p class="text-base sm:text-lg font-black text-amber-600 dark:text-amber-400">{{ item.orders }}</p>
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold hidden sm:block uppercase">{{ languageStore.t('orders', 'Orders') }}</p>
+            <p class="text-base sm:text-lg font-black text-amber-600 dark:text-amber-400">
+              {{ item.orders }}
+            </p>
+            <p
+              class="text-[10px] text-slate-500 dark:text-slate-400 font-bold hidden sm:block uppercase"
+            >
+              {{ languageStore.t('orders', 'Orders') }}
+            </p>
           </div>
         </div>
       </div>
       <div v-else class="text-center py-6 sm:py-8 text-slate-400 dark:text-slate-600">
-        <p class="text-xs sm:text-sm font-medium">{{ languageStore.t('no_order_data_yet', 'No order data yet') }}</p>
+        <p class="text-xs sm:text-sm font-medium">
+          {{ languageStore.t('no_order_data_yet', 'No order data yet') }}
+        </p>
       </div>
     </div>
   </div>

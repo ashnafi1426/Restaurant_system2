@@ -1,7 +1,20 @@
 <script setup lang="ts">
 import { useMenuStore } from '@/stores/menuStore'
 import { computed } from 'vue'
-import { Folder, Sun, Utensils, Soup, Wine, Cake, Leaf, Layers, Sandwich, Plus, UtensilsCrossed, ArrowRight } from 'lucide-vue-next'
+import {
+  Folder,
+  Sun,
+  Utensils,
+  Soup,
+  Wine,
+  Cake,
+  Leaf,
+  Layers,
+  Sandwich,
+  Plus,
+  UtensilsCrossed,
+  ArrowRight,
+} from 'lucide-vue-next'
 
 defineProps<{
   selected: string | null
@@ -48,11 +61,13 @@ function getCategoryIcon(cat: string) {
 
 const categories = computed(() => {
   const uniqueCategories = new Set(
-    store.menuItems.map((item) => {
-      const c = item.category
-      if (!c) return ''
-      return (typeof c === 'object' ? (c.name || c.slug) : String(c)).toLowerCase()
-    }).filter(Boolean),
+    store.menuItems
+      .map((item) => {
+        const c = item.category
+        if (!c) return ''
+        return (typeof c === 'object' ? c.name || c.slug : String(c)).toLowerCase()
+      })
+      .filter(Boolean),
   )
   return Array.from(uniqueCategories)
     .sort()
@@ -68,7 +83,9 @@ const categories = computed(() => {
   <div>
     <!-- Header Row Matching Layout -->
     <div class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5 px-1 sm:px-0">
-      <h3 class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">Filter by Category</h3>
+      <h3 class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+        Filter by Category
+      </h3>
       <button
         @click="emit('select', null)"
         class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 font-bold text-xs transition flex items-center gap-1 cursor-pointer"

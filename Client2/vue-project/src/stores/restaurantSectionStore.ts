@@ -4,7 +4,7 @@ import { restaurantSectionService } from '@/services/manager/restaurantSectionSe
 import type {
   RestaurantSection,
   CreateSectionRequest,
-  UpdateSectionRequest
+  UpdateSectionRequest,
 } from '@/types/restaurantSection'
 
 export const useRestaurantSectionStore = defineStore('restaurantSection', () => {
@@ -16,7 +16,9 @@ export const useRestaurantSectionStore = defineStore('restaurantSection', () => 
     loading.value = true
     error.value = null
     try {
-      const data = await restaurantSectionService.getSections(activeOnly ? { is_active: true } : undefined)
+      const data = await restaurantSectionService.getSections(
+        activeOnly ? { is_active: true } : undefined,
+      )
       sections.value = data || []
       return data
     } catch (err: any) {
@@ -28,7 +30,10 @@ export const useRestaurantSectionStore = defineStore('restaurantSection', () => 
     }
   }
 
-  async function withSectionMutation<T>(action: () => Promise<T>, fallbackMessage: string): Promise<T> {
+  async function withSectionMutation<T>(
+    action: () => Promise<T>,
+    fallbackMessage: string,
+  ): Promise<T> {
     loading.value = true
     error.value = null
     try {
@@ -47,7 +52,7 @@ export const useRestaurantSectionStore = defineStore('restaurantSection', () => 
   const createSection = async (data: CreateSectionRequest) => {
     const response = await withSectionMutation(
       () => restaurantSectionService.createSection(data),
-      'Failed to create section'
+      'Failed to create section',
     )
     return response.data
   }
@@ -55,7 +60,7 @@ export const useRestaurantSectionStore = defineStore('restaurantSection', () => 
   const updateSection = async (id: string, data: UpdateSectionRequest) => {
     const response = await withSectionMutation(
       () => restaurantSectionService.updateSection(id, data),
-      'Failed to update section'
+      'Failed to update section',
     )
     return response.data
   }
@@ -63,7 +68,7 @@ export const useRestaurantSectionStore = defineStore('restaurantSection', () => 
   const deleteSection = async (id: string) => {
     return withSectionMutation(
       () => restaurantSectionService.deleteSection(id),
-      'Failed to delete section'
+      'Failed to delete section',
     )
   }
 

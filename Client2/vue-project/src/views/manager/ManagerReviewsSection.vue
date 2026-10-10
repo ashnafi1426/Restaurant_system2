@@ -91,7 +91,9 @@
           </div>
 
           <!-- Review Text -->
-          <p v-if="review.review_text" class="text-sm text-gray-700 mb-3">{{ review.review_text }}</p>
+          <p v-if="review.review_text" class="text-sm text-gray-700 mb-3">
+            {{ review.review_text }}
+          </p>
 
           <!-- Actions -->
           <div class="flex gap-2">
@@ -205,7 +207,7 @@ const approveReview = async (reviewId: string) => {
   actionLoading.value = reviewId
   try {
     await reviewService.approveReview(reviewId)
-    pendingReviews.value = pendingReviews.value.filter(r => r.id !== reviewId)
+    pendingReviews.value = pendingReviews.value.filter((r) => r.id !== reviewId)
     pendingCount.value = Math.max(0, pendingCount.value - 1)
     approvedCount.value++
   } catch (error) {
@@ -219,7 +221,7 @@ const rejectReview = async (reviewId: string) => {
   actionLoading.value = reviewId
   try {
     await reviewService.rejectReview(reviewId)
-    pendingReviews.value = pendingReviews.value.filter(r => r.id !== reviewId)
+    pendingReviews.value = pendingReviews.value.filter((r) => r.id !== reviewId)
     pendingCount.value = Math.max(0, pendingCount.value - 1)
     rejectedCount.value++
   } catch (error) {

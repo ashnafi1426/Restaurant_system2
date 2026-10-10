@@ -142,7 +142,11 @@ function closeDialog() {
                 <p class="text-xs sm:text-sm text-gray-500">Name</p>
 
                 <p class="mt-0.5 sm:mt-1 font-medium text-xs sm:text-sm md:text-base">
-                  {{ (order.guest?.first_name || order.guest?.last_name) ? `${order.guest?.first_name || ''} ${order.guest?.last_name || ''}`.trim() : (order.guest?.full_name || order.guest?.name || '-') }}
+                  {{
+                    order.guest?.first_name || order.guest?.last_name
+                      ? `${order.guest?.first_name || ''} ${order.guest?.last_name || ''}`.trim()
+                      : order.guest?.full_name || order.guest?.name || '-'
+                  }}
                 </p>
               </div>
 
@@ -242,7 +246,11 @@ function closeDialog() {
                 </thead>
 
                 <tbody class="divide-y divide-gray-100">
-                  <tr v-for="item in order.items" :key="item.id || item.menu_item_id" class="hover:bg-gray-50">
+                  <tr
+                    v-for="item in order.items"
+                    :key="item.id || item.menu_item_id"
+                    class="hover:bg-gray-50"
+                  >
                     <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-3">
                       {{ item.name || item.menu_item?.name || 'Item' }}
                     </td>
@@ -256,7 +264,11 @@ function closeDialog() {
                     </td>
 
                     <td class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-right font-medium">
-                      {{ item.subtotal ?? item.line_total ?? (((item.price || item.item_price_at_order || 0)) * item.quantity) }}
+                      {{
+                        item.subtotal ??
+                        item.line_total ??
+                        (item.price || item.item_price_at_order || 0) * item.quantity
+                      }}
                     </td>
                   </tr>
                 </tbody>

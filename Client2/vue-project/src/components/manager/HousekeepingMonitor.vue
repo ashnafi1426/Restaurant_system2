@@ -39,8 +39,12 @@ const statusIcon = (status: string) => {
   <section class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
     <div class="flex justify-between items-center mb-8">
       <div>
-        <h2 class="text-xl font-bold">{{ languageStore.t('housekeeping_tasks', 'Housekeeping Tasks') }}</h2>
-        <p class="text-sm text-slate-500">{{ languageStore.t('room_cleaning_maintenance', 'Room cleaning and maintenance') }}</p>
+        <h2 class="text-xl font-bold">
+          {{ languageStore.t('housekeeping_tasks', 'Housekeeping Tasks') }}
+        </h2>
+        <p class="text-sm text-slate-500">
+          {{ languageStore.t('room_cleaning_maintenance', 'Room cleaning and maintenance') }}
+        </p>
       </div>
       <div class="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
         <Sparkles class="w-6 h-6 text-emerald-600" />
@@ -70,7 +74,9 @@ const statusIcon = (status: string) => {
     </div>
 
     <div class="space-y-3">
-      <p class="text-sm font-medium text-slate-600">{{ languageStore.t('task_queue', 'Task Queue') }}</p>
+      <p class="text-sm font-medium text-slate-600">
+        {{ languageStore.t('task_queue', 'Task Queue') }}
+      </p>
 
       <div
         v-for="task in manager.housekeeping.slice(0, 6)"
@@ -90,7 +96,9 @@ const statusIcon = (status: string) => {
               <component :is="statusIcon(task.status)" class="w-4 h-4" />
             </div>
             <div>
-              <p class="font-medium text-sm">{{ languageStore.t('room', 'Room') }} {{ task.roomNumber }}</p>
+              <p class="font-medium text-sm">
+                {{ languageStore.t('room', 'Room') }} {{ task.roomNumber }}
+              </p>
               <p class="text-xs text-slate-500">{{ task.taskType }}</p>
             </div>
           </div>
@@ -101,8 +109,14 @@ const statusIcon = (status: string) => {
         </div>
 
         <div class="ml-11 flex items-center justify-between text-xs text-slate-500">
-          <span>{{ languageStore.t('assigned', 'Assigned') }}: {{ task.assignedTo || languageStore.t('unassigned', 'Unassigned') }}</span>
-          <span v-if="task.estimatedTime">{{ languageStore.t('eta', 'ETA') }}: {{ task.estimatedTime }} {{ languageStore.t('min', 'min') }}</span>
+          <span
+            >{{ languageStore.t('assigned', 'Assigned') }}:
+            {{ task.assignedTo || languageStore.t('unassigned', 'Unassigned') }}</span
+          >
+          <span v-if="task.estimatedTime"
+            >{{ languageStore.t('eta', 'ETA') }}: {{ task.estimatedTime }}
+            {{ languageStore.t('min', 'min') }}</span
+          >
         </div>
       </div>
 

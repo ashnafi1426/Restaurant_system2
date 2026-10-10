@@ -69,14 +69,18 @@ class FloorAssignmentService {
     }
   }
 
-  async getAssignments(params?: string | {
-    page?: number
-    per_page?: number
-    date?: string
-    floor_id?: string
-    waiter_id?: string | number
-    status?: string
-  }): Promise<{ data: FloorAssignment[]; pagination?: unknown }> {
+  async getAssignments(
+    params?:
+      | string
+      | {
+          page?: number
+          per_page?: number
+          date?: string
+          floor_id?: string
+          waiter_id?: string | number
+          status?: string
+        },
+  ): Promise<{ data: FloorAssignment[]; pagination?: unknown }> {
     const queryParams = typeof params === 'string' ? { date: params } : params
     const response = await api.get('/manager/floors/assignments', { params: queryParams })
     return response.data
@@ -96,13 +100,13 @@ class FloorAssignmentService {
   }
 
   async bulkAssign(payload: BulkAssignmentPayload): Promise<FloorAssignment[]> {
-    const list = Array.isArray(payload) ? payload : (payload?.assignments || [])
+    const list = Array.isArray(payload) ? payload : payload?.assignments || []
     return this.assignWaitersToFloors(list)
   }
 
   async updateAssignmentPriority(
     assignmentId: string,
-    priority: 'primary' | 'secondary' | 'backup'
+    priority: 'primary' | 'secondary' | 'backup',
   ): Promise<FloorAssignment> {
     const response = await api.patch(`/manager/floors/assignments/${assignmentId}`, {
       priority,
@@ -133,11 +137,13 @@ class FloorAssignmentService {
     }
   }
 
-  async getShifts(): Promise<Array<{ id: string; name: string; start_time: string; end_time: string; is_active: boolean }>> {
+  async getShifts(): Promise<
+    Array<{ id: string; name: string; start_time: string; end_time: string; is_active: boolean }>
+  > {
     try {
       const response = await api.get('/manager/shifts', { params: { status: 'active' } })
       const shifts = response.data.data || response.data
-      
+
       if (Array.isArray(shifts)) {
         return shifts
       } else if (shifts.data && Array.isArray(shifts.data)) {

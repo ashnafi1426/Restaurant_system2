@@ -42,9 +42,7 @@ const trendColor = (trend: number) => {
         >
           {{ title }}
         </p>
-        <h3
-          class="text-xl sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-1.5 tracking-tight"
-        >
+        <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-1.5 tracking-tight">
           {{ value }}
         </h3>
 

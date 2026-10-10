@@ -22,9 +22,10 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
     return waiters.value.map((waiter: any) => ({
       id: waiter.id,
       userId: waiter.user_id || waiter.userId,
-      name: waiter.user?.name || waiter.user?.first_name 
-        ? `${waiter.user?.first_name || ''} ${waiter.user?.last_name || ''}`.trim()
-        : waiter.name || 'Unknown',
+      name:
+        waiter.user?.name || waiter.user?.first_name
+          ? `${waiter.user?.first_name || ''} ${waiter.user?.last_name || ''}`.trim()
+          : waiter.name || 'Unknown',
       section: waiter.section || 'Unassigned',
       status: waiter.status || 'inactive',
       shift: waiter.shift || 'N/A',
@@ -56,7 +57,7 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
   }
 
   async function create(data: {
-    user_id?: string,
+    user_id?: string
     section: string
     shift: string
     status: string
@@ -69,7 +70,7 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
   }) {
     try {
       const response = await managerService.createWaiter(data)
-      
+
       const normalizedWaiter = {
         id: response.id,
         userId: response.user_id,
@@ -83,9 +84,9 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
         user_id: response.user_id,
         experience_level: response.experience_level,
       }
-      
+
       waiters.value.push(normalizedWaiter)
-      
+
       return {
         waiter: normalizedWaiter,
         message: `${normalizedWaiter.name} has been created as a waiter in ${normalizedWaiter.section} section (${normalizedWaiter.shift} shift)`,
@@ -95,15 +96,13 @@ export const useManagerWaiterStore = defineStore('managerWaiter', () => {
           shift: normalizedWaiter.shift,
           experience: normalizedWaiter.experienceLevel,
           status: normalizedWaiter.status,
-        }
+        },
       }
     } catch (err: any) {
       console.error('[manager/waiterStore] Failed to create waiter:', err)
       if (err.response?.status === 422 && err.response?.data?.errors) {
         const errors = err.response.data.errors
-        const errorMessages = Object.values(errors)
-          .flat()
-          .join(', ')
+        const errorMessages = Object.values(errors).flat().join(', ')
         error.value = errorMessages
       } else {
         error.value = err.message || 'Failed to create waiter'

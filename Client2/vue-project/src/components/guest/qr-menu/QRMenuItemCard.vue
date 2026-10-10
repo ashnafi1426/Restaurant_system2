@@ -61,14 +61,24 @@ const decrementQuantity = () => {
         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         loading="lazy"
       />
-      <div v-else class="absolute inset-0 flex items-center justify-center text-slate-300 dark:text-slate-600">
+      <div
+        v-else
+        class="absolute inset-0 flex items-center justify-center text-slate-300 dark:text-slate-600"
+      >
         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+          />
         </svg>
       </div>
 
       <!-- Subtle bottom gradient -->
-      <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 pointer-events-none"></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 pointer-events-none"
+      ></div>
 
       <!-- Category badge -->
       <div v-if="item.category" class="absolute top-2.5 left-2.5 z-10">
@@ -84,16 +94,18 @@ const decrementQuantity = () => {
         <div
           :class="[
             'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold shadow-sm backdrop-blur-md',
-            item.is_available
-              ? 'bg-emerald-600/90 text-white'
-              : 'bg-rose-600/90 text-white',
+            item.is_available ? 'bg-emerald-600/90 text-white' : 'bg-rose-600/90 text-white',
           ]"
         >
           <span
             class="w-1.5 h-1.5 rounded-full"
             :class="item.is_available ? 'bg-emerald-200' : 'bg-rose-200'"
           />
-          {{ item.is_available ? languageStore.t('available', 'Available') : languageStore.t('unavailable', 'Unavailable') }}
+          {{
+            item.is_available
+              ? languageStore.t('available', 'Available')
+              : languageStore.t('unavailable', 'Unavailable')
+          }}
         </div>
       </div>
     </div>
@@ -116,8 +128,14 @@ const decrementQuantity = () => {
       <!-- 5-Star Visual Rating (like first screenshot) -->
       <div
         class="flex items-center gap-2 py-0.5 cursor-pointer group/rating select-none"
-        @click.stop="item.review_count && item.review_count > 0 ? $emit('view-reviews') : $emit('write-review')"
-        :title="item.review_count && item.review_count > 0 ? `${item.review_count} reviews • Click to view` : 'No reviews yet • Click to rate'"
+        @click.stop="
+          item.review_count && item.review_count > 0 ? $emit('view-reviews') : $emit('write-review')
+        "
+        :title="
+          item.review_count && item.review_count > 0
+            ? `${item.review_count} reviews • Click to view`
+            : 'No reviews yet • Click to rate'
+        "
       >
         <div class="flex items-center gap-1">
           <Star
@@ -128,7 +146,7 @@ const decrementQuantity = () => {
               star <= Math.round(Number(item.average_rating || item.rating || 0))
                 ? 'fill-amber-400 text-amber-400'
                 : 'fill-slate-200 text-slate-200 dark:fill-slate-700 dark:text-slate-700',
-              'transition-transform group-hover/rating:scale-110 duration-200'
+              'transition-transform group-hover/rating:scale-110 duration-200',
             ]"
           />
         </div>
@@ -150,17 +168,34 @@ const decrementQuantity = () => {
       <div class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2.5">
         <!-- Price Row -->
         <div class="flex items-baseline justify-between">
-          <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{{ languageStore.t('price', 'Price') }}</span>
+          <span
+            class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500"
+            >{{ languageStore.t('price', 'Price') }}</span
+          >
           <div class="text-right">
-            <span class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-              ${{ ((item.total_price !== undefined && item.total_price !== null) ? Number(item.total_price) : Number(item.price || 0)).toFixed(2) }}
+            <span
+              class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight"
+            >
+              ${{
+                (item.total_price !== undefined && item.total_price !== null
+                  ? Number(item.total_price)
+                  : Number(item.price || 0)
+                ).toFixed(2)
+              }}
             </span>
-            <div v-if="item.tax_rate && Number(item.tax_rate.rate) > 0" class="text-[10px] text-slate-400 font-medium">
-              <span v-if="item.tax_included" class="text-emerald-600 dark:text-emerald-400 font-semibold">
+            <div
+              v-if="item.tax_rate && Number(item.tax_rate.rate) > 0"
+              class="text-[10px] text-slate-400 font-medium"
+            >
+              <span
+                v-if="item.tax_included"
+                class="text-emerald-600 dark:text-emerald-400 font-semibold"
+              >
                 Incl. {{ item.tax_rate.rate }}% {{ item.tax_rate.name || 'VAT' }}
               </span>
               <span v-else>
-                ${{ Number(item.base_price || item.price).toFixed(2) }} + {{ item.tax_rate.rate }}% tax
+                ${{ Number(item.base_price || item.price).toFixed(2) }} + {{ item.tax_rate.rate }}%
+                tax
               </span>
             </div>
           </div>
@@ -179,7 +214,9 @@ const decrementQuantity = () => {
             >
               −
             </button>
-            <span class="w-6 sm:w-7 text-center font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 select-none">
+            <span
+              class="w-6 sm:w-7 text-center font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 select-none"
+            >
               {{ quantity }}
             </span>
             <button
@@ -216,7 +253,9 @@ const decrementQuantity = () => {
           v-if="!item.is_available"
           class="text-center py-2 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 rounded-xl"
         >
-          <p class="text-xs font-bold text-rose-600 dark:text-rose-400">{{ languageStore.t('currently_unavailable', 'Currently Unavailable') }}</p>
+          <p class="text-xs font-bold text-rose-600 dark:text-rose-400">
+            {{ languageStore.t('currently_unavailable', 'Currently Unavailable') }}
+          </p>
         </div>
       </div>
     </div>

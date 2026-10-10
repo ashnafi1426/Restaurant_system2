@@ -6,7 +6,14 @@ import { useGuestHotelStore } from '@/stores/guestHotelStore'
 import { useLanguageStore } from '@/stores/language'
 import HotelSelectorModal from '@/components/guest/HotelSelectorModal.vue'
 import LanguageSelector from '@/components/common/LanguageSelector.vue'
-import { Sun, Moon, Menu as MenuIcon, X as CloseIcon, Building2, ChevronDown } from 'lucide-vue-next'
+import {
+  Sun,
+  Moon,
+  Menu as MenuIcon,
+  X as CloseIcon,
+  Building2,
+  ChevronDown,
+} from 'lucide-vue-next'
 
 const route = useRoute()
 const theme = useThemeStore()
@@ -76,8 +83,9 @@ onUnmounted(() => {
     class="fixed inset-x-0 top-0 z-50 transition-colors duration-200 bg-white/95 dark:bg-[#0B1B35]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 shadow-xs"
   >
     <!-- Container -->
-    <div class="mx-auto flex h-20 w-full max-w-[1600px] items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-10">
-
+    <div
+      class="mx-auto flex h-20 w-full max-w-[1600px] items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-10"
+    >
       <!-- ============================================================== -->
       <!-- LEFT SECTION: Brand Identity + Clean Nav Links                 -->
       <!-- ============================================================== -->
@@ -88,7 +96,9 @@ onUnmounted(() => {
           class="flex items-center gap-3 shrink-0 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E9A11A] rounded-lg group"
         >
           <!-- Logo (White rounded badge so it stays crisp in both Light & Dark mode) -->
-          <div class="relative w-11 h-11 flex items-center justify-center rounded-xl bg-white p-1 shadow-xs border border-slate-200/60 dark:border-slate-700/60 shrink-0 transition-transform duration-300 group-hover:scale-105">
+          <div
+            class="relative w-11 h-11 flex items-center justify-center rounded-xl bg-white p-1 shadow-xs border border-slate-200/60 dark:border-slate-700/60 shrink-0 transition-transform duration-300 group-hover:scale-105"
+          >
             <img
               src="/images/Hotel logo.png"
               alt="Hotel Logo"
@@ -98,11 +108,19 @@ onUnmounted(() => {
 
           <!-- Brand Typography -->
           <div class="flex flex-col min-w-0">
-            <span class="text-[16px] sm:text-[17px] font-bold tracking-tight text-[#0B1B35] dark:text-white leading-tight uppercase truncate">
+            <span
+              class="text-[16px] sm:text-[17px] font-bold tracking-tight text-[#0B1B35] dark:text-white leading-tight uppercase truncate"
+            >
               {{ guestHotelStore.currentHotel?.name || 'SHERATON' }}
             </span>
-            <span class="text-[10px] font-semibold text-[#E9A11A] tracking-wider uppercase mt-0.5 leading-none">
-              {{ (guestHotelStore.currentHotel?.city || 'ADDIS ABABA').toUpperCase().replace('ADDISS', 'ADDIS') }}
+            <span
+              class="text-[10px] font-semibold text-[#E9A11A] tracking-wider uppercase mt-0.5 leading-none"
+            >
+              {{
+                (guestHotelStore.currentHotel?.city || 'ADDIS ABABA')
+                  .toUpperCase()
+                  .replace('ADDISS', 'ADDIS')
+              }}
             </span>
           </div>
         </RouterLink>
@@ -117,7 +135,7 @@ onUnmounted(() => {
             :class="[
               isItemActive(menu.route)
                 ? 'text-[#0B1B35] dark:text-white font-semibold'
-                : 'text-slate-600 hover:text-[#0B1B35] dark:text-slate-300 dark:hover:text-white'
+                : 'text-slate-600 hover:text-[#0B1B35] dark:text-slate-300 dark:hover:text-white',
             ]"
           >
             <span>{{ menu.title }}</span>
@@ -139,7 +157,6 @@ onUnmounted(() => {
       <!-- RIGHT ACTIONS: [Language] -> [Theme] -> [Switch] -> [Book Now] -->
       <!-- ============================================================== -->
       <div class="hidden lg:flex items-center gap-2.5 xl:gap-3 shrink-0">
-
         <!-- 1. Language Selector -->
         <LanguageSelector variant="header" />
 
@@ -148,7 +165,11 @@ onUnmounted(() => {
           @click="handleThemeToggle"
           type="button"
           class="w-10 h-10 flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-[#E9A11A] dark:hover:border-[#E9A11A] transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E9A11A]"
-          :title="theme.isDark ? languageStore.t('light_mode', 'Light Mode') : languageStore.t('dark_mode', 'Dark Mode')"
+          :title="
+            theme.isDark
+              ? languageStore.t('light_mode', 'Light Mode')
+              : languageStore.t('dark_mode', 'Dark Mode')
+          "
           :aria-label="theme.isDark ? 'Switch to light mode' : 'Switch to dark mode'"
         >
           <Sun v-if="theme.isDark" class="w-4.5 h-4.5 text-[#E9A11A]" />
@@ -162,9 +183,15 @@ onUnmounted(() => {
           class="inline-flex items-center gap-2 h-10 px-4 rounded-full border border-slate-200 dark:border-slate-700 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-[#0B1B35] dark:hover:text-white hover:border-[#E9A11A] dark:hover:border-[#E9A11A] transition-colors duration-200 cursor-pointer group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E9A11A]"
           title="Switch Hotel / Property"
         >
-          <Building2 class="w-4 h-4 shrink-0 text-slate-500 dark:text-slate-400 group-hover:text-[#E9A11A] transition-colors" />
-          <span class="text-[13px] font-medium whitespace-nowrap">{{ languageStore.t('switch_hotel', 'Switch Hotel') }}</span>
-          <ChevronDown class="w-3.5 h-3.5 shrink-0 text-slate-400 transition-transform duration-200 group-hover:translate-y-0.5" />
+          <Building2
+            class="w-4 h-4 shrink-0 text-slate-500 dark:text-slate-400 group-hover:text-[#E9A11A] transition-colors"
+          />
+          <span class="text-[13px] font-medium whitespace-nowrap">{{
+            languageStore.t('switch_hotel', 'Switch Hotel')
+          }}</span>
+          <ChevronDown
+            class="w-3.5 h-3.5 shrink-0 text-slate-400 transition-transform duration-200 group-hover:translate-y-0.5"
+          />
         </button>
 
         <!-- 4. Primary CTA: Book Now -->
@@ -213,7 +240,6 @@ onUnmounted(() => {
           <CloseIcon v-else class="w-5 h-5 text-[#E9A11A]" />
         </button>
       </div>
-
     </div>
 
     <!-- ============================================================== -->
@@ -233,7 +259,10 @@ onUnmounted(() => {
       >
         <!-- Switch Hotel Card -->
         <button
-          @click.stop="openHotelModal(); closeMenu()"
+          @click.stop="
+            openHotelModal()
+            closeMenu()
+          "
           type="button"
           class="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
         >
@@ -255,7 +284,7 @@ onUnmounted(() => {
             :class="[
               isItemActive(menu.route)
                 ? 'font-semibold text-[#0B1B35] dark:text-white bg-slate-100 dark:bg-slate-800'
-                : 'text-slate-600 dark:text-slate-300 hover:text-[#0B1B35] dark:hover:text-white'
+                : 'text-slate-600 dark:text-slate-300 hover:text-[#0B1B35] dark:hover:text-white',
             ]"
           >
             {{ menu.title }}

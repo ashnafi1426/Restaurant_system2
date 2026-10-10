@@ -3,8 +3,17 @@
     <div class="max-w-6xl mx-auto">
       <!-- Header -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ languageStore.t('my_reviews', 'My Reviews') }}</h1>
-        <p class="text-gray-600">{{ languageStore.t('manage_reviews_and_account', 'Manage your menu item reviews and see how your feedback helps') }}</p>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+          {{ languageStore.t('my_reviews', 'My Reviews') }}
+        </h1>
+        <p class="text-gray-600">
+          {{
+            languageStore.t(
+              'manage_reviews_and_account',
+              'Manage your menu item reviews and see how your feedback helps',
+            )
+          }}
+        </p>
       </div>
 
       <!-- Tabs -->
@@ -15,7 +24,7 @@
             'px-4 py-2 font-semibold border-b-2 transition-colors cursor-pointer',
             activeTab === 'write'
               ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-600 hover:text-gray-900'
+              : 'border-transparent text-gray-600 hover:text-gray-900',
           ]"
         >
           {{ languageStore.t('write_review', 'Write a Review') }}
@@ -26,7 +35,7 @@
             'px-4 py-2 font-semibold border-b-2 transition-colors cursor-pointer',
             activeTab === 'my-reviews'
               ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-600 hover:text-gray-900'
+              : 'border-transparent text-gray-600 hover:text-gray-900',
           ]"
         >
           {{ languageStore.t('my_reviews', 'My Reviews') }} ({{ guestReviews.length }})
@@ -36,10 +45,7 @@
       <!-- Write Review Tab -->
       <div v-show="activeTab === 'write'" class="bg-white rounded-lg border border-gray-200 p-6">
         <div v-if="!selectedItem">
-          <EligibleItemsList 
-            :guest-id="currentUser?.id || ''"
-            @select="selectedItem = $event"
-          />
+          <EligibleItemsList :guest-id="currentUser?.id || ''" @select="selectedItem = $event" />
         </div>
         <div v-else class="space-y-4">
           <button
@@ -64,30 +70,49 @@
         <div v-if="guestReviewsLoading" class="space-y-4">
           <div v-for="i in 3" :key="i" class="animate-pulse h-32 bg-gray-200 rounded"></div>
         </div>
-        <div v-else-if="guestReviews.length === 0" class="text-center py-12 bg-white rounded-lg border border-gray-200">
-          <p class="text-gray-600 text-lg">{{ languageStore.t('no_reviews_written_yet', "You haven't written any reviews yet.") }}</p>
+        <div
+          v-else-if="guestReviews.length === 0"
+          class="text-center py-12 bg-white rounded-lg border border-gray-200"
+        >
+          <p class="text-gray-600 text-lg">
+            {{ languageStore.t('no_reviews_written_yet', "You haven't written any reviews yet.") }}
+          </p>
         </div>
         <div v-else class="space-y-4">
-          <div v-for="review in guestReviews" :key="review.id" class="bg-white rounded-lg border border-gray-200 p-6">
+          <div
+            v-for="review in guestReviews"
+            :key="review.id"
+            class="bg-white rounded-lg border border-gray-200 p-6"
+          >
             <!-- Header -->
             <div class="flex items-start justify-between mb-4">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900">{{ review.menu_item?.name }}</h3>
                 <p class="text-sm text-gray-600 mt-1">{{ formatDate(review.created_at) }}</p>
               </div>
-              <span :class="[
-                'px-3 py-1 rounded-full text-sm font-semibold',
-                review.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                review.status === 'approved' ? 'bg-green-100 text-green-800' :
-                'bg-red-100 text-red-800'
-              ]">
+              <span
+                :class="[
+                  'px-3 py-1 rounded-full text-sm font-semibold',
+                  review.status === 'pending'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : review.status === 'approved'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800',
+                ]"
+              >
                 {{ languageStore.t(review.status, review.status) }}
               </span>
             </div>
 
             <!-- Rating -->
             <div class="flex gap-1 mb-3">
-              <span v-for="i in 5" :key="i" class="text-lg" :class="i <= review.rating ? 'text-yellow-400' : 'text-gray-300'">★</span>
+              <span
+                v-for="i in 5"
+                :key="i"
+                class="text-lg"
+                :class="i <= review.rating ? 'text-yellow-400' : 'text-gray-300'"
+                >★</span
+              >
             </div>
 
             <!-- Review Text -->
@@ -95,7 +120,9 @@
 
             <!-- Management Response -->
             <div v-if="review.response" class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
-              <p class="text-sm font-semibold text-blue-900 mb-2">{{ languageStore.t('reply_from_management', 'Response from Management') }}</p>
+              <p class="text-sm font-semibold text-blue-900 mb-2">
+                {{ languageStore.t('reply_from_management', 'Response from Management') }}
+              </p>
               <p class="text-sm text-gray-700">{{ review.response.response_text }}</p>
             </div>
 
@@ -122,7 +149,10 @@
 
     <!-- Success Toast -->
     <Transition name="fade">
-      <div v-if="showSuccess" class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg">
+      <div
+        v-if="showSuccess"
+        class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg"
+      >
         {{ successMessage }}
       </div>
     </Transition>
@@ -158,7 +188,7 @@ const formatDate = (dateString: string) => {
   return date.toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric',
-    year: 'numeric'
+    year: 'numeric',
   })
 }
 
@@ -177,7 +207,7 @@ const deleteReview = async (reviewId: string) => {
   try {
     guestReviewsLoading.value = true
     await reviewStore.deleteGuestReview(reviewId)
-    guestReviews.value = guestReviews.value.filter(r => r.id !== reviewId)
+    guestReviews.value = guestReviews.value.filter((r) => r.id !== reviewId)
     successMessage.value = 'Review deleted successfully'
     showSuccess.value = true
     setTimeout(() => {
@@ -205,11 +235,13 @@ onMounted(() => {
   padding: 24px 0;
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s;
 }
 
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 </style>

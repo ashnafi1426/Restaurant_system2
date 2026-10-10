@@ -80,7 +80,9 @@
         </div>
       </aside>
 
-      <main class="w-full lg:ml-60 bg-[#f9f8f6] dark:bg-slate-950 px-3 sm:px-5 lg:px-6 py-2 transition-colors pb-3">
+      <main
+        class="w-full lg:ml-60 bg-[#f9f8f6] dark:bg-slate-950 px-3 sm:px-5 lg:px-6 py-2 transition-colors pb-3"
+      >
         <!-- Dynamic 5-Hero Image Animated Carousel (auto-navigating each interval) -->
         <div class="mt-3">
           <MenuHero @view-specials="handleViewSpecials" />
@@ -92,9 +94,16 @@
           class="mt-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700/60 p-4 shadow-sm"
         >
           <div class="flex items-start gap-3.5">
-            <div class="w-10 h-10 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <div
+              class="w-10 h-10 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0 mt-0.5"
+            >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
             </div>
             <div class="flex-1">
@@ -109,11 +118,19 @@
                   {{ String(reservationStatus).replace('_', ' ') }}
                 </span>
               </div>
-              <p class="text-xs sm:text-sm text-amber-800 dark:text-amber-300/90 mt-1 leading-relaxed">
-                {{ eligibilityMessage || 'Room service ordering is only available for checked-in guests. Please contact the front desk or complete check-in to place an order.' }}
+              <p
+                class="text-xs sm:text-sm text-amber-800 dark:text-amber-300/90 mt-1 leading-relaxed"
+              >
+                {{
+                  eligibilityMessage ||
+                  'Room service ordering is only available for checked-in guests. Please contact the front desk or complete check-in to place an order.'
+                }}
               </p>
-              <div class="mt-2 text-[11px] sm:text-xs text-amber-700/80 dark:text-amber-400 font-medium">
-                ℹ️ You can browse our menu. Ordering will be automatically enabled once your reservation is checked in.
+              <div
+                class="mt-2 text-[11px] sm:text-xs text-amber-700/80 dark:text-amber-400 font-medium"
+              >
+                ℹ️ You can browse our menu. Ordering will be automatically enabled once your
+                reservation is checked in.
               </div>
             </div>
           </div>
@@ -143,7 +160,9 @@
 
         <div class="mt-3 mb-1.5 flex items-center justify-between">
           <div>
-            <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+            <h2
+              class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight"
+            >
               {{ languageStore.t('recommended_for_you', 'Recommended for You') }}
             </h2>
             <p class="text-[11px] text-slate-500 dark:text-slate-400">
@@ -178,42 +197,66 @@
           class="mt-2.5 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 rounded-2xl bg-white dark:bg-slate-900 p-3 sm:p-4 border border-slate-200/80 dark:border-slate-800 shadow-xs mb-2 font-sans"
         >
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-[#c29353] flex-shrink-0">
+            <div
+              class="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-[#c29353] flex-shrink-0"
+            >
               <Utensils class="w-4 h-4" />
             </div>
             <div>
-              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">{{ languageStore.t('freshly_prepared', 'Freshly Prepared') }}</h4>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('premium_ingredients', 'Premium ingredients') }}</p>
+              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">
+                {{ languageStore.t('freshly_prepared', 'Freshly Prepared') }}
+              </h4>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                {{ languageStore.t('premium_ingredients', 'Premium ingredients') }}
+              </p>
             </div>
           </div>
 
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-[#c29353] flex-shrink-0">
+            <div
+              class="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-[#c29353] flex-shrink-0"
+            >
               <Truck class="w-4 h-4" />
             </div>
             <div>
-              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">{{ languageStore.t('fast_delivery', 'Fast Delivery') }}</h4>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('within_30_mins', 'Within 30 minutes') }}</p>
+              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">
+                {{ languageStore.t('fast_delivery', 'Fast Delivery') }}
+              </h4>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                {{ languageStore.t('within_30_mins', 'Within 30 minutes') }}
+              </p>
             </div>
           </div>
 
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-[#c29353] flex-shrink-0">
+            <div
+              class="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-[#c29353] flex-shrink-0"
+            >
               <ShieldCheck class="w-4 h-4" />
             </div>
             <div>
-              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">{{ languageStore.t('safe_hygienic', 'Safe & Hygienic') }}</h4>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('highest_standards', 'Highest standards') }}</p>
+              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">
+                {{ languageStore.t('safe_hygienic', 'Safe & Hygienic') }}
+              </h4>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                {{ languageStore.t('highest_standards', 'Highest standards') }}
+              </p>
             </div>
           </div>
 
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-[#c29353] flex-shrink-0">
+            <div
+              class="w-9 h-9 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-[#c29353] flex-shrink-0"
+            >
               <Clock class="w-4 h-4" />
             </div>
             <div>
-              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">{{ languageStore.t('service_247', '24/7 Service') }}</h4>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('always_here', 'Always here to serve') }}</p>
+              <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight">
+                {{ languageStore.t('service_247', '24/7 Service') }}
+              </h4>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                {{ languageStore.t('always_here', 'Always here to serve') }}
+              </p>
             </div>
           </div>
         </div>
@@ -238,11 +281,23 @@
           <div
             class="flex items-center gap-3 sm:gap-4 md:gap-5 text-white w-full sm:w-auto justify-between sm:justify-start"
           >
-            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            <svg
+              class="w-6 h-6 sm:w-7 sm:h-7 text-white"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+              />
             </svg>
             <div>
-              <p class="text-white/70 text-xs sm:text-sm">{{ cartItems.length }} {{ languageStore.t('items_in_cart', 'Items in Cart') }}</p>
+              <p class="text-white/70 text-xs sm:text-sm">
+                {{ cartItems.length }} {{ languageStore.t('items_in_cart', 'Items in Cart') }}
+              </p>
               <h3 class="text-lg sm:text-xl md:text-2xl font-bold">{{ formatPrice(cartTotal) }}</h3>
             </div>
           </div>
@@ -271,15 +326,34 @@
       <div class="flex flex-col items-center gap-4">
         <div class="relative w-12 h-12">
           <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="45" fill="none" stroke="#0EA5E9" stroke-width="6" opacity="0.3" />
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke="#0EA5E9"
+              stroke-width="6"
+              opacity="0.3"
+            />
           </svg>
-          <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
+          <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite">
             <svg viewBox="0 0 100 100" class="w-full h-full">
-              <circle cx="50" cy="50" r="45" fill="none" stroke="#FBBF24" stroke-width="8" stroke-linecap="round" stroke-dasharray="70 280" />
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                fill="none"
+                stroke="#FBBF24"
+                stroke-width="8"
+                stroke-linecap="round"
+                stroke-dasharray="70 280"
+              />
             </svg>
           </div>
         </div>
-        <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm">{{ languageStore.t('loading_menu', 'Loading menu...') }}</p>
+        <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm">
+          {{ languageStore.t('loading_menu', 'Loading menu...') }}
+        </p>
       </div>
     </div>
 
@@ -302,9 +376,13 @@
           class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
           @click.self="showViewReviewsModal = false"
         >
-          <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-xl w-full max-h-[85vh] overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col">
+          <div
+            class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-xl w-full max-h-[85vh] overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col"
+          >
             <!-- Modal Header -->
-            <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white dark:bg-slate-900 z-10">
+            <div
+              class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white dark:bg-slate-900 z-10"
+            >
               <div class="flex items-center gap-3">
                 <img
                   v-if="selectedMenuItemForReview.image"
@@ -313,8 +391,12 @@
                   class="w-12 h-12 rounded-xl object-cover"
                 />
                 <div>
-                  <h3 class="font-bold text-base text-slate-900 dark:text-white">{{ selectedMenuItemForReview.name }}</h3>
-                  <p class="text-xs text-slate-500">{{ languageStore.t('customer_reviews', 'Customer Ratings & Reviews') }}</p>
+                  <h3 class="font-bold text-base text-slate-900 dark:text-white">
+                    {{ selectedMenuItemForReview.name }}
+                  </h3>
+                  <p class="text-xs text-slate-500">
+                    {{ languageStore.t('customer_reviews', 'Customer Ratings & Reviews') }}
+                  </p>
                 </div>
               </div>
               <button
@@ -324,14 +406,16 @@
                 ✕
               </button>
             </div>
-            
+
             <!-- Reviews Content -->
             <div class="p-4 sm:p-6 flex-1 overflow-y-auto">
               <PublicReviewsList :menu-item-id="String(selectedMenuItemForReview.id)" />
             </div>
 
             <!-- Footer Action -->
-            <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex gap-3">
+            <div
+              class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex gap-3"
+            >
               <button
                 @click="showViewReviewsModal = false"
                 class="flex-1 py-2.5 px-4 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs sm:text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition text-center"
@@ -339,7 +423,10 @@
                 {{ languageStore.t('close', 'Close') }}
               </button>
               <button
-                @click="showViewReviewsModal = false; showReviewModal = true"
+                @click="
+                  showViewReviewsModal = false
+                  showReviewModal = true
+                "
                 class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-xs sm:text-sm shadow hover:shadow-md transition text-center"
               >
                 ⭐ {{ languageStore.t('write_review', 'Write Review') }}
@@ -489,8 +576,10 @@ function deriveCategoriesFromMenuItems() {
   ]
 }
 
-const getMenuCacheKey = () => `qr_menu_items_cache_${props.hotelId || guestHotelStore.hotelId || ''}_${props.qrToken || 'all'}`
-const getCatCacheKey = () => `qr_categories_cache_${props.hotelId || guestHotelStore.hotelId || ''}_${props.qrToken || 'all'}`
+const getMenuCacheKey = () =>
+  `qr_menu_items_cache_${props.hotelId || guestHotelStore.hotelId || ''}_${props.qrToken || 'all'}`
+const getCatCacheKey = () =>
+  `qr_categories_cache_${props.hotelId || guestHotelStore.hotelId || ''}_${props.qrToken || 'all'}`
 
 const loadFromClientCache = (): boolean => {
   try {
@@ -564,7 +653,10 @@ const loadCategories = async (forceRefresh = false) => {
       })
       rawCategories = response.data?.data || response.data || []
     } catch (guestErr) {
-      console.warn('[QRMenuLayout] /guest/categories endpoint unavailable, trying /categories:', guestErr)
+      console.warn(
+        '[QRMenuLayout] /guest/categories endpoint unavailable, trying /categories:',
+        guestErr,
+      )
       const response = await api.get('/categories', {
         params,
         headers: Object.keys(reqHeaders).length > 0 ? reqHeaders : undefined,
@@ -647,13 +739,19 @@ const loadMenuItems = async (forceRefresh = false) => {
 
     const rawData = response.data?.data ?? response.data
     if (rawData) {
-      const isGrouped = Array.isArray(rawData) && rawData.length > 0 && Array.isArray((rawData[0] as any)?.items)
+      const isGrouped =
+        Array.isArray(rawData) && rawData.length > 0 && Array.isArray((rawData[0] as any)?.items)
       if (isGrouped) {
         allMenuItems.value = rawData.flatMap((categoryGroup: any) => {
           const categoryName = categoryGroup.category || 'Other'
           return (categoryGroup.items || []).map((item: any) => {
             const rawPrice = parseFloat(item.price)
-            const totalPrice = item.total_price != null ? parseFloat(item.total_price) : (isNaN(rawPrice) ? 0 : rawPrice)
+            const totalPrice =
+              item.total_price != null
+                ? parseFloat(item.total_price)
+                : isNaN(rawPrice)
+                  ? 0
+                  : rawPrice
             return {
               id: item.id,
               name: item.name || 'Unnamed Item',
@@ -666,8 +764,18 @@ const loadMenuItems = async (forceRefresh = false) => {
               tax_included: item.tax_included,
               image: item.image || '/images/placeholder.png',
               category: categoryName || parseCategoryName(item),
-              rating: item.average_rating != null ? Number(item.average_rating) : (item.rating != null ? Number(item.rating) : null),
-              average_rating: item.average_rating != null ? Number(item.average_rating) : (item.rating != null ? Number(item.rating) : null),
+              rating:
+                item.average_rating != null
+                  ? Number(item.average_rating)
+                  : item.rating != null
+                    ? Number(item.rating)
+                    : null,
+              average_rating:
+                item.average_rating != null
+                  ? Number(item.average_rating)
+                  : item.rating != null
+                    ? Number(item.rating)
+                    : null,
               review_count: item.review_count != null ? Number(item.review_count) : 0,
               is_available: item.is_available !== false,
             }
@@ -676,7 +784,8 @@ const loadMenuItems = async (forceRefresh = false) => {
       } else if (Array.isArray(rawData)) {
         allMenuItems.value = rawData.map((item: any) => {
           const rawPrice = parseFloat(item.price)
-          const totalPrice = item.total_price != null ? parseFloat(item.total_price) : (isNaN(rawPrice) ? 0 : rawPrice)
+          const totalPrice =
+            item.total_price != null ? parseFloat(item.total_price) : isNaN(rawPrice) ? 0 : rawPrice
           return {
             id: item.id,
             name: item.name || 'Unnamed Item',
@@ -689,8 +798,18 @@ const loadMenuItems = async (forceRefresh = false) => {
             tax_included: item.tax_included,
             image: item.image || '/images/placeholder.png',
             category: parseCategoryName(item),
-            rating: item.average_rating != null ? Number(item.average_rating) : (item.rating != null ? Number(item.rating) : null),
-            average_rating: item.average_rating != null ? Number(item.average_rating) : (item.rating != null ? Number(item.rating) : null),
+            rating:
+              item.average_rating != null
+                ? Number(item.average_rating)
+                : item.rating != null
+                  ? Number(item.rating)
+                  : null,
+            average_rating:
+              item.average_rating != null
+                ? Number(item.average_rating)
+                : item.rating != null
+                  ? Number(item.rating)
+                  : null,
             review_count: item.review_count != null ? Number(item.review_count) : 0,
             is_available: item.is_available !== false,
           }
@@ -712,14 +831,16 @@ const loadMenuItems = async (forceRefresh = false) => {
 
 function isCategoryActive(cat: any): boolean {
   if (!cat) return false
-  if (cat.id === null && (selectedCategory.value === null || selectedCategory.value === 'all')) return true
+  if (cat.id === null && (selectedCategory.value === null || selectedCategory.value === 'all'))
+    return true
   if (selectedCategory.value === cat.id) return true
   if (cat.slug && selectedCategory.value === cat.slug) return true
   return false
 }
 
 function getCategoryBtnClass(cat: any): string {
-  const base = 'px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 flex-shrink-0'
+  const base =
+    'px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 flex-shrink-0'
   return isCategoryActive(cat)
     ? `${base} bg-[#c29353] text-white shadow-xs font-black`
     : `${base} bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800`
@@ -740,13 +861,25 @@ function normalizeCat(str: string | number | null | undefined): string {
     .replace(/[^a-z0-9]/g, '')
 }
 
-function matchCategory(itemCat: string | null | undefined, selectedCat: string | number | null | undefined): boolean {
-  if (selectedCat === null || selectedCat === undefined || selectedCat === '' || selectedCat === 'all') return true
+function matchCategory(
+  itemCat: string | null | undefined,
+  selectedCat: string | number | null | undefined,
+): boolean {
+  if (
+    selectedCat === null ||
+    selectedCat === undefined ||
+    selectedCat === '' ||
+    selectedCat === 'all'
+  )
+    return true
 
   let targetNameOrSlug = String(selectedCat)
   if (categories.value && categories.value.length > 0) {
     const matchedCatObj = categories.value.find(
-      (c) => String(c.id) === String(selectedCat) || String(c.slug) === String(selectedCat) || String(c.name).toLowerCase() === String(selectedCat).toLowerCase()
+      (c) =>
+        String(c.id) === String(selectedCat) ||
+        String(c.slug) === String(selectedCat) ||
+        String(c.name).toLowerCase() === String(selectedCat).toLowerCase(),
     )
     if (matchedCatObj) {
       targetNameOrSlug = matchedCatObj.name + ' ' + (matchedCatObj.slug || '')
@@ -781,8 +914,8 @@ function matchCategory(itemCat: string | null | undefined, selectedCat: string |
 const updateCategoryCounts = () => {
   categories.value.forEach((cat) => {
     if (cat.id) {
-      const count = allMenuItems.value.filter(
-        (item) => matchCategory(item.category, cat.id || cat.name),
+      const count = allMenuItems.value.filter((item) =>
+        matchCategory(item.category, cat.id || cat.name),
       ).length
       cat.count = count
     } else {
@@ -801,11 +934,14 @@ const filteredMenuItems = computed(() => {
   }
 
   const rawQuery = searchQuery.value
-  const query = typeof rawQuery === 'string'
-    ? rawQuery.toLowerCase().trim()
-    : (rawQuery && typeof rawQuery === 'object' && (rawQuery as any).name)
-      ? String((rawQuery as any).name).toLowerCase().trim()
-      : ''
+  const query =
+    typeof rawQuery === 'string'
+      ? rawQuery.toLowerCase().trim()
+      : rawQuery && typeof rawQuery === 'object' && (rawQuery as any).name
+        ? String((rawQuery as any).name)
+            .toLowerCase()
+            .trim()
+        : ''
 
   if (query) {
     items = items.filter(
@@ -853,7 +989,12 @@ const handleLogout = () => {
 
 const selectCategory = (catOrId: any) => {
   let catVal: string | null = null
-  if (catOrId === null || catOrId === undefined || catOrId === 'all' || catOrId === 'All Categories') {
+  if (
+    catOrId === null ||
+    catOrId === undefined ||
+    catOrId === 'all' ||
+    catOrId === 'All Categories'
+  ) {
     catVal = null
   } else if (typeof catOrId === 'object' && catOrId !== null) {
     if (catOrId.name === 'All Categories' || catOrId.id === null || catOrId.slug === 'all') {
@@ -898,7 +1039,10 @@ const handleSuggestionSelected = selectSuggestion
 
 const handleAddToCart = (item: MenuItem, quantity: number) => {
   if (props.canOrder === false) {
-    alert(props.eligibilityMessage || 'Room service ordering is only available for checked-in guests. Please contact the front desk.')
+    alert(
+      props.eligibilityMessage ||
+        'Room service ordering is only available for checked-in guests. Please contact the front desk.',
+    )
     return
   }
   const existingItem = cartItems.value.find((ci) => ci.id === item.id)
@@ -953,9 +1097,10 @@ const handleExplore = () => {
 const handleViewSpecials = (categoryName?: string) => {
   if (categoryName) {
     const matchedCategory = categories.value.find(
-      c => c.name.toLowerCase() === categoryName.toLowerCase() ||
-           (c.slug && c.slug.toLowerCase() === categoryName.toLowerCase()) ||
-           c.name.toLowerCase().includes(categoryName.toLowerCase())
+      (c) =>
+        c.name.toLowerCase() === categoryName.toLowerCase() ||
+        (c.slug && c.slug.toLowerCase() === categoryName.toLowerCase()) ||
+        c.name.toLowerCase().includes(categoryName.toLowerCase()),
     )
     if (matchedCategory) {
       selectCategory(matchedCategory)
@@ -972,12 +1117,16 @@ const formatPrice = (price: number): string => {
   return `$${price.toFixed(2)}`
 }
 
-watch(allMenuItems, () => {
-  if (categories.value.length <= 1) {
-    deriveCategoriesFromMenuItems()
-  }
-  updateCategoryCounts()
-}, { immediate: true, deep: true })
+watch(
+  allMenuItems,
+  () => {
+    if (categories.value.length <= 1) {
+      deriveCategoriesFromMenuItems()
+    }
+    updateCategoryCounts()
+  },
+  { immediate: true, deep: true },
+)
 
 watch(
   () => props.qrToken,

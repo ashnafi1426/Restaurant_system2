@@ -48,12 +48,20 @@ const categories = computed(() => [
 </script>
 
 <template>
-  <section class="relative py-20 bg-white dark:bg-slate-900 overflow-hidden transition-colors duration-300">
+  <section
+    class="relative py-20 bg-white dark:bg-slate-900 overflow-hidden transition-colors duration-300"
+  >
     <div class="mx-auto max-w-7xl px-6">
       <!-- Heading -->
       <div class="text-center mb-16">
-        <h2 class="text-4xl font-bold text-slate-900 dark:text-white">{{ languageStore.t('browse_by_category', 'Browse by Category') }}</h2>
-        <p class="mt-4 text-lg text-slate-500 dark:text-slate-400">{{ languageStore.t('browse_by_category_desc', 'Discover every part of our luxury hotel.') }}</p>
+        <h2 class="text-4xl font-bold text-slate-900 dark:text-white">
+          {{ languageStore.t('browse_by_category', 'Browse by Category') }}
+        </h2>
+        <p class="mt-4 text-lg text-slate-500 dark:text-slate-400">
+          {{
+            languageStore.t('browse_by_category_desc', 'Discover every part of our luxury hotel.')
+          }}
+        </p>
       </div>
 
       <!-- Categories Grid -->
@@ -120,4 +128,3 @@ const categories = computed(() => [
     </div>
   </section>
 </template>
-

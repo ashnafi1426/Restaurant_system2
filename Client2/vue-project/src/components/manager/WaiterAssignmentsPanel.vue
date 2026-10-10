@@ -116,7 +116,7 @@ onMounted(async () => {
     loading.value = true
     const data = await waiterStore.getAssignments(props.waiterId)
     assignments.value = (data || []).filter((a: any) =>
-      ['pending', 'accepted', 'on_delivery', 'picked_up'].includes(a.status)
+      ['pending', 'accepted', 'on_delivery', 'picked_up'].includes(a.status),
     )
   } catch (err: any) {
     console.error('[WaiterAssignmentsPanel] Failed to load assignments:', err)
@@ -206,7 +206,9 @@ onMounted(async () => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .error-state {

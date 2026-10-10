@@ -50,7 +50,7 @@ export const qrService = {
         success: false,
         context: null,
         data: null,
-        message: error.response?.data?.message || 'Failed to resolve QR code'
+        message: error.response?.data?.message || 'Failed to resolve QR code',
       }
     }
   },
@@ -63,10 +63,10 @@ export const qrService = {
       console.error('[QRService] Error validating QR token:', error)
       return {
         valid: false,
-        context: null
+        context: null,
       }
     }
-  }
+  },
 }
 
 export default qrService

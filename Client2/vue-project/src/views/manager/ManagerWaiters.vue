@@ -52,11 +52,15 @@ const filteredWaiters = computed(() => {
   }
 
   if (filterShift.value !== 'all') {
-    result = result.filter((w: any) => (w.shift || '').toLowerCase() === filterShift.value.toLowerCase())
+    result = result.filter(
+      (w: any) => (w.shift || '').toLowerCase() === filterShift.value.toLowerCase(),
+    )
   }
 
   if (filterSection.value !== 'all') {
-    result = result.filter((w: any) => (w.section || '').toLowerCase() === filterSection.value.toLowerCase())
+    result = result.filter(
+      (w: any) => (w.section || '').toLowerCase() === filterSection.value.toLowerCase(),
+    )
   }
 
   if (searchQuery.value.trim()) {
@@ -65,7 +69,11 @@ const filteredWaiters = computed(() => {
       const name = waiter.name || ''
       const section = waiter.section || ''
       const email = waiter.email || ''
-      return name.toLowerCase().includes(searchLower) || section.toLowerCase().includes(searchLower) || email.toLowerCase().includes(searchLower)
+      return (
+        name.toLowerCase().includes(searchLower) ||
+        section.toLowerCase().includes(searchLower) ||
+        email.toLowerCase().includes(searchLower)
+      )
     })
   }
 
@@ -142,9 +150,22 @@ const toggleFullscreen = () => {
 }
 
 const totalWaiters = computed(() => waiterStore.normalizedWaiters?.length || 0)
-const activeCount = computed(() => waiterStore.waiterStats?.active || (waiterStore.normalizedWaiters || []).filter((w: any) => w.status === 'active').length || 0)
-const busyCount = computed(() => (waiterStore.normalizedWaiters || []).filter((w: any) => w.status === 'on_break').length || 0)
-const inactiveCount = computed(() => waiterStore.waiterStats?.inactive || (waiterStore.normalizedWaiters || []).filter((w: any) => w.status === 'inactive').length || 0)
+const activeCount = computed(
+  () =>
+    waiterStore.waiterStats?.active ||
+    (waiterStore.normalizedWaiters || []).filter((w: any) => w.status === 'active').length ||
+    0,
+)
+const busyCount = computed(
+  () =>
+    (waiterStore.normalizedWaiters || []).filter((w: any) => w.status === 'on_break').length || 0,
+)
+const inactiveCount = computed(
+  () =>
+    waiterStore.waiterStats?.inactive ||
+    (waiterStore.normalizedWaiters || []).filter((w: any) => w.status === 'inactive').length ||
+    0,
+)
 
 const toggleMenu = (waiterId: string) => {
   activeMenuId.value = activeMenuId.value === waiterId ? null : waiterId
@@ -317,62 +338,103 @@ onUnmounted(() => {
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
       <!-- Toast Notification -->
-      <div v-if="showSuccessAlert" class="p-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-2xl flex items-center gap-3 shadow-xs">
+      <div
+        v-if="showSuccessAlert"
+        class="p-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-2xl flex items-center gap-3 shadow-xs"
+      >
         <CheckCircle2 class="w-5 h-5 flex-shrink-0" />
         <p class="text-xs font-bold">{{ successMessage }}</p>
       </div>
 
       <!-- Header -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+      >
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-md flex-shrink-0 text-white">
+          <div
+            class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-md flex-shrink-0 text-white"
+          >
             <Users2 class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Waiter Management</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage service staff, shift rosters, and floor assignments.</p>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+              Waiter Management
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Manage service staff, shift rosters, and floor assignments.
+            </p>
           </div>
         </div>
       </div>
 
       <!-- KPI Stats Cards Grid -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
+        >
           <div>
-            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Staff</span>
-            <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ totalWaiters }}</h3>
+            <span
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+              >Total Staff</span
+            >
+            <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1">
+              {{ totalWaiters }}
+            </h3>
           </div>
           <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
             <Users2 class="w-5 h-5" />
           </div>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
+        >
           <div>
-            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active</span>
-            <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{{ activeCount }}</h3>
+            <span
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+              >Active</span
+            >
+            <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+              {{ activeCount }}
+            </h3>
           </div>
           <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 class="w-5 h-5" />
           </div>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
+        >
           <div>
-            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">On Break</span>
-            <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{{ busyCount }}</h3>
+            <span
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+              >On Break</span
+            >
+            <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
+              {{ busyCount }}
+            </h3>
           </div>
           <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
             <Clock class="w-5 h-5" />
           </div>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
+        >
           <div>
-            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Inactive</span>
-            <h3 class="text-2xl font-black text-slate-600 dark:text-slate-400 mt-1">{{ inactiveCount }}</h3>
+            <span
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+              >Inactive</span
+            >
+            <h3 class="text-2xl font-black text-slate-600 dark:text-slate-400 mt-1">
+              {{ inactiveCount }}
+            </h3>
           </div>
-          <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+          <div
+            class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+          >
             <AlertCircle class="w-5 h-5" />
           </div>
         </div>
@@ -386,7 +448,9 @@ onUnmounted(() => {
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
           <!-- Search Input -->
           <div class="relative flex-1">
-            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <Search
+              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+            />
             <input
               v-model="searchQuery"
               type="text"
@@ -403,7 +467,7 @@ onUnmounted(() => {
             :class="[
               isFilterOpen
                 ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
-                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
@@ -537,11 +601,15 @@ onUnmounted(() => {
       </Transition>
 
       <!-- Waiters Table Container -->
-      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
+      <div
+        class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
+      >
         <!-- Desktop Table View -->
         <div class="hidden md:block overflow-x-auto w-full min-h-[220px]">
           <table class="w-full text-left border-collapse">
-            <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+            <thead
+              class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
+            >
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
                 <th class="py-3 px-4 pl-5 whitespace-nowrap">Staff Member</th>
                 <th class="py-3 px-4 text-center whitespace-nowrap">Status</th>
@@ -557,7 +625,9 @@ onUnmounted(() => {
                 <td colspan="6" class="px-6 py-20 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
                     <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Loading waiters...</span>
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400"
+                      >Loading waiters...</span
+                    >
                   </div>
                 </td>
               </tr>
@@ -569,222 +639,288 @@ onUnmounted(() => {
                   :key="waiter.id"
                   class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
                 >
-                <!-- Staff Avatar & Name -->
-                <td class="py-3 px-4 pl-5 whitespace-nowrap">
-                  <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs border border-blue-500/20">
-                      {{ (waiter.name || 'W').charAt(0).toUpperCase() }}
+                  <!-- Staff Avatar & Name -->
+                  <td class="py-3 px-4 pl-5 whitespace-nowrap">
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs border border-blue-500/20"
+                      >
+                        {{ (waiter.name || 'W').charAt(0).toUpperCase() }}
+                      </div>
+                      <div>
+                        <div class="font-bold text-slate-900 dark:text-white">
+                          {{ waiter.name }}
+                        </div>
+                        <div class="text-[10px] text-slate-400">
+                          {{
+                            waiter.user?.email ||
+                            (waiter as any).email ||
+                            waiter.phone ||
+                            'No contact info'
+                          }}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div class="font-bold text-slate-900 dark:text-white">{{ waiter.name }}</div>
-                      <div class="text-[10px] text-slate-400">{{ waiter.user?.email || (waiter as any).email || waiter.phone || 'No contact info' }}</div>
-                    </div>
-                  </div>
-                </td>
+                  </td>
 
-                <!-- Status -->
-                <td class="py-3 px-4 text-center whitespace-nowrap">
-                  <span
-                    class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
-                    :class="[
-                      waiter.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' :
-                      waiter.status === 'on_break' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' :
-                      'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
-                    ]"
+                  <!-- Status -->
+                  <td class="py-3 px-4 text-center whitespace-nowrap">
+                    <span
+                      class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
+                      :class="[
+                        waiter.status === 'active'
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                          : waiter.status === 'on_break'
+                            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                            : 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20',
+                      ]"
+                    >
+                      {{ (waiter.status || 'active').replace('_', ' ') }}
+                    </span>
+                  </td>
+
+                  <!-- Section -->
+                  <td
+                    class="py-3 px-4 whitespace-nowrap font-medium text-slate-700 dark:text-slate-300"
                   >
-                    {{ (waiter.status || 'active').replace('_', ' ') }}
-                  </span>
-                </td>
+                    {{ waiter.section || 'General Floor' }}
+                  </td>
 
-                <!-- Section -->
-                <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-700 dark:text-slate-300">
-                  {{ waiter.section || 'General Floor' }}
-                </td>
+                  <!-- Shift -->
+                  <td
+                    class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 font-semibold capitalize"
+                  >
+                    {{ waiter.shift || 'Morning' }}
+                  </td>
 
-                <!-- Shift -->
-                <td class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 font-semibold capitalize">
-                  {{ waiter.shift || 'Morning' }}
-                </td>
+                  <!-- Experience -->
+                  <td
+                    class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 capitalize"
+                  >
+                    {{ waiter.experience_level || 'Intermediate' }}
+                  </td>
 
-                <!-- Experience -->
-                <td class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 capitalize">
-                  {{ waiter.experience_level || 'Intermediate' }}
-                </td>
+                  <!-- Actions -->
+                  <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
+                    <div class="relative inline-block text-left">
+                      <button
+                        type="button"
+                        @click.stop="toggleMenu(waiter.id)"
+                        class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 shadow-xs transition cursor-pointer"
+                        :class="{
+                          'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-400 dark:border-blue-500 ring-2 ring-blue-500/20':
+                            activeMenuId === waiter.id,
+                        }"
+                        title="Actions"
+                      >
+                        <MoreVertical class="w-4 h-4 stroke-[2.2]" />
+                      </button>
 
-                <!-- Actions -->
-                <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
-                  <div class="relative inline-block text-left">
+                      <!-- Dropdown Menu -->
+                      <Transition
+                        enter-active-class="transition duration-100 ease-out"
+                        enter-from-class="transform scale-95 opacity-0"
+                        enter-to-class="transform scale-100 opacity-100"
+                        leave-active-class="transition duration-75 ease-in"
+                        leave-from-class="transform scale-100 opacity-100"
+                        leave-to-class="transform scale-95 opacity-0"
+                      >
+                        <div
+                          v-if="activeMenuId === waiter.id"
+                          class="absolute right-0 z-50 w-44 rounded-2xl bg-white dark:bg-[#0f1d32] border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-900/15 dark:shadow-slate-950/60 py-1.5 focus:outline-none"
+                          :class="[
+                            index >= paginatedWaiters.length - 2 && paginatedWaiters.length > 2
+                              ? 'bottom-full mb-1.5'
+                              : 'top-full mt-1.5',
+                          ]"
+                        >
+                          <!-- Edit Staff -->
+                          <button
+                            type="button"
+                            @click="
+                              openEditModal(waiter)
+                              activeMenuId = null
+                            "
+                            class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer text-left"
+                          >
+                            <Edit3 class="w-4 h-4 text-blue-500 flex-shrink-0" />
+                            <span>Edit Staff</span>
+                          </button>
+
+                          <!-- Change Status (Quick Action) -->
+                          <button
+                            v-if="waiter.status !== 'active'"
+                            type="button"
+                            @click="
+                              handleToggleStatus(waiter, 'active')
+                              activeMenuId = null
+                            "
+                            class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer text-left"
+                          >
+                            <CheckCircle2 class="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                            <span>Set Active</span>
+                          </button>
+
+                          <button
+                            v-if="waiter.status === 'active'"
+                            type="button"
+                            @click="
+                              handleToggleStatus(waiter, 'on_break')
+                              activeMenuId = null
+                            "
+                            class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-600 dark:hover:text-amber-400 transition cursor-pointer text-left"
+                          >
+                            <Clock class="w-4 h-4 text-amber-500 flex-shrink-0" />
+                            <span>Set On Break</span>
+                          </button>
+
+                          <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+
+                          <!-- Delete Staff -->
+                          <button
+                            type="button"
+                            @click="
+                              handleDeleteWaiter(waiter.id)
+                              activeMenuId = null
+                            "
+                            class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer text-left"
+                          >
+                            <Trash2 class="w-4 h-4 text-rose-500 flex-shrink-0" />
+                            <span>Delete Staff</span>
+                          </button>
+                        </div>
+                      </Transition>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Empty State -->
+                <tr v-if="paginatedWaiters.length === 0">
+                  <td
+                    colspan="6"
+                    class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
+                  >
+                    No waiter staff found matching your filters.
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+          <div
+            v-if="waiterStore.loading"
+            class="py-16 text-center flex flex-col items-center justify-center gap-3"
+          >
+            <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+            <span class="text-xs font-bold text-slate-600 dark:text-slate-400"
+              >Loading waiters...</span
+            >
+          </div>
+          <template v-else>
+            <div
+              v-for="waiter in paginatedWaiters"
+              :key="waiter.id"
+              class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
+            >
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-900 dark:text-white text-sm">
+                  {{ waiter.name }}
+                </span>
+                <span
+                  class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
+                  :class="[
+                    waiter.status === 'active'
+                      ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                      : waiter.status === 'on_break'
+                        ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                        : 'bg-slate-500/10 text-slate-600 border-slate-500/20',
+                  ]"
+                >
+                  {{ waiter.status }}
+                </span>
+              </div>
+              <div
+                class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60"
+              >
+                <span
+                  >Section:
+                  <strong class="text-slate-800 dark:text-slate-200">{{
+                    waiter.section || 'General'
+                  }}</strong></span
+                >
+                <div class="relative inline-block text-left">
+                  <button
+                    type="button"
+                    @click.stop="toggleMenu('mobile-' + waiter.id)"
+                    class="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-600 dark:text-slate-300 hover:text-blue-600 transition cursor-pointer"
+                    :class="{
+                      'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-400':
+                        activeMenuId === 'mobile-' + waiter.id,
+                    }"
+                  >
+                    <MoreVertical class="w-3.5 h-3.5" />
+                  </button>
+
+                  <div
+                    v-if="activeMenuId === 'mobile-' + waiter.id"
+                    class="absolute right-0 bottom-full mb-1.5 z-50 w-44 rounded-2xl bg-white dark:bg-[#0f1d32] border border-slate-200 dark:border-slate-800 shadow-xl py-1.5 focus:outline-none"
+                  >
                     <button
                       type="button"
-                      @click.stop="toggleMenu(waiter.id)"
-                      class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 shadow-xs transition cursor-pointer"
-                      :class="{ 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-400 dark:border-blue-500 ring-2 ring-blue-500/20': activeMenuId === waiter.id }"
-                      title="Actions"
+                      @click="
+                        openEditModal(waiter)
+                        activeMenuId = null
+                      "
+                      class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-left cursor-pointer"
                     >
-                      <MoreVertical class="w-4 h-4 stroke-[2.2]" />
+                      <Edit3 class="w-4 h-4 text-blue-500" />
+                      <span>Edit Staff</span>
                     </button>
-
-                    <!-- Dropdown Menu -->
-                    <Transition
-                      enter-active-class="transition duration-100 ease-out"
-                      enter-from-class="transform scale-95 opacity-0"
-                      enter-to-class="transform scale-100 opacity-100"
-                      leave-active-class="transition duration-75 ease-in"
-                      leave-from-class="transform scale-100 opacity-100"
-                      leave-to-class="transform scale-95 opacity-0"
+                    <button
+                      v-if="waiter.status !== 'active'"
+                      type="button"
+                      @click="
+                        handleToggleStatus(waiter, 'active')
+                        activeMenuId = null
+                      "
+                      class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-left cursor-pointer"
                     >
-                      <div
-                        v-if="activeMenuId === waiter.id"
-                        class="absolute right-0 z-50 w-44 rounded-2xl bg-white dark:bg-[#0f1d32] border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-900/15 dark:shadow-slate-950/60 py-1.5 focus:outline-none"
-                        :class="[
-                          index >= paginatedWaiters.length - 2 && paginatedWaiters.length > 2
-                            ? 'bottom-full mb-1.5'
-                            : 'top-full mt-1.5'
-                        ]"
-                      >
-                        <!-- Edit Staff -->
-                        <button
-                          type="button"
-                          @click="openEditModal(waiter); activeMenuId = null"
-                          class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer text-left"
-                        >
-                          <Edit3 class="w-4 h-4 text-blue-500 flex-shrink-0" />
-                          <span>Edit Staff</span>
-                        </button>
-
-                        <!-- Change Status (Quick Action) -->
-                        <button
-                          v-if="waiter.status !== 'active'"
-                          type="button"
-                          @click="handleToggleStatus(waiter, 'active'); activeMenuId = null"
-                          class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer text-left"
-                        >
-                          <CheckCircle2 class="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                          <span>Set Active</span>
-                        </button>
-
-                        <button
-                          v-if="waiter.status === 'active'"
-                          type="button"
-                          @click="handleToggleStatus(waiter, 'on_break'); activeMenuId = null"
-                          class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-600 dark:hover:text-amber-400 transition cursor-pointer text-left"
-                        >
-                          <Clock class="w-4 h-4 text-amber-500 flex-shrink-0" />
-                          <span>Set On Break</span>
-                        </button>
-
-                        <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
-
-                        <!-- Delete Staff -->
-                        <button
-                          type="button"
-                          @click="handleDeleteWaiter(waiter.id); activeMenuId = null"
-                          class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer text-left"
-                        >
-                          <Trash2 class="w-4 h-4 text-rose-500 flex-shrink-0" />
-                          <span>Delete Staff</span>
-                        </button>
-                      </div>
-                    </Transition>
+                      <CheckCircle2 class="w-4 h-4 text-emerald-500" />
+                      <span>Set Active</span>
+                    </button>
+                    <button
+                      v-if="waiter.status === 'active'"
+                      type="button"
+                      @click="
+                        handleToggleStatus(waiter, 'on_break')
+                        activeMenuId = null
+                      "
+                      class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-left cursor-pointer"
+                    >
+                      <Clock class="w-4 h-4 text-amber-500" />
+                      <span>Set On Break</span>
+                    </button>
+                    <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+                    <button
+                      type="button"
+                      @click="
+                        handleDeleteWaiter(waiter.id)
+                        activeMenuId = null
+                      "
+                      class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-left cursor-pointer"
+                    >
+                      <Trash2 class="w-4 h-4 text-rose-500" />
+                      <span>Delete Staff</span>
+                    </button>
                   </div>
-                </td>
-              </tr>
-
-              <!-- Empty State -->
-              <tr v-if="paginatedWaiters.length === 0">
-                <td colspan="6" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                  No waiter staff found matching your filters.
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Mobile Card View -->
-      <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-        <div v-if="waiterStore.loading" class="py-16 text-center flex flex-col items-center justify-center gap-3">
-          <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-          <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Loading waiters...</span>
-        </div>
-        <template v-else>
-          <div
-            v-for="waiter in paginatedWaiters"
-            :key="waiter.id"
-            class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
-          >
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-slate-900 dark:text-white text-sm">
-                {{ waiter.name }}
-              </span>
-              <span
-                class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
-                :class="[
-                  waiter.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
-                  waiter.status === 'on_break' ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' :
-                  'bg-slate-500/10 text-slate-600 border-slate-500/20'
-                ]"
-              >
-                {{ waiter.status }}
-              </span>
-            </div>
-            <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60">
-              <span>Section: <strong class="text-slate-800 dark:text-slate-200">{{ waiter.section || 'General' }}</strong></span>
-              <div class="relative inline-block text-left">
-                <button
-                  type="button"
-                  @click.stop="toggleMenu('mobile-' + waiter.id)"
-                  class="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-600 dark:text-slate-300 hover:text-blue-600 transition cursor-pointer"
-                  :class="{ 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-400': activeMenuId === 'mobile-' + waiter.id }"
-                >
-                  <MoreVertical class="w-3.5 h-3.5" />
-                </button>
-
-                <div
-                  v-if="activeMenuId === 'mobile-' + waiter.id"
-                  class="absolute right-0 bottom-full mb-1.5 z-50 w-44 rounded-2xl bg-white dark:bg-[#0f1d32] border border-slate-200 dark:border-slate-800 shadow-xl py-1.5 focus:outline-none"
-                >
-                  <button
-                    type="button"
-                    @click="openEditModal(waiter); activeMenuId = null"
-                    class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-left cursor-pointer"
-                  >
-                    <Edit3 class="w-4 h-4 text-blue-500" />
-                    <span>Edit Staff</span>
-                  </button>
-                  <button
-                    v-if="waiter.status !== 'active'"
-                    type="button"
-                    @click="handleToggleStatus(waiter, 'active'); activeMenuId = null"
-                    class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-left cursor-pointer"
-                  >
-                    <CheckCircle2 class="w-4 h-4 text-emerald-500" />
-                    <span>Set Active</span>
-                  </button>
-                  <button
-                    v-if="waiter.status === 'active'"
-                    type="button"
-                    @click="handleToggleStatus(waiter, 'on_break'); activeMenuId = null"
-                    class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-left cursor-pointer"
-                  >
-                    <Clock class="w-4 h-4 text-amber-500" />
-                    <span>Set On Break</span>
-                  </button>
-                  <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
-                  <button
-                    type="button"
-                    @click="handleDeleteWaiter(waiter.id); activeMenuId = null"
-                    class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-left cursor-pointer"
-                  >
-                    <Trash2 class="w-4 h-4 text-rose-500" />
-                    <span>Delete Staff</span>
-                  </button>
                 </div>
               </div>
             </div>
-          </div>
-        </template>
-      </div>
+          </template>
+        </div>
 
         <!-- Pagination Footer -->
         <div
@@ -792,7 +928,8 @@ onUnmounted(() => {
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
           <div class="text-slate-500 dark:text-slate-400 font-medium">
-            Showing <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
+            Showing
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
             <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> of
             <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> staff
           </div>
@@ -828,7 +965,7 @@ onUnmounted(() => {
                 :class="[
                   currentPage === page
                     ? 'bg-blue-600 text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
                 ]"
               >
                 {{ page }}

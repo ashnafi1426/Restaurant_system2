@@ -7,7 +7,12 @@
           class="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           {{ languageStore.t('back_to_menu', 'Back to Menu') }}
         </button>
@@ -29,7 +34,9 @@
 
           <div class="bg-white rounded-lg p-6 shadow">
             <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ item?.name }}</h1>
-            <span class="inline-block bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold mb-4">
+            <span
+              class="inline-block bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold mb-4"
+            >
               {{ item?.category }}
             </span>
 
@@ -37,14 +44,26 @@
               <div class="flex items-center gap-4">
                 <div>
                   <div class="flex items-center gap-2 mb-1">
-                    <span class="text-2xl font-bold text-yellow-600">{{ stats.average_rating?.toFixed(1) || 'N/A' }}</span>
+                    <span class="text-2xl font-bold text-yellow-600">{{
+                      stats.average_rating?.toFixed(1) || 'N/A'
+                    }}</span>
                     <div class="flex gap-1">
-                      <span v-for="i in 5" :key="i" class="text-lg"
-                        :class="i <= Math.round(stats.average_rating || 0) ? 'text-yellow-400' : 'text-gray-300'"
-                      >★</span>
+                      <span
+                        v-for="i in 5"
+                        :key="i"
+                        class="text-lg"
+                        :class="
+                          i <= Math.round(stats.average_rating || 0)
+                            ? 'text-yellow-400'
+                            : 'text-gray-300'
+                        "
+                        >★</span
+                      >
                     </div>
                   </div>
-                  <p class="text-sm text-gray-600">{{ stats.total_reviews }} {{ languageStore.t('reviews', 'reviews') }}</p>
+                  <p class="text-sm text-gray-600">
+                    {{ stats.total_reviews }} {{ languageStore.t('reviews', 'reviews') }}
+                  </p>
                 </div>
               </div>
 
@@ -54,10 +73,12 @@
                   <div class="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       class="h-full bg-yellow-400 transition-all"
-                      :style="{ width: `${(stats.rating_percentages?.[rating] || 0)}%` }"
+                      :style="{ width: `${stats.rating_percentages?.[rating] || 0}%` }"
                     />
                   </div>
-                  <span class="text-sm w-8 text-right text-gray-600">{{ stats.rating_percentages?.[rating] || 0 }}%</span>
+                  <span class="text-sm w-8 text-right text-gray-600"
+                    >{{ stats.rating_percentages?.[rating] || 0 }}%</span
+                  >
                 </div>
               </div>
             </div>
@@ -65,28 +86,41 @@
             <div class="mb-6">
               <div class="flex items-baseline gap-2">
                 <span class="text-3xl font-bold text-green-600">
-                  ${{ ((item?.total_price !== undefined && item?.total_price !== null) ? Number(item.total_price) : Number(item?.price || 0)).toFixed(2) }}
+                  ${{
+                    (item?.total_price !== undefined && item?.total_price !== null
+                      ? Number(item.total_price)
+                      : Number(item?.price || 0)
+                    ).toFixed(2)
+                  }}
                 </span>
                 <span class="text-xs font-semibold text-slate-500 uppercase">Incl. Tax</span>
               </div>
-              <div v-if="item?.tax_rate && Number(item.tax_rate.rate) > 0" class="text-xs text-slate-500 mt-1">
+              <div
+                v-if="item?.tax_rate && Number(item.tax_rate.rate) > 0"
+                class="text-xs text-slate-500 mt-1"
+              >
                 <span v-if="item.tax_included" class="text-emerald-600 font-medium">
                   Includes {{ item.tax_rate.rate }}% {{ item.tax_rate.name || 'VAT' }}
                 </span>
                 <span v-else>
-                  Base Price: ${{ Number(item.price).toFixed(2) }} + {{ item.tax_rate.rate }}% Tax (${{ (item.tax_amount || 0).toFixed(2) }})
+                  Base Price: ${{ Number(item.price).toFixed(2) }} + {{ item.tax_rate.rate }}% Tax
+                  (${{ (item.tax_amount || 0).toFixed(2) }})
                 </span>
               </div>
             </div>
 
             <div class="mb-6">
-              <span :class="[
-                'inline-block px-4 py-2 rounded-full font-semibold',
-                item?.is_available
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-red-100 text-red-700'
-              ]">
-                {{ item?.is_available ? `✓ ${languageStore.t('available', 'Available')}` : `✗ ${languageStore.t('unavailable', 'Unavailable')}` }}
+              <span
+                :class="[
+                  'inline-block px-4 py-2 rounded-full font-semibold',
+                  item?.is_available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700',
+                ]"
+              >
+                {{
+                  item?.is_available
+                    ? `✓ ${languageStore.t('available', 'Available')}`
+                    : `✗ ${languageStore.t('unavailable', 'Unavailable')}`
+                }}
               </span>
             </div>
 
@@ -102,9 +136,14 @@
 
         <div class="space-y-6">
           <div class="bg-white rounded-lg p-6 shadow">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">{{ languageStore.t('description', 'Description') }}</h2>
+            <h2 class="text-xl font-bold text-gray-900 mb-4">
+              {{ languageStore.t('description', 'Description') }}
+            </h2>
             <p class="text-gray-700 leading-relaxed">
-              {{ item?.description || languageStore.t('no_description_available', 'No description available') }}
+              {{
+                item?.description ||
+                languageStore.t('no_description_available', 'No description available')
+              }}
             </p>
           </div>
 
@@ -116,7 +155,7 @@
                   'flex-1 px-4 py-3 font-semibold text-center transition-colors cursor-pointer',
                   reviewTab === 'reviews'
                     ? 'border-b-2 border-blue-600 text-blue-600'
-                    : 'text-gray-600 hover:text-gray-900'
+                    : 'text-gray-600 hover:text-gray-900',
                 ]"
               >
                 {{ languageStore.t('reviews', 'Reviews') }} ({{ stats?.total_reviews || 0 }})
@@ -128,7 +167,7 @@
                   'flex-1 px-4 py-3 font-semibold text-center transition-colors cursor-pointer',
                   reviewTab === 'submit'
                     ? 'border-b-2 border-blue-600 text-blue-600'
-                    : 'text-gray-600 hover:text-gray-900'
+                    : 'text-gray-600 hover:text-gray-900',
                 ]"
               >
                 {{ languageStore.t('write_review', 'Write Review') }}
@@ -152,7 +191,11 @@
               </div>
 
               <div v-if="!canReview && !item?.is_available" class="text-center py-8">
-                <p class="text-gray-600">{{ languageStore.t('item_not_available_review', 'Item not available for review') }}</p>
+                <p class="text-gray-600">
+                  {{
+                    languageStore.t('item_not_available_review', 'Item not available for review')
+                  }}
+                </p>
               </div>
             </div>
           </div>
@@ -208,7 +251,7 @@ const loadItem = async () => {
       price: 12.99,
       image: null,
       category: 'Main Course',
-      is_available: true
+      is_available: true,
     }
   } catch (error) {
     console.error('[MenuItemDetail] Error loading item:', error)

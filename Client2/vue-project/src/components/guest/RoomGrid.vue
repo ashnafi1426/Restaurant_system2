@@ -123,7 +123,12 @@ function handleBookingSubmit(_bookingData: any) {}
       <div class="results-left">
         <span class="results-dot"></span>
         <span class="results-count">{{ rooms.length }}</span>
-        <span class="results-label">{{ rooms.length === 1 ? languageStore.t('room', 'room') : languageStore.t('rooms', 'rooms') }} {{ languageStore.t('rooms_found', 'found') }}</span>
+        <span class="results-label"
+          >{{
+            rooms.length === 1 ? languageStore.t('room', 'room') : languageStore.t('rooms', 'rooms')
+          }}
+          {{ languageStore.t('rooms_found', 'found') }}</span
+        >
       </div>
       <div class="results-line"></div>
     </div>
@@ -142,39 +147,61 @@ function handleBookingSubmit(_bookingData: any) {}
             loading="lazy"
           />
 
-          <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20"></div>
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20"
+          ></div>
 
           <div
             class="absolute bottom-4 left-4 bg-white/95 backdrop-blur-md text-slate-900 px-3 py-2 rounded-xl shadow-2xl border border-white/50"
           >
-            <div class="text-[10px] text-red-600 font-semibold uppercase tracking-wide leading-none mb-1">{{ languageStore.t('nightly_rate', 'NIGHTLY RATE') }}</div>
+            <div
+              class="text-[10px] text-red-600 font-semibold uppercase tracking-wide leading-none mb-1"
+            >
+              {{ languageStore.t('nightly_rate', 'NIGHTLY RATE') }}
+            </div>
             <div class="flex items-baseline gap-1">
-              <span class="text-red-600 text-xl md:text-2xl font-bold leading-none">ETB {{ getRoomPrice(room) }}</span>
-              <span class="text-[10px] text-slate-500 font-normal">{{ languageStore.t('per_night', '/Night') }}</span>
+              <span class="text-red-600 text-xl md:text-2xl font-bold leading-none"
+                >ETB {{ getRoomPrice(room) }}</span
+              >
+              <span class="text-[10px] text-slate-500 font-normal">{{
+                languageStore.t('per_night', '/Night')
+              }}</span>
             </div>
           </div>
         </div>
 
         <div class="p-5 md:p-6 space-y-3 flex flex-col flex-grow bg-white">
-          <h3
-            class="text-lg md:text-xl font-bold text-red-800 leading-tight"
-          >
+          <h3 class="text-lg md:text-xl font-bold text-red-800 leading-tight">
             {{ getRoomTypeName(room) }}
           </h3>
 
           <div class="flex items-center gap-3 text-xs md:text-sm text-slate-600 font-medium">
             <span class="flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                />
               </svg>
               30 M²
             </span>
             <span class="text-slate-300">|</span>
             <span class="flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
               </svg>
-              {{ languageStore.t('max_capacity_guests', 'MAX {count} GUESTS').replace('{count}', String(getRoomCapacity(room))) }}
+              {{
+                languageStore
+                  .t('max_capacity_guests', 'MAX {count} GUESTS')
+                  .replace('{count}', String(getRoomCapacity(room)))
+              }}
             </span>
           </div>
 
@@ -185,18 +212,30 @@ function handleBookingSubmit(_bookingData: any) {}
             </div>
             <div class="flex items-start gap-2 text-xs md:text-sm text-slate-700">
               <span class="text-green-600 mt-0.5">✓</span>
-              <span>{{ languageStore.t('complimentary_breakfast', 'Complimentary Breakfast Served Daily') }}</span>
+              <span>{{
+                languageStore.t('complimentary_breakfast', 'Complimentary Breakfast Served Daily')
+              }}</span>
             </div>
             <div class="flex items-start gap-2 text-xs md:text-sm text-slate-700">
               <span class="text-green-600 mt-0.5">✓</span>
-              <span>{{ languageStore.t('free_wifi_feature', 'Free dual-band high-speed Wi-Fi') }}</span>
+              <span>{{
+                languageStore.t('free_wifi_feature', 'Free dual-band high-speed Wi-Fi')
+              }}</span>
             </div>
             <div class="flex items-start gap-2 text-xs md:text-sm text-slate-700">
               <span class="text-green-600 mt-0.5">✓</span>
-              <span>{{ languageStore.t('fully_air_conditioned', 'Fully Air-Conditioned Suite') }}</span>
+              <span>{{
+                languageStore.t('fully_air_conditioned', 'Fully Air-Conditioned Suite')
+              }}</span>
             </div>
-            <div v-if="getRoomAmenities(room).length > 4" class="flex items-start gap-2 text-xs md:text-sm text-amber-600 font-medium">
-              <span>+{{ getRoomAmenities(room).length - 4 }} {{ languageStore.t('more_amenities', 'More') }}</span>
+            <div
+              v-if="getRoomAmenities(room).length > 4"
+              class="flex items-start gap-2 text-xs md:text-sm text-amber-600 font-medium"
+            >
+              <span
+                >+{{ getRoomAmenities(room).length - 4 }}
+                {{ languageStore.t('more_amenities', 'More') }}</span
+              >
             </div>
           </div>
 
@@ -206,8 +245,18 @@ function handleBookingSubmit(_bookingData: any) {}
               class="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-red-600 text-red-600 font-semibold rounded-xl hover:bg-red-50 transition-all text-xs md:text-sm cursor-pointer"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
               </svg>
               {{ languageStore.t('specs', 'SPECS') }}
             </button>
@@ -216,7 +265,12 @@ function handleBookingSubmit(_bookingData: any) {}
               class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white font-semibold rounded-xl transition-all text-xs md:text-sm shadow-lg cursor-pointer"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
               </svg>
               {{ languageStore.t('book_room', 'BOOK ROOM') }}
             </button>
@@ -244,21 +298,45 @@ function handleBookingSubmit(_bookingData: any) {}
         </h2>
 
         <p class="text-slate-600 mb-5 text-sm md:text-base leading-relaxed">
-          {{ getRoomDescription(selectedRoom) || 'Premium room with all modern amenities for your comfort and convenience' }}
+          {{
+            getRoomDescription(selectedRoom) ||
+            'Premium room with all modern amenities for your comfort and convenience'
+          }}
         </p>
 
         <div class="mb-6 space-y-3 text-sm md:text-base bg-slate-50 p-4 rounded-xl">
           <div class="flex items-center gap-3">
             <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
             </svg>
-            <span class="text-slate-700"><strong class="font-semibold text-slate-900">{{ languageStore.t('capacity', 'Capacity') }}:</strong> {{ getRoomCapacity(selectedRoom) }} {{ languageStore.t('guests', 'guests') }}</span>
+            <span class="text-slate-700"
+              ><strong class="font-semibold text-slate-900"
+                >{{ languageStore.t('capacity', 'Capacity') }}:</strong
+              >
+              {{ getRoomCapacity(selectedRoom) }} {{ languageStore.t('guests', 'guests') }}</span
+            >
           </div>
           <div class="flex items-center gap-3">
             <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
-            <span class="text-slate-700"><strong class="font-semibold text-slate-900">{{ languageStore.t('price', 'Price') }}:</strong> ETB {{ getRoomPrice(selectedRoom) }} {{ languageStore.t('per_night', 'per night') }}</span>
+            <span class="text-slate-700"
+              ><strong class="font-semibold text-slate-900"
+                >{{ languageStore.t('price', 'Price') }}:</strong
+              >
+              ETB {{ getRoomPrice(selectedRoom) }}
+              {{ languageStore.t('per_night', 'per night') }}</span
+            >
           </div>
         </div>
 

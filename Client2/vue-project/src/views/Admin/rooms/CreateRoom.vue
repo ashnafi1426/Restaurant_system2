@@ -31,7 +31,10 @@ const saveRoom = async (room: Room) => {
 
     await roomStore.createRoom(payload as any)
 
-    successMessage.value = languageStore.t('room_created_success', `Room #${room.room_number} created successfully for ${hotelStore.hotelName}!`)
+    successMessage.value = languageStore.t(
+      'room_created_success',
+      `Room #${room.room_number} created successfully for ${hotelStore.hotelName}!`,
+    )
 
     setTimeout(() => {
       router.push('/admin/rooms')
@@ -41,7 +44,8 @@ const saveRoom = async (room: Room) => {
     const errorData = error.response?.data
     if (errorData?.errors) {
       serverErrors.value = errorData.errors
-      errorMessage.value = errorData.message || 'Validation failed. Please correct the highlighted errors.'
+      errorMessage.value =
+        errorData.message || 'Validation failed. Please correct the highlighted errors.'
     } else {
       errorMessage.value = errorData?.message || error.message || 'Unable to create room.'
     }
@@ -73,7 +77,11 @@ const cancel = () => {
           </span>
         </div>
         <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">
-          {{ languageStore.t('add_new_hotel_room', 'Add a new room to') }} <span class="font-medium text-slate-700 dark:text-slate-300">{{ hotelStore.hotelName }}</span>.
+          {{ languageStore.t('add_new_hotel_room', 'Add a new room to') }}
+          <span class="font-medium text-slate-700 dark:text-slate-300">{{
+            hotelStore.hotelName
+          }}</span
+          >.
         </p>
       </div>
 
@@ -97,7 +105,10 @@ const cancel = () => {
           <AlertTriangle class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
           <div>
             <p class="font-semibold">{{ errorMessage }}</p>
-            <ul v-if="Object.keys(serverErrors).length > 0" class="mt-1 list-disc list-inside text-xs space-y-0.5 text-red-700 dark:text-red-400">
+            <ul
+              v-if="Object.keys(serverErrors).length > 0"
+              class="mt-1 list-disc list-inside text-xs space-y-0.5 text-red-700 dark:text-red-400"
+            >
               <li v-for="(errList, field) in serverErrors" :key="field">
                 {{ errList[0] }}
               </li>
@@ -114,13 +125,18 @@ const cancel = () => {
       </div>
 
       <!-- Room Form Card -->
-      <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden"
+      >
+        <div
+          class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between"
+        >
           <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">
             {{ languageStore.t('room_information', 'Room Information') }}
           </h2>
           <span class="text-xs text-slate-400">
-            Target Hotel: <strong class="text-slate-600 dark:text-slate-300">{{ hotelStore.hotelName }}</strong>
+            Target Hotel:
+            <strong class="text-slate-600 dark:text-slate-300">{{ hotelStore.hotelName }}</strong>
           </span>
         </div>
 

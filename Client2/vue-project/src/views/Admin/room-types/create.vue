@@ -36,11 +36,11 @@ const submit = async () => {
 
   try {
     if (hotelStore.hotelId && !(form as any).hotel_id) {
-      (form as any).hotel_id = hotelStore.hotelId
+      ;(form as any).hotel_id = hotelStore.hotelId
     }
     await store.createRoomType(form)
     successMessage.value = `Room type "${form.name}" created successfully for ${hotelStore.hotelName}!`
-    
+
     setTimeout(() => {
       router.push('/admin/room-types')
     }, 1200)
@@ -60,7 +60,10 @@ const submit = async () => {
       <!-- Header -->
       <div class="flex items-center gap-2 mb-4">
         <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Create Room Type</h1>
-        <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+        <span
+          v-if="hotelStore.hotelName"
+          class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
+        >
           <Building2 class="w-3 h-3" />
           {{ hotelStore.hotelName }}
         </span>
@@ -84,7 +87,10 @@ const submit = async () => {
           <AlertTriangle class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
           <div>
             <p class="font-semibold">{{ errorMessage }}</p>
-            <ul v-if="Object.keys(serverErrors).length > 0" class="mt-1 list-disc list-inside text-xs space-y-0.5 text-red-700 dark:text-red-400">
+            <ul
+              v-if="Object.keys(serverErrors).length > 0"
+              class="mt-1 list-disc list-inside text-xs space-y-0.5 text-red-700 dark:text-red-400"
+            >
               <li v-for="(errList, field) in serverErrors" :key="field">
                 {{ errList[0] }}
               </li>
@@ -100,7 +106,9 @@ const submit = async () => {
         </button>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6"
+      >
         <RoomTypeForm
           v-model="form"
           :is-submitting="isSubmitting"

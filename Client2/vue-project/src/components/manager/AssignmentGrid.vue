@@ -19,7 +19,10 @@
         <div class="space-y-2">
           <div class="rounded bg-blue-50 p-2">
             <p class="text-xs font-medium text-gray-600 mb-1">Primary</p>
-            <div v-if="getAssignment(floor.id, 'primary')" class="flex items-center justify-between">
+            <div
+              v-if="getAssignment(floor.id, 'primary')"
+              class="flex items-center justify-between"
+            >
               <p class="text-sm text-gray-900 font-medium">
                 {{ getAssignment(floor.id, 'primary')?.waiter_name }}
               </p>
@@ -30,7 +33,10 @@
 
           <div class="rounded bg-yellow-50 p-2">
             <p class="text-xs font-medium text-gray-600 mb-1">Secondary</p>
-            <div v-if="getAssignment(floor.id, 'secondary')" class="flex items-center justify-between">
+            <div
+              v-if="getAssignment(floor.id, 'secondary')"
+              class="flex items-center justify-between"
+            >
               <p class="text-sm text-gray-900 font-medium">
                 {{ getAssignment(floor.id, 'secondary')?.waiter_name }}
               </p>
@@ -69,15 +75,21 @@
     </div>
 
     <div v-if="assignments.length > 0" class="mt-6 grid gap-4 md:grid-cols-4">
-      <div class="rounded-lg bg-gradient-to-br from-green-50 to-green-100 p-4 border border-green-200">
+      <div
+        class="rounded-lg bg-gradient-to-br from-green-50 to-green-100 p-4 border border-green-200"
+      >
         <p class="text-sm text-gray-600">Total Assignments</p>
         <p class="text-2xl font-bold text-green-700">{{ assignments.length }}</p>
       </div>
       <div class="rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 p-4 border border-blue-200">
         <p class="text-sm text-gray-600">Primary Only</p>
-        <p class="text-2xl font-bold text-blue-700">{{ assignments.filter(a => a.type === 'primary').length }}</p>
+        <p class="text-2xl font-bold text-blue-700">
+          {{ assignments.filter((a) => a.type === 'primary').length }}
+        </p>
       </div>
-      <div class="rounded-lg bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 border border-yellow-200">
+      <div
+        class="rounded-lg bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 border border-yellow-200"
+      >
         <p class="text-sm text-gray-600">Full Coverage</p>
         <p class="text-2xl font-bold text-yellow-700">{{ fullyCoveredFloors }}</p>
       </div>
@@ -107,26 +119,26 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'edit': [floorId: number]
+  edit: [floorId: number]
   'view-stats': [floorId: number]
 }>()
 
 const fullyCoveredFloors = computed(() => {
-  return props.floors.filter(floor => {
-    const floorAssignments = props.assignments.filter(a => a.floor_id === floor.id)
+  return props.floors.filter((floor) => {
+    const floorAssignments = props.assignments.filter((a) => a.floor_id === floor.id)
     return floorAssignments.length === 3
   }).length
 })
 
 const unassignedFloors = computed(() => {
-  return props.floors.filter(floor => {
-    const floorAssignments = props.assignments.filter(a => a.floor_id === floor.id)
+  return props.floors.filter((floor) => {
+    const floorAssignments = props.assignments.filter((a) => a.floor_id === floor.id)
     return floorAssignments.length === 0
   }).length
 })
 
 function getAssignment(floorId: number, type: string) {
-  return props.assignments.find(a => a.floor_id === floorId && a.type === type)
+  return props.assignments.find((a) => a.floor_id === floorId && a.type === type)
 }
 </script>
 

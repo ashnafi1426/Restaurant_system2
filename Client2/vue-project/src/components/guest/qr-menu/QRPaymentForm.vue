@@ -1,9 +1,13 @@
 <template>
   <div class="space-y-3">
-    <h4 class="font-semibold text-sm mb-2">{{ languageStore.t('customer_details', 'Customer Details') }}</h4>
-    
+    <h4 class="font-semibold text-sm mb-2">
+      {{ languageStore.t('customer_details', 'Customer Details') }}
+    </h4>
+
     <div>
-      <label class="text-xs text-slate-600 mb-1 block">{{ languageStore.t('first_name', 'First Name') }} *</label>
+      <label class="text-xs text-slate-600 mb-1 block"
+        >{{ languageStore.t('first_name', 'First Name') }} *</label
+      >
       <input
         v-model="localValue.first_name"
         type="text"
@@ -14,7 +18,9 @@
     </div>
 
     <div>
-      <label class="text-xs text-slate-600 mb-1 block">{{ languageStore.t('last_name', 'Last Name') }} *</label>
+      <label class="text-xs text-slate-600 mb-1 block"
+        >{{ languageStore.t('last_name', 'Last Name') }} *</label
+      >
       <input
         v-model="localValue.last_name"
         type="text"
@@ -25,7 +31,9 @@
     </div>
 
     <div>
-      <label class="text-xs text-slate-600 mb-1 block">{{ languageStore.t('email', 'Email') }} *</label>
+      <label class="text-xs text-slate-600 mb-1 block"
+        >{{ languageStore.t('email', 'Email') }} *</label
+      >
       <input
         v-model="localValue.email"
         type="email"
@@ -36,7 +44,9 @@
     </div>
 
     <div>
-      <label class="text-xs text-slate-600 mb-1 block">{{ languageStore.t('phone_number', 'Phone Number') }} *</label>
+      <label class="text-xs text-slate-600 mb-1 block"
+        >{{ languageStore.t('phone_number', 'Phone Number') }} *</label
+      >
       <input
         v-model="localValue.phone"
         type="tel"
@@ -70,6 +80,6 @@ const emit = defineEmits<{
 
 const localValue = computed({
   get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val)
+  set: (val) => emit('update:modelValue', val),
 })
 </script>

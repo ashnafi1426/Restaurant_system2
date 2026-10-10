@@ -3,251 +3,299 @@
     <Transition name="modal">
       <div v-if="isOpen" class="modal-overlay" @click.self="close">
         <div class="modal-container">
-            <div class="modal-header">
-              <div class="header-content">
-                <div class="header-icon">
-                  <UserPlus :size="20" />
-                </div>
-                <div class="header-text">
-                  <h2>{{ props.isEditMode ? 'Edit Waiter' : 'Register New Waiter' }}</h2>
-                  <p class="header-subtitle">{{ props.isEditMode ? 'Update waiter information' : 'Create waiter account' }}</p>
-                </div>
+          <div class="modal-header">
+            <div class="header-content">
+              <div class="header-icon">
+                <UserPlus :size="20" />
               </div>
-              <button class="btn-close" @click="close" type="button" title="Close">
-                <X :size="18" />
-              </button>
-            </div>
-
-      <div class="modal-body">
-        <form @submit.prevent="submitForm" class="form-container">
-          <div class="form-column">
-            <div class="form-section">
-              <div class="section-header">
-                <div class="section-icon person-icon">👤</div>
-                <h3>Personal</h3>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="first_name">First Name *</label>
-                  <input
-                    id="first_name"
-                    v-model="newUserData.first_name"
-                    type="text"
-                    placeholder="John"
-                    class="form-control"
-                    required
-                  />
-                  <span v-if="fieldErrors.first_name" class="error">{{ fieldErrors.first_name }}</span>
-                </div>
-                <div class="form-group">
-                  <label for="last_name">Last Name *</label>
-                  <input
-                    id="last_name"
-                    v-model="newUserData.last_name"
-                    type="text"
-                    placeholder="Smith"
-                    class="form-control"
-                    required
-                  />
-                  <span v-if="fieldErrors.last_name" class="error">{{ fieldErrors.last_name }}</span>
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="email">Email *</label>
-                <input
-                  id="email"
-                  v-model="newUserData.email"
-                  type="email"
-                  placeholder="john@example.com"
-                  class="form-control"
-                  required
-                />
-                <span v-if="fieldErrors.email" class="error">{{ fieldErrors.email }}</span>
-              </div>
-
-              <div class="form-group">
-                <label for="phone">Phone *</label>
-                <input
-                  id="phone"
-                  v-model="newUserData.phone"
-                  type="tel"
-                  placeholder="+1 234567890"
-                  class="form-control"
-                  required
-                />
-                <span v-if="fieldErrors.phone" class="error">{{ fieldErrors.phone }}</span>
-              </div>
-
-              <div class="form-group">
-                <label for="employee_number">Employee Number</label>
-                <input
-                  id="employee_number"
-                  v-model="formData.employee_number"
-                  type="text"
-                  placeholder="e.g., W001"
-                  class="form-control"
-                />
-                <span v-if="fieldErrors.employee_number" class="error">{{ fieldErrors.employee_number }}</span>
-              </div>
-            </div>
-
-            <div v-if="!props.isEditMode" class="form-section">
-              <div class="info-banner">
-                <div class="info-icon"></div>
-                <div class="info-content">
-                  <h4>Account Activation</h4>
-                  <p>The waiter will receive an email with an activation link to set their own password.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-column">
-            <div class="form-section">
-              <div class="section-header">
-                <div class="section-icon work-icon">👨‍💼</div>
-                <h3>Assignment</h3>
-              </div>
-
-              <div class="form-group">
-                <label for="section">Section *</label>
-                <input
-                  id="section"
-                  v-model="formData.section"
-                  type="text"
-                  placeholder="e.g., Restaurant A, Table Section 1"
-                  class="form-control"
-                  required
-                />
-                <span v-if="fieldErrors.section" class="error">{{ fieldErrors.section }}</span>
-              </div>
-
-              <div class="form-group">
-                <label for="shift">Shift *</label>
-                <select id="shift" v-model="formData.shift" class="form-control" required>
-                  <option value="">Select...</option>
-                  <option value="morning">🌅 Morning</option>
-                  <option value="afternoon"> Afternoon</option>
-                  <option value="evening">🌆 Evening</option>
-                  <option value="night"> Night</option>
-                </select>
-                <span v-if="fieldErrors.shift" class="error">{{ fieldErrors.shift }}</span>
-              </div>
-
-              <div class="form-group">
-                <label for="experience_level">Experience Level *</label>
-                <select id="experience_level" v-model="formData.experience_level" class="form-control" required>
-                  <option value="">Select...</option>
-                  <option value="junior">📚 Junior</option>
-                  <option value="senior">⭐ Senior</option>
-                  <option value="head">👑 Head</option>
-                </select>
-                <span v-if="fieldErrors.experience_level" class="error">{{ fieldErrors.experience_level }}</span>
-              </div>
-
-              <div class="form-group">
-                <label for="maximum_orders">Maximum Orders *</label>
-                <select id="maximum_orders" v-model.number="formData.maximum_orders" class="form-control" required>
-                  <option value="">Select...</option>
-                  <option value="5">5 Orders</option>
-                  <option value="8">8 Orders</option>
-                  <option value="10">10 Orders</option>
-                  <option value="15">15 Orders</option>
-                  <option value="20">20 Orders</option>
-                </select>
-                <span v-if="fieldErrors.maximum_orders" class="error">{{ fieldErrors.maximum_orders }}</span>
-              </div>
-
-              <div class="form-group">
-                <label>Status *</label>
-                <div v-if="props.isEditMode" class="status-group">
-                  <label class="status-check">
-                    <input v-model="formData.status" type="radio" value="active" />
-                    <span>✓ Active</span>
-                  </label>
-                  <label class="status-check">
-                    <input v-model="formData.status" type="radio" value="inactive" />
-                    <span>✗ Inactive</span>
-                  </label>
-                </div>
-                <div v-else class="info-note">
-                  <span class="status-badge inactive">⏸️ Inactive (Until Activation)</span>
-                  <p class="hint">Status will automatically become "Active" when the waiter activates their account.</p>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-section">
-              <div class="section-header">
-                <div class="section-icon floor-icon">🏢</div>
-                <h3>Floor Assignments</h3>
-              </div>
-
-              <div v-if="loadingFloors" class="loading-message">
-                <Loader :size="14" class="spin" />
-                Loading floors...
-              </div>
-
-              <div v-else class="assignments-list">
-                <div v-for="(assignment, index) in formData.floor_assignments" 
-                     :key="index" 
-                     class="assignment-row">
-                  <select v-model="assignment.floor_id" class="form-control" required>
-                    <option value="">Select Floor...</option>
-                    <option v-for="floor in floors" :key="floor.id" :value="floor.id">
-                      Floor {{ floor.floor_number }} - {{ floor.name }}
-                    </option>
-                  </select>
-                  
-                  <select v-model="assignment.shift_id" class="form-control">
-                    <option value="">All Shifts / Default</option>
-                    <option v-for="shift in shifts" :key="shift.id" :value="shift.id">
-                      {{ shift.name }} ({{ shift.start_time }} - {{ shift.end_time }})
-                    </option>
-                  </select>
-                  
-                  <select v-model="assignment.priority" class="form-control">
-                    <option value="primary">⭐ Primary</option>
-                    <option value="secondary">👥 Secondary</option>
-                    <option value="backup"> Backup</option>
-                  </select>
-                  
-                  <button type="button" @click="removeFloorAssignment(index)" class="btn-remove" title="Remove">
-                    <Trash2 :size="14" />
-                  </button>
-                </div>
-                
-                <button type="button" @click="addFloorAssignment" class="btn-add">
-                  <Plus :size="14" />
-                  Add Floor Assignment
-                </button>
-                
-                <p v-if="formData.floor_assignments.length === 0" class="hint warning-hint">
-                  💡 Add at least one floor assignment to enable automatic order routing
+              <div class="header-text">
+                <h2>{{ props.isEditMode ? 'Edit Waiter' : 'Register New Waiter' }}</h2>
+                <p class="header-subtitle">
+                  {{ props.isEditMode ? 'Update waiter information' : 'Create waiter account' }}
                 </p>
               </div>
             </div>
+            <button class="btn-close" @click="close" type="button" title="Close">
+              <X :size="18" />
+            </button>
           </div>
-        </form>
 
-        <div v-if="errorMessage" class="alert alert-error">
-          <AlertCircle :size="14" />
-          <div>
-            <p class="alert-title">Error</p>
-            <p class="alert-msg">{{ errorMessage }}</p>
+          <div class="modal-body">
+            <form @submit.prevent="submitForm" class="form-container">
+              <div class="form-column">
+                <div class="form-section">
+                  <div class="section-header">
+                    <div class="section-icon person-icon">👤</div>
+                    <h3>Personal</h3>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="first_name">First Name *</label>
+                      <input
+                        id="first_name"
+                        v-model="newUserData.first_name"
+                        type="text"
+                        placeholder="John"
+                        class="form-control"
+                        required
+                      />
+                      <span v-if="fieldErrors.first_name" class="error">{{
+                        fieldErrors.first_name
+                      }}</span>
+                    </div>
+                    <div class="form-group">
+                      <label for="last_name">Last Name *</label>
+                      <input
+                        id="last_name"
+                        v-model="newUserData.last_name"
+                        type="text"
+                        placeholder="Smith"
+                        class="form-control"
+                        required
+                      />
+                      <span v-if="fieldErrors.last_name" class="error">{{
+                        fieldErrors.last_name
+                      }}</span>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input
+                      id="email"
+                      v-model="newUserData.email"
+                      type="email"
+                      placeholder="john@example.com"
+                      class="form-control"
+                      required
+                    />
+                    <span v-if="fieldErrors.email" class="error">{{ fieldErrors.email }}</span>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="phone">Phone *</label>
+                    <input
+                      id="phone"
+                      v-model="newUserData.phone"
+                      type="tel"
+                      placeholder="+1 234567890"
+                      class="form-control"
+                      required
+                    />
+                    <span v-if="fieldErrors.phone" class="error">{{ fieldErrors.phone }}</span>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="employee_number">Employee Number</label>
+                    <input
+                      id="employee_number"
+                      v-model="formData.employee_number"
+                      type="text"
+                      placeholder="e.g., W001"
+                      class="form-control"
+                    />
+                    <span v-if="fieldErrors.employee_number" class="error">{{
+                      fieldErrors.employee_number
+                    }}</span>
+                  </div>
+                </div>
+
+                <div v-if="!props.isEditMode" class="form-section">
+                  <div class="info-banner">
+                    <div class="info-icon"></div>
+                    <div class="info-content">
+                      <h4>Account Activation</h4>
+                      <p>
+                        The waiter will receive an email with an activation link to set their own
+                        password.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-column">
+                <div class="form-section">
+                  <div class="section-header">
+                    <div class="section-icon work-icon">👨‍💼</div>
+                    <h3>Assignment</h3>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="section">Section *</label>
+                    <input
+                      id="section"
+                      v-model="formData.section"
+                      type="text"
+                      placeholder="e.g., Restaurant A, Table Section 1"
+                      class="form-control"
+                      required
+                    />
+                    <span v-if="fieldErrors.section" class="error">{{ fieldErrors.section }}</span>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="shift">Shift *</label>
+                    <select id="shift" v-model="formData.shift" class="form-control" required>
+                      <option value="">Select...</option>
+                      <option value="morning">🌅 Morning</option>
+                      <option value="afternoon">Afternoon</option>
+                      <option value="evening">🌆 Evening</option>
+                      <option value="night">Night</option>
+                    </select>
+                    <span v-if="fieldErrors.shift" class="error">{{ fieldErrors.shift }}</span>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="experience_level">Experience Level *</label>
+                    <select
+                      id="experience_level"
+                      v-model="formData.experience_level"
+                      class="form-control"
+                      required
+                    >
+                      <option value="">Select...</option>
+                      <option value="junior">📚 Junior</option>
+                      <option value="senior">⭐ Senior</option>
+                      <option value="head">👑 Head</option>
+                    </select>
+                    <span v-if="fieldErrors.experience_level" class="error">{{
+                      fieldErrors.experience_level
+                    }}</span>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="maximum_orders">Maximum Orders *</label>
+                    <select
+                      id="maximum_orders"
+                      v-model.number="formData.maximum_orders"
+                      class="form-control"
+                      required
+                    >
+                      <option value="">Select...</option>
+                      <option value="5">5 Orders</option>
+                      <option value="8">8 Orders</option>
+                      <option value="10">10 Orders</option>
+                      <option value="15">15 Orders</option>
+                      <option value="20">20 Orders</option>
+                    </select>
+                    <span v-if="fieldErrors.maximum_orders" class="error">{{
+                      fieldErrors.maximum_orders
+                    }}</span>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Status *</label>
+                    <div v-if="props.isEditMode" class="status-group">
+                      <label class="status-check">
+                        <input v-model="formData.status" type="radio" value="active" />
+                        <span>✓ Active</span>
+                      </label>
+                      <label class="status-check">
+                        <input v-model="formData.status" type="radio" value="inactive" />
+                        <span>✗ Inactive</span>
+                      </label>
+                    </div>
+                    <div v-else class="info-note">
+                      <span class="status-badge inactive">⏸️ Inactive (Until Activation)</span>
+                      <p class="hint">
+                        Status will automatically become "Active" when the waiter activates their
+                        account.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-section">
+                  <div class="section-header">
+                    <div class="section-icon floor-icon">🏢</div>
+                    <h3>Floor Assignments</h3>
+                  </div>
+
+                  <div v-if="loadingFloors" class="loading-message">
+                    <Loader :size="14" class="spin" />
+                    Loading floors...
+                  </div>
+
+                  <div v-else class="assignments-list">
+                    <div
+                      v-for="(assignment, index) in formData.floor_assignments"
+                      :key="index"
+                      class="assignment-row"
+                    >
+                      <select v-model="assignment.floor_id" class="form-control" required>
+                        <option value="">Select Floor...</option>
+                        <option v-for="floor in floors" :key="floor.id" :value="floor.id">
+                          Floor {{ floor.floor_number }} - {{ floor.name }}
+                        </option>
+                      </select>
+
+                      <select v-model="assignment.shift_id" class="form-control">
+                        <option value="">All Shifts / Default</option>
+                        <option v-for="shift in shifts" :key="shift.id" :value="shift.id">
+                          {{ shift.name }} ({{ shift.start_time }} - {{ shift.end_time }})
+                        </option>
+                      </select>
+
+                      <select v-model="assignment.priority" class="form-control">
+                        <option value="primary">⭐ Primary</option>
+                        <option value="secondary">👥 Secondary</option>
+                        <option value="backup">Backup</option>
+                      </select>
+
+                      <button
+                        type="button"
+                        @click="removeFloorAssignment(index)"
+                        class="btn-remove"
+                        title="Remove"
+                      >
+                        <Trash2 :size="14" />
+                      </button>
+                    </div>
+
+                    <button type="button" @click="addFloorAssignment" class="btn-add">
+                      <Plus :size="14" />
+                      Add Floor Assignment
+                    </button>
+
+                    <p v-if="formData.floor_assignments.length === 0" class="hint warning-hint">
+                      💡 Add at least one floor assignment to enable automatic order routing
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </form>
+
+            <div v-if="errorMessage" class="alert alert-error">
+              <AlertCircle :size="14" />
+              <div>
+                <p class="alert-title">Error</p>
+                <p class="alert-msg">{{ errorMessage }}</p>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" @click="close">Cancel</button>
-        <button type="submit" class="btn btn-primary" @click="submitForm" :disabled="submitting">
-          <Loader v-if="submitting" :size="14" class="spin" />
-          {{ submitting ? (props.isEditMode ? 'Updating...' : 'Registering...') : (props.isEditMode ? 'Update' : 'Register') }}
-        </button>
-      </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="close">Cancel</button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              @click="submitForm"
+              :disabled="submitting"
+            >
+              <Loader v-if="submitting" :size="14" class="spin" />
+              {{
+                submitting
+                  ? props.isEditMode
+                    ? 'Updating...'
+                    : 'Registering...'
+                  : props.isEditMode
+                    ? 'Update'
+                    : 'Register'
+              }}
+            </button>
+          </div>
         </div>
       </div>
     </Transition>
@@ -297,7 +345,7 @@ const formData = ref({
     shift_id: string
     priority: string
     assignment_date: string
-  }>
+  }>,
 })
 
 const newUserData = ref({
@@ -329,7 +377,7 @@ const populateForm = () => {
             priority: fa.priority || 'primary',
             assignment_date: fa.assignment_date || new Date().toISOString().split('T')[0],
           }))
-        : []
+        : [],
     }
     newUserData.value = {
       first_name: data.user?.first_name || (data.name ? data.name.split(' ')[0] : ''),
@@ -348,9 +396,9 @@ onMounted(async () => {
     loadingFloors.value = true
     const [floorsRes, shiftsRes] = await Promise.all([
       floorService.getFloors(),
-      shiftService.getShifts()
+      shiftService.getShifts(),
     ])
-    
+
     floors.value = floorsRes.data?.data || floorsRes.data || []
     shifts.value = shiftsRes.data?.data || shiftsRes.data || []
   } catch (error) {
@@ -361,24 +409,30 @@ onMounted(async () => {
   }
 })
 
-watch(() => props.isOpen, (newVal) => {
-  if (newVal) {
-    populateForm()
-  }
-})
+watch(
+  () => props.isOpen,
+  (newVal) => {
+    if (newVal) {
+      populateForm()
+    }
+  },
+)
 
-watch(() => [props.waiterData, props.initialData, props.isEditMode], () => {
-  if (props.isOpen) {
-    populateForm()
-  }
-})
+watch(
+  () => [props.waiterData, props.initialData, props.isEditMode],
+  () => {
+    if (props.isOpen) {
+      populateForm()
+    }
+  },
+)
 
 const addFloorAssignment = () => {
   formData.value.floor_assignments.push({
     floor_id: '',
     shift_id: '',
     priority: 'primary',
-    assignment_date: new Date().toISOString().split('T')[0]
+    assignment_date: new Date().toISOString().split('T')[0],
   })
 }
 
@@ -387,14 +441,14 @@ const removeFloorAssignment = (index: number) => {
 }
 
 const resetForm = () => {
-  formData.value = { 
-    section: '', 
-    shift: '', 
-    experience_level: '', 
-    status: 'inactive', 
-    maximum_orders: 5, 
+  formData.value = {
+    section: '',
+    shift: '',
+    experience_level: '',
+    status: 'inactive',
+    maximum_orders: 5,
     employee_number: '',
-    floor_assignments: []
+    floor_assignments: [],
   }
   newUserData.value = { first_name: '', last_name: '', email: '', phone: '' }
   errorMessage.value = ''
@@ -455,7 +509,8 @@ const submitForm = async () => {
       .filter((fa: any) => fa && fa.floor_id && String(fa.floor_id).trim() !== '')
       .map((fa: any) => ({
         floor_id: String(fa.floor_id).trim(),
-        shift_id: fa.shift_id && String(fa.shift_id).trim() !== '' ? String(fa.shift_id).trim() : null,
+        shift_id:
+          fa.shift_id && String(fa.shift_id).trim() !== '' ? String(fa.shift_id).trim() : null,
         priority: fa.priority || 'primary',
         assignment_date: fa.assignment_date || new Date().toISOString().split('T')[0],
       }))
@@ -516,13 +571,13 @@ const close = () => {
 }
 
 @keyframes slideUp {
-  from { 
-    opacity: 0; 
-    transform: translateY(20px) scale(0.95); 
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0) scale(1); 
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -626,10 +681,18 @@ const close = () => {
   flex-shrink: 0;
 }
 
-.person-icon { background: #e3f2fd; }
-.lock-icon { background: #f3e5f5; }
-.work-icon { background: #e8f5e9; }
-.floor-icon { background: #fff3e0; }
+.person-icon {
+  background: #e3f2fd;
+}
+.lock-icon {
+  background: #f3e5f5;
+}
+.work-icon {
+  background: #e8f5e9;
+}
+.floor-icon {
+  background: #fff3e0;
+}
 
 .section-header h3 {
   margin: 0;
@@ -875,7 +938,9 @@ label {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 768px) {
@@ -1008,7 +1073,9 @@ label {
 
 .modal-enter-active .modal-container,
 .modal-leave-active .modal-container {
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
 }
 
 .modal-enter-from .modal-container,

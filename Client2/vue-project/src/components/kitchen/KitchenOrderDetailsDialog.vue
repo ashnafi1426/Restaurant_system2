@@ -21,7 +21,8 @@
                 {{ languageStore.t('order_details', 'Order Details') }}
               </h2>
               <p class="text-xs text-gray-500 dark:text-gray-400">
-                {{ languageStore.t('order_ref', 'Order #') }}{{ selectedOrder?.order_number || '--' }}
+                {{ languageStore.t('order_ref', 'Order #')
+                }}{{ selectedOrder?.order_number || '--' }}
               </p>
             </div>
           </div>
@@ -37,7 +38,13 @@
           <div v-if="selectedOrder">
             <div class="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-6">
               <div class="p-2 sm:p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <p class="text-xs text-gray-500 dark:text-gray-400">{{ selectedOrder?.table ? languageStore.t('table', 'Table') : languageStore.t('room', 'Room') }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  {{
+                    selectedOrder?.table
+                      ? languageStore.t('table', 'Table')
+                      : languageStore.t('room', 'Room')
+                  }}
+                </p>
                 <p
                   class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 truncate"
                 >
@@ -45,7 +52,9 @@
                 </p>
               </div>
               <div class="p-2 sm:p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <p class="text-xs text-gray-500 dark:text-gray-400">{{ languageStore.t('status', 'Status') }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ languageStore.t('status', 'Status') }}
+                </p>
                 <span
                   :class="[
                     'inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 text-xs font-medium rounded-full mt-1',
@@ -54,11 +63,17 @@
                   ]"
                 >
                   <span :class="['w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full', statusColor.dot]"></span>
-                  {{ selectedOrder?.status ? languageStore.t(selectedOrder.status, selectedOrder.status).toUpperCase() : 'UNKNOWN' }}
+                  {{
+                    selectedOrder?.status
+                      ? languageStore.t(selectedOrder.status, selectedOrder.status).toUpperCase()
+                      : 'UNKNOWN'
+                  }}
                 </span>
               </div>
               <div class="p-2 sm:p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <p class="text-xs text-gray-500 dark:text-gray-400">{{ languageStore.t('guest', 'Guest') }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ languageStore.t('guest', 'Guest') }}
+                </p>
                 <p
                   class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100 truncate"
                 >
@@ -66,7 +81,9 @@
                 </p>
               </div>
               <div class="p-2 sm:p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <p class="text-xs text-gray-500 dark:text-gray-400">{{ languageStore.t('time', 'Time') }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ languageStore.t('time', 'Time') }}
+                </p>
                 <p class="text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-100">
                   {{ formattedTime }}
                 </p>
@@ -134,19 +151,25 @@
 
             <div class="border-t border-gray-200 dark:border-gray-700 pt-3 sm:pt-4">
               <div class="flex justify-between text-xs sm:text-sm">
-                <span class="text-gray-600 dark:text-gray-400">{{ languageStore.t('subtotal', 'Subtotal') }}</span>
+                <span class="text-gray-600 dark:text-gray-400">{{
+                  languageStore.t('subtotal', 'Subtotal')
+                }}</span>
                 <span class="font-medium text-gray-900 dark:text-gray-100"
                   >${{ (selectedOrder.subtotal || 0).toFixed(2) }}</span
                 >
               </div>
               <div class="flex justify-between text-xs sm:text-sm mt-1">
-                <span class="text-gray-600 dark:text-gray-400">{{ languageStore.t('tax', 'Tax') }}</span>
+                <span class="text-gray-600 dark:text-gray-400">{{
+                  languageStore.t('tax', 'Tax')
+                }}</span>
                 <span class="font-medium text-gray-900 dark:text-gray-100"
                   >${{ (selectedOrder.tax || 0).toFixed(2) }}</span
                 >
               </div>
               <div class="flex justify-between text-xs sm:text-sm mt-1">
-                <span class="text-gray-600 dark:text-gray-400">{{ languageStore.t('discount', 'Discount') }}</span>
+                <span class="text-gray-600 dark:text-gray-400">{{
+                  languageStore.t('discount', 'Discount')
+                }}</span>
                 <span class="font-medium text-gray-900 dark:text-gray-100"
                   >-${{ (selectedOrder.discount || 0).toFixed(2) }}</span
                 >
@@ -154,7 +177,9 @@
               <div
                 class="flex justify-between text-base sm:text-lg font-bold mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-200 dark:border-gray-700"
               >
-                <span class="text-gray-900 dark:text-gray-100">{{ languageStore.t('total', 'Total') }}</span>
+                <span class="text-gray-900 dark:text-gray-100">{{
+                  languageStore.t('total', 'Total')
+                }}</span>
                 <span class="text-blue-600 dark:text-blue-400"
                   >${{ (selectedOrder.total || 0).toFixed(2) }}</span
                 >
@@ -190,15 +215,35 @@ const selectedOrder = ref<KitchenOrder | null>(null)
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'pending':
-      return { bg: 'bg-yellow-50 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-300', dot: 'bg-yellow-400' }
+      return {
+        bg: 'bg-yellow-50 dark:bg-yellow-900/30',
+        text: 'text-yellow-700 dark:text-yellow-300',
+        dot: 'bg-yellow-400',
+      }
     case 'preparing':
-      return { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-300', dot: 'bg-blue-400' }
+      return {
+        bg: 'bg-blue-50 dark:bg-blue-900/30',
+        text: 'text-blue-700 dark:text-blue-300',
+        dot: 'bg-blue-400',
+      }
     case 'ready':
-      return { bg: 'bg-green-50 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-300', dot: 'bg-green-400' }
+      return {
+        bg: 'bg-green-50 dark:bg-green-900/30',
+        text: 'text-green-700 dark:text-green-300',
+        dot: 'bg-green-400',
+      }
     case 'served':
-      return { bg: 'bg-slate-50 dark:bg-slate-800', text: 'text-slate-700 dark:text-slate-300', dot: 'bg-slate-400' }
+      return {
+        bg: 'bg-slate-50 dark:bg-slate-800',
+        text: 'text-slate-700 dark:text-slate-300',
+        dot: 'bg-slate-400',
+      }
     default:
-      return { bg: 'bg-gray-50 dark:bg-gray-800', text: 'text-gray-700 dark:text-gray-300', dot: 'bg-gray-400' }
+      return {
+        bg: 'bg-gray-50 dark:bg-gray-800',
+        text: 'text-gray-700 dark:text-gray-300',
+        dot: 'bg-gray-400',
+      }
   }
 }
 
@@ -214,7 +259,10 @@ const formattedTime = computed(() => {
 
 const roomDisplay = computed(() => {
   if (selectedOrder.value?.table?.table_number) {
-    return selectedOrder.value.table.table_name || `${languageStore.t('table', 'TABLE')} ${selectedOrder.value.table.table_number}`
+    return (
+      selectedOrder.value.table.table_name ||
+      `${languageStore.t('table', 'TABLE')} ${selectedOrder.value.table.table_number}`
+    )
   }
   if (selectedOrder.value?.room?.room_number) {
     return `${languageStore.t('room', 'ROOM')} ${selectedOrder.value.room.room_number}`

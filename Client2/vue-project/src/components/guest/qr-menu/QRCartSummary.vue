@@ -7,7 +7,9 @@
     </div>
 
     <!-- Total -->
-    <div class="flex items-center justify-between text-gray-900 text-lg font-bold pt-2 border-t border-gray-200">
+    <div
+      class="flex items-center justify-between text-gray-900 text-lg font-bold pt-2 border-t border-gray-200"
+    >
       <span>{{ languageStore.t('total', 'Total') }}</span>
       <span class="text-red-600">{{ formatPrice(total) }}</span>
     </div>
@@ -50,7 +52,7 @@
         </svg>
         🍽️ {{ languageStore.t('order_now_pay_after', 'Order Now (Pay After Meal)') }}
       </button>
-      
+
       <!-- Pay with Chapa Button -->
       <button
         @click="$emit('open-payment-dialog')"
@@ -73,16 +75,21 @@
         </svg>
         💳 {{ languageStore.t('pay_now_with_chapa', 'Pay Now with Chapa') }}
       </button>
-      
+
       <button
         @click="$emit('continue-shopping')"
         class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
       >
         {{ languageStore.t('continue_shopping', 'Continue Shopping') }}
       </button>
-      
+
       <p class="text-xs text-gray-500 text-center mt-2">
-        {{ languageStore.t('payment_choice_desc', 'Choose: Order now and pay after eating, or pay online now') }}
+        {{
+          languageStore.t(
+            'payment_choice_desc',
+            'Choose: Order now and pay after eating, or pay online now',
+          )
+        }}
       </p>
     </div>
   </div>

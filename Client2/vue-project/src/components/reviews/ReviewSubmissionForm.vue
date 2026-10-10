@@ -1,16 +1,20 @@
 <template>
   <div class="review-submission-form">
     <div class="form-header mb-4">
-      <h3 class="text-xl font-bold">{{ languageStore.t('submit_your_review', 'Submit Your Review') }}</h3>
-      <p class="text-gray-600 text-sm mt-1">{{ languageStore.t('share_experience_desc', 'Share your experience with other guests') }}</p>
+      <h3 class="text-xl font-bold">
+        {{ languageStore.t('submit_your_review', 'Submit Your Review') }}
+      </h3>
+      <p class="text-gray-600 text-sm mt-1">
+        {{ languageStore.t('share_experience_desc', 'Share your experience with other guests') }}
+      </p>
     </div>
 
     <form @submit.prevent="submitReview" class="space-y-4">
       <div v-if="menuItem" class="bg-gray-50 p-4 rounded-lg mb-4">
         <div class="flex items-center gap-3">
-          <img 
-            v-if="menuItem.image" 
-            :src="menuItem.image" 
+          <img
+            v-if="menuItem.image"
+            :src="menuItem.image"
             :alt="menuItem.name"
             class="w-16 h-16 object-cover rounded"
           />
@@ -23,7 +27,9 @@
       </div>
 
       <div class="form-group">
-        <label class="block text-sm font-semibold mb-2">{{ languageStore.t('rating', 'Rating') }} *</label>
+        <label class="block text-sm font-semibold mb-2"
+          >{{ languageStore.t('rating', 'Rating') }} *</label
+        >
         <div class="flex gap-2">
           <button
             v-for="star in 5"
@@ -36,21 +42,31 @@
             ★
           </button>
         </div>
-        <span v-if="form.rating" class="text-sm text-gray-600 ml-2">{{ form.rating }} {{ languageStore.t('out_of_5', 'out of 5') }}</span>
+        <span v-if="form.rating" class="text-sm text-gray-600 ml-2"
+          >{{ form.rating }} {{ languageStore.t('out_of_5', 'out of 5') }}</span
+        >
       </div>
 
       <div class="form-group">
-        <label for="reviewText" class="block text-sm font-semibold mb-2">{{ languageStore.t('your_review', 'Your Review') }}</label>
+        <label for="reviewText" class="block text-sm font-semibold mb-2">{{
+          languageStore.t('your_review', 'Your Review')
+        }}</label>
         <textarea
           id="reviewText"
           v-model="form.review_text"
-          :placeholder="languageStore.t('review_placeholder', 'Share your thoughts about this menu item... (optional)')"
+          :placeholder="
+            languageStore.t(
+              'review_placeholder',
+              'Share your thoughts about this menu item... (optional)',
+            )
+          "
           rows="4"
           maxlength="1000"
           class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <div class="text-xs text-gray-500 mt-1">
-          {{ form.review_text?.length || 0 }} / 1000 {{ languageStore.t('characters', 'characters') }}
+          {{ form.review_text?.length || 0 }} / 1000
+          {{ languageStore.t('characters', 'characters') }}
         </div>
       </div>
 
@@ -72,7 +88,10 @@
         </button>
       </div>
 
-      <div v-if="errorMessage" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+      <div
+        v-if="errorMessage"
+        class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"
+      >
         {{ errorMessage }}
       </div>
     </form>
@@ -139,8 +158,11 @@ const submitReview = async () => {
   }
 }
 
-watch(() => props.menuItem, (newVal) => {
-}, { deep: true })
+watch(
+  () => props.menuItem,
+  (newVal) => {},
+  { deep: true },
+)
 </script>
 
 <style scoped>

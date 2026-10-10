@@ -1,8 +1,13 @@
 <template>
   <div class="notification-center">
     <div class="flex items-center justify-between mb-4">
-      <h3 class="text-lg font-bold">{{ languageStore.t('review_notifications', 'Review Notifications') }}</h3>
-      <span v-if="unreadCount > 0" class="bg-red-600 text-white rounded-full px-3 py-1 text-sm font-semibold">
+      <h3 class="text-lg font-bold">
+        {{ languageStore.t('review_notifications', 'Review Notifications') }}
+      </h3>
+      <span
+        v-if="unreadCount > 0"
+        class="bg-red-600 text-white rounded-full px-3 py-1 text-sm font-semibold"
+      >
         {{ unreadCount }} {{ languageStore.t('new', 'new') }}
       </span>
     </div>
@@ -16,13 +21,13 @@
     </div>
 
     <div v-else class="space-y-3">
-      <div 
-        v-for="notification in notifications" 
+      <div
+        v-for="notification in notifications"
         :key="notification.id"
         @click="markAsRead(notification.id)"
         :class="[
           'p-4 rounded-lg cursor-pointer transition-colors',
-          notification.is_read ? 'bg-gray-50' : 'bg-blue-50 border-l-4 border-blue-500'
+          notification.is_read ? 'bg-gray-50' : 'bg-blue-50 border-l-4 border-blue-500',
         ]"
       >
         <div class="flex items-start gap-3">
@@ -34,8 +39,12 @@
 
           <div class="flex-1">
             <p class="font-semibold text-gray-900">
-              <span v-if="notification.notification_type === 'new_review'">{{ languageStore.t('new_review_submitted', 'New Review Submitted') }}</span>
-              <span v-else-if="notification.notification_type === 'review_approved'">{{ languageStore.t('review_approved', 'Review Approved') }}</span>
+              <span v-if="notification.notification_type === 'new_review'">{{
+                languageStore.t('new_review_submitted', 'New Review Submitted')
+              }}</span>
+              <span v-else-if="notification.notification_type === 'review_approved'">{{
+                languageStore.t('review_approved', 'Review Approved')
+              }}</span>
               <span v-else>{{ languageStore.t('review_rejected', 'Review Rejected') }}</span>
             </p>
             <p class="text-sm text-gray-600 mt-1">{{ notification.message }}</p>
@@ -57,10 +66,8 @@
       >
         {{ languageStore.t('previous', 'Prev') }}
       </button>
-      
-      <span class="text-xs text-gray-600">
-        {{ currentPage }} / {{ totalPages }}
-      </span>
+
+      <span class="text-xs text-gray-600"> {{ currentPage }} / {{ totalPages }} </span>
 
       <button
         @click="currentPage = Math.min(totalPages, currentPage + 1)"
@@ -97,7 +104,7 @@ const formatDate = (dateString: string) => {
   if (hours < 1) return 'Just now'
   if (hours < 24) return `${hours}h ago`
   if (days < 7) return `${days}d ago`
-  
+
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
@@ -120,7 +127,7 @@ const loadNotifications = async () => {
 const markAsRead = async (notificationId: string) => {
   try {
     await reviewService.markNotificationAsRead(notificationId)
-    const notification = notifications.value.find(n => n.id === notificationId)
+    const notification = notifications.value.find((n) => n.id === notificationId)
     if (notification && !notification.is_read) {
       notification.is_read = true
       unreadCount.value = Math.max(0, unreadCount.value - 1)

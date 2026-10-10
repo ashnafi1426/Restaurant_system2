@@ -9,7 +9,11 @@
       v-for="(slide, index) in slides"
       :key="slide.id"
       class="absolute inset-0 transition-opacity duration-500 ease-in-out"
-      :class="index === currentSlide ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'"
+      :class="
+        index === currentSlide
+          ? 'opacity-100 z-10 pointer-events-auto'
+          : 'opacity-0 z-0 pointer-events-none'
+      "
     >
       <img
         :src="slide.imageUrl"
@@ -20,7 +24,9 @@
       />
 
       <!-- Soft Gradient Overlay - keeps typography readable while maintaining rich food colors -->
-      <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/75 to-transparent"></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/75 to-transparent"
+      ></div>
     </div>
 
     <!-- Active Slide Content Overlay -->
@@ -28,19 +34,26 @@
       <Transition name="slide-fade" mode="out-in">
         <div :key="currentSlide" class="max-w-md space-y-2 sm:space-y-2.5 text-white">
           <!-- Tag / Badge -->
-          <div v-if="activeSlide.badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-bold uppercase tracking-wider text-amber-300">
+          <div
+            v-if="activeSlide.badge"
+            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-bold uppercase tracking-wider text-amber-300"
+          >
             <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
             <span>{{ activeSlide.badge }}</span>
           </div>
 
           <!-- Main Heading with Gold Accent matching screenshot -->
-          <h1 class="text-2xl sm:text-3xl md:text-4xl font-serif font-bold tracking-tight leading-tight">
+          <h1
+            class="text-2xl sm:text-3xl md:text-4xl font-serif font-bold tracking-tight leading-tight"
+          >
             <span class="block text-white">{{ activeSlide.titleLine1 }}</span>
             <span class="block text-[#c29353] drop-shadow-md">{{ activeSlide.titleLine2 }}</span>
           </h1>
 
           <!-- Subtitle Text -->
-          <p class="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed max-w-sm line-clamp-2">
+          <p
+            class="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed max-w-sm line-clamp-2"
+          >
             {{ activeSlide.subtitle }}
           </p>
 
@@ -50,7 +63,9 @@
               @click="handleSpecials(activeSlide.category)"
               class="px-5 py-2.5 sm:px-6 sm:py-3 rounded-full bg-[#c29353] hover:bg-[#b08244] text-white font-bold text-xs sm:text-sm shadow-lg hover:shadow-xl transition-all cursor-pointer inline-flex items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0"
             >
-              <span>{{ activeSlide.ctaText || languageStore.t('view_specials', 'View Specials') }}</span>
+              <span>{{
+                activeSlide.ctaText || languageStore.t('view_specials', 'View Specials')
+              }}</span>
               <ChevronRight class="w-4 h-4" />
             </button>
           </div>
@@ -114,7 +129,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   // Navigates every second (1000ms) as requested
-  intervalMs: 1000
+  intervalMs: 1000,
 })
 
 const emit = defineEmits<{
@@ -136,10 +151,14 @@ const slides = computed<HeroSlide[]>(() => [
     badge: "Chef's Signature",
     titleLine1: languageStore.t('good_food', 'Good Food,'),
     titleLine2: languageStore.t('great_moments', 'Great Moments'),
-    subtitle: languageStore.t('fresh_ingredients_desc', 'Fresh ingredients, expertly prepared. Delivered directly to your room.'),
+    subtitle: languageStore.t(
+      'fresh_ingredients_desc',
+      'Fresh ingredients, expertly prepared. Delivered directly to your room.',
+    ),
     ctaText: languageStore.t('view_specials', 'View Specials'),
     category: 'Specials',
-    imageUrl: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=1600&auto=format&fit=crop&q=80'
+    imageUrl:
+      'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=1600&auto=format&fit=crop&q=80',
   },
   {
     id: 2,
@@ -149,7 +168,8 @@ const slides = computed<HeroSlide[]>(() => [
     subtitle: 'Tender aged steaks grilled to perfection with signature herb butter and rich jus.',
     ctaText: 'Explore Steaks',
     category: 'Main Courses',
-    imageUrl: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=1600&auto=format&fit=crop&q=80'
+    imageUrl:
+      'https://images.unsplash.com/photo-1544025162-d76694265947?w=1600&auto=format&fit=crop&q=80',
   },
   {
     id: 3,
@@ -159,7 +179,8 @@ const slides = computed<HeroSlide[]>(() => [
     subtitle: 'Crispy stone-baked dough, San Marzano sauce, and melted fresh mozzarella.',
     ctaText: 'Taste Pizza',
     category: 'Pizza',
-    imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1600&auto=format&fit=crop&q=80'
+    imageUrl:
+      'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1600&auto=format&fit=crop&q=80',
   },
   {
     id: 4,
@@ -169,7 +190,8 @@ const slides = computed<HeroSlide[]>(() => [
     subtitle: 'Toasted brioche, melted cheddar, and savory flame-grilled patties.',
     ctaText: 'Discover Burgers',
     category: 'Burgers',
-    imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1600&auto=format&fit=crop&q=80'
+    imageUrl:
+      'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1600&auto=format&fit=crop&q=80',
   },
   {
     id: 5,
@@ -179,7 +201,8 @@ const slides = computed<HeroSlide[]>(() => [
     subtitle: 'Fresh Pacific salmon, premium tuna rolls, and handcrafted coastal delicacies.',
     ctaText: 'Taste Seafood',
     category: 'Seafood',
-    imageUrl: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=1600&auto=format&fit=crop&q=80'
+    imageUrl:
+      'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=1600&auto=format&fit=crop&q=80',
   },
   {
     id: 6,
@@ -189,8 +212,9 @@ const slides = computed<HeroSlide[]>(() => [
     subtitle: 'Rich chocolate lava cakes, artisan pastries, and delicate berry garnishes.',
     ctaText: 'Browse Sweets',
     category: 'Desserts',
-    imageUrl: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=1600&auto=format&fit=crop&q=80'
-  }
+    imageUrl:
+      'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=1600&auto=format&fit=crop&q=80',
+  },
 ])
 
 const activeSlide = computed(() => slides.value[currentSlide.value] || slides.value[0])
@@ -241,7 +265,7 @@ const handleSpecials = (category?: string) => {
 
 onMounted(() => {
   // Preload all unsplash images into browser cache so navigation every second is instant & smooth
-  slides.value.forEach(slide => {
+  slides.value.forEach((slide) => {
     const img = new Image()
     img.src = slide.imageUrl
   })

@@ -34,7 +34,7 @@
           'px-4 py-2 font-semibold border-b-2 transition-colors',
           selectedStatus === status
             ? 'border-blue-600 text-blue-600'
-            : 'border-transparent text-gray-600 hover:text-gray-900'
+            : 'border-transparent text-gray-600 hover:text-gray-900',
         ]"
       >
         <span class="capitalize">{{ status }}</span>
@@ -63,20 +63,28 @@
             <h3 class="font-semibold text-gray-900">{{ review.menu_item?.name }}</h3>
             <p class="text-sm text-gray-600">{{ formatDate(review.created_at) }}</p>
           </div>
-          <span :class="[
-            'px-3 py-1 rounded-full text-xs font-semibold',
-            review.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-            review.status === 'approved' ? 'bg-green-100 text-green-800' :
-            'bg-red-100 text-red-800'
-          ]">
+          <span
+            :class="[
+              'px-3 py-1 rounded-full text-xs font-semibold',
+              review.status === 'pending'
+                ? 'bg-yellow-100 text-yellow-800'
+                : review.status === 'approved'
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800',
+            ]"
+          >
             {{ review.status }}
           </span>
         </div>
 
         <div class="flex gap-1 mb-3">
-          <span v-for="i in 5" :key="i" class="text-lg"
+          <span
+            v-for="i in 5"
+            :key="i"
+            class="text-lg"
             :class="i <= review.rating ? 'text-yellow-400' : 'text-gray-300'"
-          >★</span>
+            >★</span
+          >
         </div>
 
         <p v-if="review.review_text" class="text-gray-700 mb-3">{{ review.review_text }}</p>
@@ -116,7 +124,10 @@
       </div>
     </div>
 
-    <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-gray-200">
+    <div
+      v-if="totalPages > 1"
+      class="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-gray-200"
+    >
       <button
         @click="currentPage = Math.max(1, currentPage - 1)"
         :disabled="currentPage === 1"
@@ -124,10 +135,8 @@
       >
         Previous
       </button>
-      
-      <span class="text-sm text-gray-600">
-        Page {{ currentPage }} of {{ totalPages }}
-      </span>
+
+      <span class="text-sm text-gray-600"> Page {{ currentPage }} of {{ totalPages }} </span>
 
       <button
         @click="currentPage = Math.min(totalPages, currentPage + 1)"
@@ -157,9 +166,9 @@ const currentPage = ref(1)
 const totalPages = ref(1)
 
 const totalReviews = computed(() => reviews.value.length)
-const approvedCount = computed(() => reviews.value.filter(r => r.status === 'approved').length)
-const pendingCount = computed(() => reviews.value.filter(r => r.status === 'pending').length)
-const rejectedCount = computed(() => reviews.value.filter(r => r.status === 'rejected').length)
+const approvedCount = computed(() => reviews.value.filter((r) => r.status === 'approved').length)
+const pendingCount = computed(() => reviews.value.filter((r) => r.status === 'pending').length)
+const rejectedCount = computed(() => reviews.value.filter((r) => r.status === 'rejected').length)
 
 const averageRating = computed(() => {
   if (reviews.value.length === 0) return '0.0'
@@ -169,7 +178,7 @@ const averageRating = computed(() => {
 
 const filteredReviews = computed(() => {
   if (selectedStatus.value === 'all') return reviews.value
-  return reviews.value.filter(r => r.status === selectedStatus.value)
+  return reviews.value.filter((r) => r.status === selectedStatus.value)
 })
 
 const formatDate = (dateString: string) => {
@@ -177,7 +186,7 @@ const formatDate = (dateString: string) => {
   return date.toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric',
-    year: 'numeric'
+    year: 'numeric',
   })
 }
 
@@ -197,7 +206,7 @@ const deleteReview = async (reviewId: string) => {
   loading.value = true
   try {
     await reviewService.deleteReview(reviewId)
-    reviews.value = reviews.value.filter(r => r.id !== reviewId)
+    reviews.value = reviews.value.filter((r) => r.id !== reviewId)
   } catch (error) {
     console.error('[GuestReviewHistory] Failed to delete review:', error)
   } finally {
@@ -227,5 +236,4 @@ watch(currentPage, () => {
 })
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

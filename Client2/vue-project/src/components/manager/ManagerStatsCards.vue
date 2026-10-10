@@ -17,7 +17,7 @@ const manager = useManagerStore()
 
 const stats = computed(() => {
   const stats = manager.safeStatistics || {}
-  
+
   return [
     {
       title: 'Total Reservations',

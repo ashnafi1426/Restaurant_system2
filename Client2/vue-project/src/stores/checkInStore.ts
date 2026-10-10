@@ -111,22 +111,19 @@ export const useCheckInStore = defineStore('checkIn', () => {
   async function checkInGuest(reservationId: string) {
     return refreshDataAfterMutation(
       () => checkInService.checkIn(reservationId),
-      'Failed to check in guest'
+      'Failed to check in guest',
     )
   }
 
   async function checkOutGuest(checkInId: string) {
     return refreshDataAfterMutation(
       () => checkInService.checkOut(checkInId),
-      'Failed to check out guest'
+      'Failed to check out guest',
     )
   }
 
   async function deleteCheckIn(id: string) {
-    return refreshDataAfterMutation(
-      () => checkInService.delete(id),
-      'Failed to delete check-in'
-    )
+    return refreshDataAfterMutation(() => checkInService.delete(id), 'Failed to delete check-in')
   }
 
   return {

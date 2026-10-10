@@ -18,7 +18,12 @@
           <tr v-for="waiter in waiters" :key="waiter.id" :class="getRowClass(waiter)">
             <td>
               <div class="waiter-name">
-                <img v-if="waiter.profile_photo" :src="waiter.profile_photo" :alt="waiter.user.name" class="avatar" />
+                <img
+                  v-if="waiter.profile_photo"
+                  :src="waiter.profile_photo"
+                  :alt="waiter.user.name"
+                  class="avatar"
+                />
                 <div v-else class="avatar placeholder">
                   {{ waiter.user.name.charAt(0) }}
                 </div>
@@ -48,10 +53,12 @@
                   <div
                     class="progress-fill"
                     :style="{ width: (waiter.current_orders / waiter.maximum_orders) * 100 + '%' }"
-                    :class="{ 'full': waiter.is_busy }"
+                    :class="{ full: waiter.is_busy }"
                   />
                 </div>
-                <span class="orders-text">{{ waiter.current_orders }}/{{ waiter.maximum_orders }}</span>
+                <span class="orders-text"
+                  >{{ waiter.current_orders }}/{{ waiter.maximum_orders }}</span
+                >
               </div>
             </td>
             <td>
@@ -67,11 +74,15 @@
                     <i class="icon-more" />
                   </button>
                   <div class="dropdown-menu">
-                    <button @click="$emit('change-availability', waiter)">Change Availability</button>
+                    <button @click="$emit('change-availability', waiter)">
+                      Change Availability
+                    </button>
                     <button @click="$emit('toggle-status', waiter)">
                       {{ waiter.status === 'active' ? 'Deactivate' : 'Reactivate' }}
                     </button>
-                    <button v-if="waiter.status === 'active'" @click="$emit('suspend', waiter)">Suspend</button>
+                    <button v-if="waiter.status === 'active'" @click="$emit('suspend', waiter)">
+                      Suspend
+                    </button>
                     <button @click="$emit('delete', waiter)" class="btn-danger">Delete</button>
                   </div>
                 </div>
@@ -95,7 +106,7 @@ withDefaults(
   defineProps<{
     waiters: Waiter[]
   }>(),
-  {}
+  {},
 )
 
 defineEmits<{

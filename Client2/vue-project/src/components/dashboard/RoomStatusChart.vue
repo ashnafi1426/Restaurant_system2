@@ -128,18 +128,33 @@ watch(
       maintenance: props.maintenance || 1,
     }
     updateChart()
-  }
+  },
 )
 </script>
 
 <template>
-  <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-5">
-    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+  <div
+    class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-5"
+  >
+    <div
+      class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800"
+    >
       <div>
-        <h3 class="text-base font-black text-slate-900 dark:text-white">{{ languageStore.t('Room Status Overview', 'Room Status Overview') }}</h3>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('Real-time room occupancy & availability', 'Real-time room occupancy & availability') }}</p>
+        <h3 class="text-base font-black text-slate-900 dark:text-white">
+          {{ languageStore.t('Room Status Overview', 'Room Status Overview') }}
+        </h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          {{
+            languageStore.t(
+              'Real-time room occupancy & availability',
+              'Real-time room occupancy & availability',
+            )
+          }}
+        </p>
       </div>
-      <span class="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-200 dark:border-slate-700">
+      <span
+        class="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black rounded-full border border-slate-200 dark:border-slate-700"
+      >
         {{ total }} {{ languageStore.t('Rooms Total', 'Rooms Total') }}
       </span>
     </div>
@@ -149,39 +164,57 @@ watch(
         <Doughnut :data="chartData" :options="chartOptions" />
         <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <span class="text-2xl font-black text-slate-900 dark:text-white">{{ total }}</span>
-          <span class="text-[10px] font-bold text-slate-400 uppercase">{{ languageStore.t('rooms', 'Rooms') }}</span>
+          <span class="text-[10px] font-bold text-slate-400 uppercase">{{
+            languageStore.t('rooms', 'Rooms')
+          }}</span>
         </div>
       </div>
 
       <div class="space-y-2 text-xs">
-        <div class="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div
+          class="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800"
+        >
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-            <span class="font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('Occupied', 'Occupied') }}</span>
+            <span class="font-extrabold text-slate-900 dark:text-white">{{
+              languageStore.t('Occupied', 'Occupied')
+            }}</span>
           </div>
           <span class="font-black text-slate-900 dark:text-white">{{ roomStats.occupied }}</span>
         </div>
 
-        <div class="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div
+          class="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800"
+        >
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-            <span class="font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('Available', 'Available') }}</span>
+            <span class="font-extrabold text-slate-900 dark:text-white">{{
+              languageStore.t('Available', 'Available')
+            }}</span>
           </div>
           <span class="font-black text-slate-900 dark:text-white">{{ roomStats.available }}</span>
         </div>
 
-        <div class="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div
+          class="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800"
+        >
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-            <span class="font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('Reserved', 'Reserved') }}</span>
+            <span class="font-extrabold text-slate-900 dark:text-white">{{
+              languageStore.t('Reserved', 'Reserved')
+            }}</span>
           </div>
           <span class="font-black text-slate-900 dark:text-white">{{ roomStats.reserved }}</span>
         </div>
 
-        <div class="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div
+          class="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800"
+        >
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-            <span class="font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('Maintenance', 'Maintenance') }}</span>
+            <span class="font-extrabold text-slate-900 dark:text-white">{{
+              languageStore.t('Maintenance', 'Maintenance')
+            }}</span>
           </div>
           <span class="font-black text-slate-900 dark:text-white">{{ roomStats.maintenance }}</span>
         </div>

@@ -14,7 +14,7 @@ export interface LanguageOption {
 
 export const LANGUAGE_OPTIONS: LanguageOption[] = [
   { code: 'en', name: 'English', nativeName: 'English', flag: '🇬🇧' },
-  { code: 'am', name: 'Amharic', nativeName: 'አማርኛ', flag: '🇪🇹' }
+  { code: 'am', name: 'Amharic', nativeName: 'አማርኛ', flag: '🇪🇹' },
 ]
 
 export const useLanguageStore = defineStore('language', () => {
@@ -31,8 +31,8 @@ export const useLanguageStore = defineStore('language', () => {
   const serverTranslations = ref<Record<string, Record<string, string>>>({})
 
   const isAmharic = computed(() => currentLanguage.value === 'am')
-  const currentOption = computed(() => 
-    LANGUAGE_OPTIONS.find(opt => opt.code === currentLanguage.value) || LANGUAGE_OPTIONS[0]
+  const currentOption = computed(
+    () => LANGUAGE_OPTIONS.find((opt) => opt.code === currentLanguage.value) || LANGUAGE_OPTIONS[0],
   )
 
   const fetchServerTranslations = async (lang: LanguageCode) => {
@@ -79,7 +79,7 @@ export const useLanguageStore = defineStore('language', () => {
 
   const t = (key: string, fallback?: string): string => {
     const lang = currentLanguage.value
-    
+
     // Check server translations first
     if (serverTranslations.value[lang]?.[key]) {
       return serverTranslations.value[lang][key]
@@ -107,6 +107,6 @@ export const useLanguageStore = defineStore('language', () => {
     options: LANGUAGE_OPTIONS,
     setLanguage,
     toggleLanguage,
-    t
+    t,
   }
 })

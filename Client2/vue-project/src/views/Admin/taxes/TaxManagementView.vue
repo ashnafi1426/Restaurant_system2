@@ -55,7 +55,10 @@ const filteredRates = computed(() => {
       item.code.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       (item.description && item.description.toLowerCase().includes(searchQuery.value.toLowerCase()))
 
-    const matchesType = filterType.value === 'all' || item.applies_to === filterType.value || item.applies_to === 'all'
+    const matchesType =
+      filterType.value === 'all' ||
+      item.applies_to === filterType.value ||
+      item.applies_to === 'all'
 
     return matchesSearch && matchesType
   })
@@ -168,7 +171,9 @@ function getAppliesBadgeClass(type: string) {
               <Percent class="w-6 h-6" />
             </div>
             <div>
-              <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Tax & Charges Management</h1>
+              <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+                Tax & Charges Management
+              </h1>
               <p class="text-sm text-gray-500 dark:text-gray-400">
                 Configure hotel-wide VAT, service charges, and food taxation rules
               </p>
@@ -196,7 +201,9 @@ function getAppliesBadgeClass(type: string) {
 
       <!-- Stats Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex items-center gap-4">
+        <div
+          class="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex items-center gap-4"
+        >
           <div class="p-3 rounded-xl bg-amber-500/10 text-amber-500">
             <Layers class="w-6 h-6" />
           </div>
@@ -206,7 +213,9 @@ function getAppliesBadgeClass(type: string) {
           </div>
         </div>
 
-        <div class="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex items-center gap-4">
+        <div
+          class="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex items-center gap-4"
+        >
           <div class="p-3 rounded-xl bg-emerald-500/10 text-emerald-500">
             <CheckCircle2 class="w-6 h-6" />
           </div>
@@ -216,7 +225,9 @@ function getAppliesBadgeClass(type: string) {
           </div>
         </div>
 
-        <div class="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex items-center gap-4">
+        <div
+          class="p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex items-center gap-4"
+        >
           <div class="p-3 rounded-xl bg-blue-500/10 text-blue-500">
             <ShieldCheck class="w-6 h-6" />
           </div>
@@ -230,7 +241,9 @@ function getAppliesBadgeClass(type: string) {
       </div>
 
       <!-- Filter / Search Toolbar -->
-      <div class="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+      <div
+        class="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between"
+      >
         <div class="relative flex-1 max-w-md">
           <Search class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -243,7 +256,7 @@ function getAppliesBadgeClass(type: string) {
 
         <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
           <button
-            v-for="type in (['all', 'food', 'room', 'service'] as const)"
+            v-for="type in ['all', 'food', 'room', 'service'] as const"
             :key="type"
             @click="filterType = type"
             class="px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors"
@@ -259,10 +272,14 @@ function getAppliesBadgeClass(type: string) {
       </div>
 
       <!-- Table Section -->
-      <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm">
+      <div
+        class="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm"
+      >
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
-            <thead class="bg-gray-50 dark:bg-zinc-800/50 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-800">
+            <thead
+              class="bg-gray-50 dark:bg-zinc-800/50 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-zinc-800"
+            >
               <tr>
                 <th class="py-3.5 px-4 font-semibold">Tax Name & Code</th>
                 <th class="py-3.5 px-4 font-semibold">Rate Value</th>
@@ -281,10 +298,15 @@ function getAppliesBadgeClass(type: string) {
                 <td class="py-4 px-4">
                   <div class="font-medium text-gray-900 dark:text-white">{{ rate.name }}</div>
                   <div class="flex items-center gap-2 mt-0.5">
-                    <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-mono bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400">
+                    <span
+                      class="inline-block px-1.5 py-0.5 rounded text-[10px] font-mono bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-gray-400"
+                    >
                       {{ rate.code }}
                     </span>
-                    <span v-if="rate.description" class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-xs">
+                    <span
+                      v-if="rate.description"
+                      class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-xs"
+                    >
                       {{ rate.description }}
                     </span>
                   </div>
@@ -292,7 +314,11 @@ function getAppliesBadgeClass(type: string) {
 
                 <td class="py-4 px-4">
                   <span class="text-base font-semibold text-gray-900 dark:text-white">
-                    {{ rate.type === 'percentage' ? `${rate.rate}%` : `$${Number(rate.rate).toFixed(2)}` }}
+                    {{
+                      rate.type === 'percentage'
+                        ? `${rate.rate}%`
+                        : `$${Number(rate.rate).toFixed(2)}`
+                    }}
                   </span>
                   <span class="text-xs text-gray-400 ml-1">({{ rate.type }})</span>
                 </td>
@@ -316,7 +342,10 @@ function getAppliesBadgeClass(type: string) {
                         : 'bg-rose-500/10 text-rose-500 border-rose-500/20 hover:bg-rose-500/20'
                     "
                   >
-                    <span class="w-1.5 h-1.5 rounded-full" :class="rate.is_active ? 'bg-emerald-500' : 'bg-rose-500'"></span>
+                    <span
+                      class="w-1.5 h-1.5 rounded-full"
+                      :class="rate.is_active ? 'bg-emerald-500' : 'bg-rose-500'"
+                    ></span>
                     {{ rate.is_active ? 'Active' : 'Disabled' }}
                   </button>
                 </td>
@@ -355,8 +384,12 @@ function getAppliesBadgeClass(type: string) {
                 <td colspan="6" class="py-12 text-center">
                   <div class="flex flex-col items-center justify-center">
                     <Percent class="w-12 h-12 text-gray-300 dark:text-zinc-700 mb-3" />
-                    <p class="text-base font-medium text-gray-600 dark:text-gray-400">No tax rates found</p>
-                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Create your first tax rate to get started</p>
+                    <p class="text-base font-medium text-gray-600 dark:text-gray-400">
+                      No tax rates found
+                    </p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                      Create your first tax rate to get started
+                    </p>
                     <button
                       @click="openCreateModal"
                       class="mt-4 px-4 py-2 rounded-xl bg-amber-500 text-white text-xs font-medium hover:bg-amber-600 transition-colors"
@@ -379,7 +412,9 @@ function getAppliesBadgeClass(type: string) {
         <div
           class="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-2xl max-w-lg w-full overflow-hidden flex flex-col max-h-[90vh]"
         >
-          <div class="px-6 py-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between">
+          <div
+            class="px-6 py-4 border-b border-gray-200 dark:border-zinc-800 flex items-center justify-between"
+          >
             <h3 class="text-lg font-bold text-gray-900 dark:text-white">
               {{ editingId ? 'Edit Tax Rate' : 'Add New Tax Rate' }}
             </h3>
@@ -392,14 +427,19 @@ function getAppliesBadgeClass(type: string) {
           </div>
 
           <form @submit.prevent="handleSubmit" class="p-6 space-y-4 overflow-y-auto">
-            <div v-if="formError" class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs flex items-center gap-2">
+            <div
+              v-if="formError"
+              class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs flex items-center gap-2"
+            >
               <AlertCircle class="w-4 h-4 flex-shrink-0" />
               <span>{{ formError }}</span>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">
+                <label
+                  class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5"
+                >
                   Tax Name *
                 </label>
                 <input
@@ -412,7 +452,9 @@ function getAppliesBadgeClass(type: string) {
               </div>
 
               <div>
-                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">
+                <label
+                  class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5"
+                >
                   Tax Code *
                 </label>
                 <input
@@ -427,7 +469,9 @@ function getAppliesBadgeClass(type: string) {
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">
+                <label
+                  class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5"
+                >
                   Calculation Type
                 </label>
                 <select
@@ -440,7 +484,9 @@ function getAppliesBadgeClass(type: string) {
               </div>
 
               <div>
-                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">
+                <label
+                  class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5"
+                >
                   Tax Rate {{ formData.type === 'percentage' ? '(%)' : '($)' }} *
                 </label>
                 <input
@@ -456,7 +502,9 @@ function getAppliesBadgeClass(type: string) {
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">
+              <label
+                class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5"
+              >
                 Applies To
               </label>
               <select
@@ -472,7 +520,9 @@ function getAppliesBadgeClass(type: string) {
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">
+              <label
+                class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5"
+              >
                 Description / Memo
               </label>
               <textarea
@@ -499,11 +549,15 @@ function getAppliesBadgeClass(type: string) {
                   type="checkbox"
                   class="w-4 h-4 rounded text-amber-500 border-gray-300 focus:ring-amber-500 dark:border-zinc-700 dark:bg-zinc-800"
                 />
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Set as Default Tax</span>
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >Set as Default Tax</span
+                >
               </label>
             </div>
 
-            <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-zinc-800">
+            <div
+              class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-zinc-800"
+            >
               <button
                 type="button"
                 @click="closeModal"

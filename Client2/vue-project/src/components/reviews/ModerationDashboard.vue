@@ -1,8 +1,10 @@
 <template>
   <div class="moderation-dashboard">
     <div class="header mb-6">
-      <h2 class="text-2xl font-bold mb-2">{{ languageStore.t('review_moderation_dashboard', 'Review Moderation Dashboard') }}</h2>
-      
+      <h2 class="text-2xl font-bold mb-2">
+        {{ languageStore.t('review_moderation_dashboard', 'Review Moderation Dashboard') }}
+      </h2>
+
       <div class="flex gap-2">
         <button
           v-for="status in ['pending', 'approved', 'rejected']"
@@ -12,11 +14,15 @@
             'px-4 py-2 rounded-lg font-semibold transition-colors cursor-pointer',
             currentStatus === status
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+              : 'bg-gray-200 hover:bg-gray-300 text-gray-900',
           ]"
         >
-          <span v-if="status === 'pending'">⏳ {{ languageStore.t('pending', 'Pending') }} ({{ pendingCount }})</span>
-          <span v-else-if="status === 'approved'"> {{ languageStore.t('approved', 'Approved') }}</span>
+          <span v-if="status === 'pending'"
+            >⏳ {{ languageStore.t('pending', 'Pending') }} ({{ pendingCount }})</span
+          >
+          <span v-else-if="status === 'approved'">
+            {{ languageStore.t('approved', 'Approved') }}</span
+          >
           <span v-else> {{ languageStore.t('rejected', 'Rejected') }}</span>
         </button>
       </div>
@@ -24,7 +30,9 @@
 
     <div class="grid grid-cols-3 gap-4 mb-6">
       <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <p class="text-gray-600 text-sm">{{ languageStore.t('pending_reviews', 'Pending Reviews') }}</p>
+        <p class="text-gray-600 text-sm">
+          {{ languageStore.t('pending_reviews', 'Pending Reviews') }}
+        </p>
         <p class="text-3xl font-bold text-yellow-600">{{ pendingCount }}</p>
       </div>
       <div class="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -44,25 +52,43 @@
     </div>
 
     <div v-else-if="reviews.length === 0" class="text-center py-12 bg-gray-50 rounded-lg">
-      <p class="text-gray-600">{{ languageStore.t('no_data_available', 'No reviews available') }}</p>
+      <p class="text-gray-600">
+        {{ languageStore.t('no_data_available', 'No reviews available') }}
+      </p>
     </div>
 
     <div v-else class="space-y-4">
-      <div v-for="review in reviews" :key="review.id" class="bg-white border border-gray-200 rounded-lg p-4">
+      <div
+        v-for="review in reviews"
+        :key="review.id"
+        class="bg-white border border-gray-200 rounded-lg p-4"
+      >
         <div class="flex items-start justify-between mb-3">
           <div>
-            <h4 class="font-semibold text-gray-900">{{ review.guest?.first_name }} {{ review.guest?.last_name }}</h4>
+            <h4 class="font-semibold text-gray-900">
+              {{ review.guest?.first_name }} {{ review.guest?.last_name }}
+            </h4>
             <p class="text-sm text-gray-600">{{ review.menu_item?.name }}</p>
             <div class="flex gap-1 mt-1">
-              <span v-for="i in 5" :key="i" class="text-lg" :class="i <= review.rating ? 'text-yellow-400' : 'text-gray-300'">★</span>
+              <span
+                v-for="i in 5"
+                :key="i"
+                class="text-lg"
+                :class="i <= review.rating ? 'text-yellow-400' : 'text-gray-300'"
+                >★</span
+              >
             </div>
           </div>
-          <span :class="[
-            'px-3 py-1 rounded-full text-sm font-semibold',
-            review.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-            review.status === 'approved' ? 'bg-green-100 text-green-800' :
-            'bg-red-100 text-red-800'
-          ]">
+          <span
+            :class="[
+              'px-3 py-1 rounded-full text-sm font-semibold',
+              review.status === 'pending'
+                ? 'bg-yellow-100 text-yellow-800'
+                : review.status === 'approved'
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800',
+            ]"
+          >
             {{ languageStore.t(review.status, review.status) }}
           </span>
         </div>
@@ -70,9 +96,15 @@
         <p v-if="review.review_text" class="text-gray-700 mb-3">{{ review.review_text }}</p>
 
         <div class="text-sm text-gray-600 mb-3 pb-3 border-b border-gray-200">
-          <p>{{ languageStore.t('submitted', 'Submitted') }}: {{ formatDate(review.created_at) }}</p>
-          <p v-if="review.approved_at">{{ languageStore.t('approved', 'Approved') }}: {{ formatDate(review.approved_at) }}</p>
-          <p v-if="review.rejected_at">{{ languageStore.t('rejected', 'Rejected') }}: {{ formatDate(review.rejected_at) }}</p>
+          <p>
+            {{ languageStore.t('submitted', 'Submitted') }}: {{ formatDate(review.created_at) }}
+          </p>
+          <p v-if="review.approved_at">
+            {{ languageStore.t('approved', 'Approved') }}: {{ formatDate(review.approved_at) }}
+          </p>
+          <p v-if="review.rejected_at">
+            {{ languageStore.t('rejected', 'Rejected') }}: {{ formatDate(review.rejected_at) }}
+          </p>
         </div>
 
         <div class="flex gap-2">
@@ -82,16 +114,24 @@
             :disabled="actionLoading === review.id"
             class="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors cursor-pointer"
           >
-            {{ actionLoading === review.id ? languageStore.t('approving', 'Approving...') : languageStore.t('approve', 'Approve') }}
+            {{
+              actionLoading === review.id
+                ? languageStore.t('approving', 'Approving...')
+                : languageStore.t('approve', 'Approve')
+            }}
           </button>
-          
+
           <button
             v-if="currentStatus === 'pending'"
             @click="rejectReview(review.id)"
             :disabled="actionLoading === review.id"
             class="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors cursor-pointer"
           >
-            {{ actionLoading === review.id ? languageStore.t('rejecting', 'Rejecting...') : languageStore.t('reject', 'Reject') }}
+            {{
+              actionLoading === review.id
+                ? languageStore.t('rejecting', 'Rejecting...')
+                : languageStore.t('reject', 'Reject')
+            }}
           </button>
 
           <button
@@ -100,7 +140,11 @@
             :disabled="actionLoading === review.id"
             class="flex-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors cursor-pointer"
           >
-            {{ actionLoading === review.id ? languageStore.t('deleting', 'Deleting...') : languageStore.t('delete', 'Delete') }}
+            {{
+              actionLoading === review.id
+                ? languageStore.t('deleting', 'Deleting...')
+                : languageStore.t('delete', 'Delete')
+            }}
           </button>
 
           <button
@@ -113,14 +157,21 @@
         </div>
 
         <div v-if="review.response" class="bg-blue-50 border-l-4 border-blue-500 p-3 mt-3">
-          <p class="text-sm font-semibold text-blue-900 mb-1">{{ languageStore.t('your_response', 'Your Response') }}</p>
+          <p class="text-sm font-semibold text-blue-900 mb-1">
+            {{ languageStore.t('your_response', 'Your Response') }}
+          </p>
           <p class="text-sm text-gray-700">{{ review.response.response_text }}</p>
         </div>
 
         <div v-if="showResponseForm === review.id" class="bg-gray-50 p-3 mt-3 rounded-lg">
           <textarea
             v-model="responseText"
-            :placeholder="languageStore.t('write_response_placeholder', 'Write your response... (max 500 characters)')"
+            :placeholder="
+              languageStore.t(
+                'write_response_placeholder',
+                'Write your response... (max 500 characters)',
+              )
+            "
             maxlength="500"
             rows="3"
             class="w-full p-2 border border-gray-300 rounded mb-2"
@@ -151,9 +202,10 @@
       >
         {{ languageStore.t('previous', 'Previous') }}
       </button>
-      
+
       <span class="text-sm text-gray-600">
-        {{ languageStore.t('page', 'Page') }} {{ currentPage }} {{ languageStore.t('of', 'of') }} {{ totalPages }}
+        {{ languageStore.t('page', 'Page') }} {{ currentPage }} {{ languageStore.t('of', 'of') }}
+        {{ totalPages }}
       </span>
 
       <button
@@ -189,19 +241,23 @@ const responseText = ref('')
 const formatDate = (dateString: string | null) => {
   if (!dateString) return 'N/A'
   const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric', 
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
     year: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   })
 }
 
 const loadReviews = async () => {
   loading.value = true
   try {
-    const data = await reviewService.listReviewsForModeration(currentStatus.value, currentPage.value, 15)
+    const data = await reviewService.listReviewsForModeration(
+      currentStatus.value,
+      currentPage.value,
+      15,
+    )
     reviews.value = (data.data as Review[]) || []
     totalPages.value = data.last_page || 1
 

@@ -96,7 +96,7 @@ export const useReservationStore = defineStore('reservation', () => {
   const executeStatusTransition = async (
     id: string,
     targetStatus: Reservation['status'],
-    serviceAction: (id: string) => Promise<any>
+    serviceAction: (id: string) => Promise<any>,
   ) => {
     const index = reservations.value.findIndex((r) => r.id === id)
     if (index === -1) throw new Error('Reservation not found')
@@ -112,7 +112,10 @@ export const useReservationStore = defineStore('reservation', () => {
       }
       return response
     } catch (error: any) {
-      console.error(`[reservationStore] Failed to change reservation status to ${targetStatus}:`, error)
+      console.error(
+        `[reservationStore] Failed to change reservation status to ${targetStatus}:`,
+        error,
+      )
       reservations.value[index].status = previousStatus
       throw error
     }

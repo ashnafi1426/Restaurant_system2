@@ -40,8 +40,8 @@ import {
   ArrowRight,
   Monitor,
   ChevronRight,
-  Grid
-} from 'lucide-vue-next';
+  Grid,
+} from 'lucide-vue-next'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -233,7 +233,7 @@ const closeDropdown = () => {
 
 const toggleSelectAll = (e: Event) => {
   const checked = (e.target as HTMLInputElement).checked
-  selectedRoleIds.value = checked ? filteredRoles.value.map(r => r.id) : []
+  selectedRoleIds.value = checked ? filteredRoles.value.map((r) => r.id) : []
 }
 
 const toggleSelectRole = (id: string | number) => {
@@ -275,33 +275,38 @@ watch(
       const hasCached = loadFromClientCache()
       await fetchRolesAndPermissions(hasCached, false)
     }
-  }
+  },
 )
 const allRolesCount = computed(() => roles.value.length)
 const activeRolesCount = computed(() => roles.value.filter(isRoleActive).length)
-const totalAssignedUsersCount = computed(() => roles.value.reduce((acc, r) => acc + (r.users_count ?? 0), 0))
-const unassignedRolesCount = computed(() => roles.value.filter(r => (r.users_count ?? 0) === 0).length)
+const totalAssignedUsersCount = computed(() =>
+  roles.value.reduce((acc, r) => acc + (r.users_count ?? 0), 0),
+)
+const unassignedRolesCount = computed(
+  () => roles.value.filter((r) => (r.users_count ?? 0) === 0).length,
+)
 const filteredRoles = computed(() => {
   let list = roles.value
 
   // Classification filter
   if (filterCategory.value === 'system') {
-    list = list.filter(r => r.is_system)
+    list = list.filter((r) => r.is_system)
   } else if (filterCategory.value === 'custom') {
-    list = list.filter(r => !r.is_system)
+    list = list.filter((r) => !r.is_system)
   } else if (filterCategory.value === 'active') {
-    list = list.filter(r => isRoleActive(r))
+    list = list.filter((r) => isRoleActive(r))
   } else if (filterCategory.value === 'inactive') {
-    list = list.filter(r => !isRoleActive(r))
+    list = list.filter((r) => !isRoleActive(r))
   }
 
   // Search filter
   const q = searchQuery.value.trim().toLowerCase()
   if (q) {
-    list = list.filter(r =>
-      r.name.toLowerCase().includes(q) ||
-      r.slug.toLowerCase().includes(q) ||
-      (r.description && r.description.toLowerCase().includes(q))
+    list = list.filter(
+      (r) =>
+        r.name.toLowerCase().includes(q) ||
+        r.slug.toLowerCase().includes(q) ||
+        (r.description && r.description.toLowerCase().includes(q)),
     )
   }
 
@@ -318,7 +323,9 @@ const filteredRoles = computed(() => {
 })
 
 const isAllSelected = computed(() => {
-  return filteredRoles.value.length > 0 && selectedRoleIds.value.length === filteredRoles.value.length
+  return (
+    filteredRoles.value.length > 0 && selectedRoleIds.value.length === filteredRoles.value.length
+  )
 })
 
 // Modal Open Handlers
@@ -390,7 +397,13 @@ const toggleRoleActive = async (role: Role) => {
   }
 }
 
-const handleCreateRole = async (payload: { name: string; slug?: string; description: string; is_active: boolean; permissions: number[] }) => {
+const handleCreateRole = async (payload: {
+  name: string
+  slug?: string
+  description: string
+  is_active: boolean
+  permissions: number[]
+}) => {
   saving.value = true
   errorMessage.value = ''
   try {
@@ -414,7 +427,12 @@ const handleCreateRole = async (payload: { name: string; slug?: string; descript
   }
 }
 
-const handleSaveRole = async (payload: { name: string; description: string; is_active: boolean; permissions: number[] }) => {
+const handleSaveRole = async (payload: {
+  name: string
+  description: string
+  is_active: boolean
+  permissions: number[]
+}) => {
   if (!editingRole.value) return
   saving.value = true
   errorMessage.value = ''
@@ -478,56 +496,100 @@ const navigateToUserAssignments = () => {
 
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white p-4 sm:p-6 space-y-6 font-sans transition-colors duration-200">
+    <div
+      class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white p-4 sm:p-6 space-y-6 font-sans transition-colors duration-200"
+    >
       <!-- TOP BREADCRUMB -->
       <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
         <Monitor class="w-4 h-4 text-slate-400 dark:text-slate-500" />
         <ChevronRight class="w-3.5 h-3.5 text-slate-400 dark:text-slate-600" />
-        <span class="text-slate-700 dark:text-slate-200 font-semibold">{{ languageStore.t('role', 'Role') }}</span>
+        <span class="text-slate-700 dark:text-slate-200 font-semibold">{{
+          languageStore.t('role', 'Role')
+        }}</span>
       </div>
 
       <!-- 4 STAT CARDS -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Card 1: All Roles -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xs transition hover:shadow-md">
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xs transition hover:shadow-md"
+        >
           <div class="space-y-1">
-            <p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{{ languageStore.t('all_roles', 'All Roles') }}</p>
-            <h3 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{{ allRolesCount }}</h3>
+            <p
+              class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider"
+            >
+              {{ languageStore.t('all_roles', 'All Roles') }}
+            </p>
+            <h3 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              {{ allRolesCount }}
+            </h3>
           </div>
-          <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center shadow-xs">
+          <div
+            class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center shadow-xs"
+          >
             <Shield class="w-6 h-6" />
           </div>
         </div>
 
         <!-- Card 2: Active Roles -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xs transition hover:shadow-md">
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xs transition hover:shadow-md"
+        >
           <div class="space-y-1">
-            <p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{{ languageStore.t('active_roles', 'Active Roles') }}</p>
-            <h3 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{{ activeRolesCount }}</h3>
+            <p
+              class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider"
+            >
+              {{ languageStore.t('active_roles', 'Active Roles') }}
+            </p>
+            <h3 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              {{ activeRolesCount }}
+            </h3>
           </div>
-          <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shadow-xs">
+          <div
+            class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shadow-xs"
+          >
             <CheckCircle2 class="w-6 h-6" />
           </div>
         </div>
 
         <!-- Card 3: Assigned Users -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xs transition hover:shadow-md">
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xs transition hover:shadow-md"
+        >
           <div class="space-y-1">
-            <p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{{ languageStore.t('assigned_users', 'Assigned Users') }}</p>
-            <h3 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{{ totalAssignedUsersCount }}</h3>
+            <p
+              class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider"
+            >
+              {{ languageStore.t('assigned_users', 'Assigned Users') }}
+            </p>
+            <h3 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              {{ totalAssignedUsersCount }}
+            </h3>
           </div>
-          <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center shadow-xs">
+          <div
+            class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center shadow-xs"
+          >
             <Users class="w-6 h-6" />
           </div>
         </div>
 
         <!-- Card 4: Unassigned Roles -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xs transition hover:shadow-md">
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between shadow-xs transition hover:shadow-md"
+        >
           <div class="space-y-1">
-            <p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{{ languageStore.t('unassigned_roles', 'Unassigned Roles') }}</p>
-            <h3 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{{ unassignedRolesCount }}</h3>
+            <p
+              class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider"
+            >
+              {{ languageStore.t('unassigned_roles', 'Unassigned Roles') }}
+            </p>
+            <h3 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              {{ unassignedRolesCount }}
+            </h3>
           </div>
-          <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center shadow-xs">
+          <div
+            class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center shadow-xs"
+          >
             <AlertCircle class="w-6 h-6" />
           </div>
         </div>
@@ -535,30 +597,59 @@ const navigateToUserAssignments = () => {
 
       <!-- TITLE HEADER -->
       <div class="space-y-1">
-        <h2 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{{ languageStore.t('manage_roles', 'Manage Roles') }}</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400">{{ languageStore.t('role_management_desc', 'Configure staff roles, access levels, and granular permissions.') }}</p>
+        <h2 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          {{ languageStore.t('manage_roles', 'Manage Roles') }}
+        </h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">
+          {{
+            languageStore.t(
+              'role_management_desc',
+              'Configure staff roles, access levels, and granular permissions.',
+            )
+          }}
+        </p>
       </div>
 
       <!-- NOTIFICATION BANNERS -->
-      <transition enter-active-class="transition duration-200" enter-from-class="opacity-0 -translate-y-2" enter-to-class="opacity-100 translate-y-0">
-        <div v-if="successMessage" class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center justify-between shadow-xs">
+      <transition
+        enter-active-class="transition duration-200"
+        enter-from-class="opacity-0 -translate-y-2"
+        enter-to-class="opacity-100 translate-y-0"
+      >
+        <div
+          v-if="successMessage"
+          class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center justify-between shadow-xs"
+        >
           <div class="flex items-center gap-2">
             <CheckCircle2 class="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
             <span>{{ successMessage }}</span>
           </div>
-          <button @click="successMessage = ''" class="text-emerald-700 dark:text-emerald-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+          <button
+            @click="successMessage = ''"
+            class="text-emerald-700 dark:text-emerald-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+          >
             <X class="w-4 h-4" />
           </button>
         </div>
       </transition>
 
-      <transition enter-active-class="transition duration-200" enter-from-class="opacity-0 -translate-y-2" enter-to-class="opacity-100 translate-y-0">
-        <div v-if="errorMessage" class="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-400 text-xs font-bold flex items-center justify-between shadow-xs">
+      <transition
+        enter-active-class="transition duration-200"
+        enter-from-class="opacity-0 -translate-y-2"
+        enter-to-class="opacity-100 translate-y-0"
+      >
+        <div
+          v-if="errorMessage"
+          class="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-400 text-xs font-bold flex items-center justify-between shadow-xs"
+        >
           <div class="flex items-center gap-2">
             <AlertCircle class="w-4 h-4 text-rose-600 dark:text-rose-400 flex-shrink-0" />
             <span>{{ errorMessage }}</span>
           </div>
-          <button @click="errorMessage = ''" class="text-rose-700 dark:text-rose-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+          <button
+            @click="errorMessage = ''"
+            class="text-rose-700 dark:text-rose-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+          >
             <X class="w-4 h-4" />
           </button>
         </div>
@@ -572,11 +663,18 @@ const navigateToUserAssignments = () => {
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
           <!-- Search Input -->
           <div class="relative flex-1">
-            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <Search
+              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+            />
             <input
               v-model="searchQuery"
               type="text"
-              :placeholder="languageStore.t('search_roles_placeholder', 'Search roles by title, key, permissions...')"
+              :placeholder="
+                languageStore.t(
+                  'search_roles_placeholder',
+                  'Search roles by title, key, permissions...',
+                )
+              "
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none font-medium"
             />
           </div>
@@ -589,11 +687,15 @@ const navigateToUserAssignments = () => {
             :class="[
               isFilterOpen
                 ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
-                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{ isFilterOpen ? languageStore.t('hide_filters', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
+            <span>{{
+              isFilterOpen
+                ? languageStore.t('hide_filters', 'Hide Filter')
+                : languageStore.t('filter', 'Filter')
+            }}</span>
           </button>
         </div>
 
@@ -615,7 +717,11 @@ const navigateToUserAssignments = () => {
             type="button"
             @click="viewMode = viewMode === 'table' ? 'cards' : 'table'"
             class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
-            :title="viewMode === 'table' ? languageStore.t('switch_cards', 'Switch to Card view') : languageStore.t('switch_table', 'Switch to Table view')"
+            :title="
+              viewMode === 'table'
+                ? languageStore.t('switch_cards', 'Switch to Card view')
+                : languageStore.t('switch_table', 'Switch to Table view')
+            "
           >
             <Columns class="w-4 h-4" />
           </button>
@@ -666,10 +772,18 @@ const navigateToUserAssignments = () => {
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
                 <option value="all">{{ languageStore.t('all_roles', 'All Roles') }}</option>
-                <option value="system">{{ languageStore.t('system_core_roles', 'System Core Roles') }}</option>
-                <option value="custom">{{ languageStore.t('custom_property_roles', 'Custom Property Roles') }}</option>
-                <option value="active">{{ languageStore.t('active_roles_only', 'Active Roles Only') }}</option>
-                <option value="inactive">{{ languageStore.t('inactive_roles_only', 'Inactive Roles Only') }}</option>
+                <option value="system">
+                  {{ languageStore.t('system_core_roles', 'System Core Roles') }}
+                </option>
+                <option value="custom">
+                  {{ languageStore.t('custom_property_roles', 'Custom Property Roles') }}
+                </option>
+                <option value="active">
+                  {{ languageStore.t('active_roles_only', 'Active Roles Only') }}
+                </option>
+                <option value="inactive">
+                  {{ languageStore.t('inactive_roles_only', 'Inactive Roles Only') }}
+                </option>
               </select>
             </div>
 
@@ -682,9 +796,15 @@ const navigateToUserAssignments = () => {
                 v-model="sortBy"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="name">{{ languageStore.t('sort_alpha', 'Alphabetical (Role Name)') }}</option>
-                <option value="users">{{ languageStore.t('sort_users', 'Most Assigned Users') }}</option>
-                <option value="permissions">{{ languageStore.t('sort_permissions', 'Most Permissions') }}</option>
+                <option value="name">
+                  {{ languageStore.t('sort_alpha', 'Alphabetical (Role Name)') }}
+                </option>
+                <option value="users">
+                  {{ languageStore.t('sort_users', 'Most Assigned Users') }}
+                </option>
+                <option value="permissions">
+                  {{ languageStore.t('sort_permissions', 'Most Permissions') }}
+                </option>
               </select>
             </div>
 
@@ -704,26 +824,48 @@ const navigateToUserAssignments = () => {
       </Transition>
 
       <!-- LOADING SKELETON STATE -->
-      <div v-if="loading && roles.length === 0" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center shadow-xs">
-        <div class="animate-spin rounded-full h-9 w-9 border-b-2 border-blue-500 mx-auto mb-3"></div>
-        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">{{ languageStore.t('loading_roles_perms', 'Loading hotel positions & permissions...') }}</p>
+      <div
+        v-if="loading && roles.length === 0"
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center shadow-xs"
+      >
+        <div
+          class="animate-spin rounded-full h-9 w-9 border-b-2 border-blue-500 mx-auto mb-3"
+        ></div>
+        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+          {{ languageStore.t('loading_roles_perms', 'Loading hotel positions & permissions...') }}
+        </p>
       </div>
 
       <!-- EMPTY SEARCH STATE -->
-      <div v-else-if="filteredRoles.length === 0" class="py-16 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-2 shadow-xs">
+      <div
+        v-else-if="filteredRoles.length === 0"
+        class="py-16 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-2 shadow-xs"
+      >
         <ShieldCheck class="w-10 h-10 text-slate-400 dark:text-slate-500 mx-auto opacity-40" />
-        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">{{ languageStore.t('no_roles_match', 'No roles match your search filters') }}</h3>
+        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">
+          {{ languageStore.t('no_roles_match', 'No roles match your search filters') }}
+        </h3>
         <p class="text-xs text-slate-500 max-w-sm mx-auto">
-          {{ languageStore.t('try_clearing_filters', 'Try clearing your search query or switching your active filter.') }}
+          {{
+            languageStore.t(
+              'try_clearing_filters',
+              'Try clearing your search query or switching your active filter.',
+            )
+          }}
         </p>
       </div>
 
       <!-- MAIN DATA TABLE -->
-      <div v-else-if="viewMode === 'table'" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
+      <div
+        v-else-if="viewMode === 'table'"
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden"
+      >
         <div class="overflow-x-auto min-h-[350px]">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
-              <tr class="bg-slate-50/90 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              <tr
+                class="bg-slate-50/90 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+              >
                 <!-- Checkbox -->
                 <th class="py-3.5 px-4 w-10">
                   <input
@@ -733,14 +875,28 @@ const navigateToUserAssignments = () => {
                     class="w-4 h-4 rounded bg-slate-100 dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-0 cursor-pointer"
                   />
                 </th>
-                <th class="py-3.5 px-4 font-bold">{{ languageStore.t('role_name', 'Role Name') }}</th>
-                <th class="py-3.5 px-4 font-bold">{{ languageStore.t('description', 'Description') }}</th>
-                <th class="py-3.5 px-4 font-bold">{{ languageStore.t('entity_type', 'Entity Type') }}</th>
+                <th class="py-3.5 px-4 font-bold">
+                  {{ languageStore.t('role_name', 'Role Name') }}
+                </th>
+                <th class="py-3.5 px-4 font-bold">
+                  {{ languageStore.t('description', 'Description') }}
+                </th>
+                <th class="py-3.5 px-4 font-bold">
+                  {{ languageStore.t('entity_type', 'Entity Type') }}
+                </th>
                 <th class="py-3.5 px-4 font-bold">{{ languageStore.t('entity', 'Entity') }}</th>
-                <th class="py-3.5 px-4 font-bold">{{ languageStore.t('permissions', 'Permissions') }}</th>
-                <th class="py-3.5 px-4 font-bold text-center">{{ languageStore.t('assigned_users', 'Assigned Users') }}</th>
-                <th class="py-3.5 px-4 font-bold text-center">{{ languageStore.t('status', 'Status') }}</th>
-                <th class="py-3.5 px-4 font-bold text-right pr-6">{{ languageStore.t('actions', 'Actions') }}</th>
+                <th class="py-3.5 px-4 font-bold">
+                  {{ languageStore.t('permissions', 'Permissions') }}
+                </th>
+                <th class="py-3.5 px-4 font-bold text-center">
+                  {{ languageStore.t('assigned_users', 'Assigned Users') }}
+                </th>
+                <th class="py-3.5 px-4 font-bold text-center">
+                  {{ languageStore.t('status', 'Status') }}
+                </th>
+                <th class="py-3.5 px-4 font-bold text-right pr-6">
+                  {{ languageStore.t('actions', 'Actions') }}
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-200/80 dark:divide-slate-800/60 text-xs">
@@ -762,13 +918,21 @@ const navigateToUserAssignments = () => {
                 <!-- Role Name (Crisp & High Contrast with Icon) -->
                 <td class="py-4 px-4 whitespace-nowrap">
                   <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+                    <div
+                      class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center flex-shrink-0"
+                    >
                       <component :is="getRoleIcon(role.slug || role.name)" class="w-4 h-4" />
                     </div>
                     <div>
-                      <div class="font-bold text-slate-900 dark:text-white capitalize text-xs flex items-center gap-1.5">
+                      <div
+                        class="font-bold text-slate-900 dark:text-white capitalize text-xs flex items-center gap-1.5"
+                      >
                         <span>{{ role.name }}</span>
-                        <span v-if="role.slug === 'admin'" class="px-1.5 py-0.2 rounded text-[9px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 uppercase tracking-wider">ROOT</span>
+                        <span
+                          v-if="role.slug === 'admin'"
+                          class="px-1.5 py-0.2 rounded text-[9px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 uppercase tracking-wider"
+                          >ROOT</span
+                        >
                       </div>
                       <div class="text-[10px] text-slate-400 font-mono mt-0.5">
                         {{ role.slug }}
@@ -778,7 +942,9 @@ const navigateToUserAssignments = () => {
                 </td>
 
                 <!-- Description -->
-                <td class="py-4 px-4 text-slate-600 dark:text-slate-400 max-w-xs truncate font-medium">
+                <td
+                  class="py-4 px-4 text-slate-600 dark:text-slate-400 max-w-xs truncate font-medium"
+                >
                   {{ role.description || 'Standard operational role privileges' }}
                 </td>
 
@@ -789,17 +955,23 @@ const navigateToUserAssignments = () => {
                       'px-2.5 py-1 rounded-md text-[11px] font-bold border inline-flex items-center gap-1',
                       role.is_system
                         ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/40'
-                        : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40'
+                        : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40',
                     ]"
                   >
                     <Shield v-if="role.is_system" class="w-3 h-3 text-indigo-500" />
                     <Sparkles v-else class="w-3 h-3 text-emerald-500" />
-                    <span>{{ role.is_system ? languageStore.t('system_role', 'System Role') : languageStore.t('custom_role', 'Custom Role') }}</span>
+                    <span>{{
+                      role.is_system
+                        ? languageStore.t('system_role', 'System Role')
+                        : languageStore.t('custom_role', 'Custom Role')
+                    }}</span>
                   </span>
                 </td>
 
                 <!-- Entity -->
-                <td class="py-4 px-4 text-slate-700 dark:text-slate-300 whitespace-nowrap font-medium text-xs">
+                <td
+                  class="py-4 px-4 text-slate-700 dark:text-slate-300 whitespace-nowrap font-medium text-xs"
+                >
                   {{ hotelStore.hotelName || 'Active Property' }}
                 </td>
 
@@ -810,7 +982,10 @@ const navigateToUserAssignments = () => {
                     class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-600/15 dark:hover:bg-blue-600/25 dark:text-blue-400 dark:border-blue-500/30 text-xs font-bold transition cursor-pointer"
                     :title="languageStore.t('configure_role', 'Configure role permissions')"
                   >
-                    <span>{{ getPermissionCount(role) }} {{ languageStore.t('permissions', 'Permissions') }}</span>
+                    <span
+                      >{{ getPermissionCount(role) }}
+                      {{ languageStore.t('permissions', 'Permissions') }}</span
+                    >
                     <ArrowRight class="w-3 h-3" />
                   </button>
                 </td>
@@ -834,10 +1009,14 @@ const navigateToUserAssignments = () => {
                       'px-2.5 py-0.5 rounded-full text-[11px] font-bold border inline-block',
                       isRoleActive(role)
                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30'
-                        : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                        : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700',
                     ]"
                   >
-                    {{ isRoleActive(role) ? languageStore.t('active', 'Active') : languageStore.t('inactive', 'Inactive') }}
+                    {{
+                      isRoleActive(role)
+                        ? languageStore.t('active', 'Active')
+                        : languageStore.t('inactive', 'Inactive')
+                    }}
                   </span>
                 </td>
 
@@ -858,7 +1037,10 @@ const navigateToUserAssignments = () => {
                     @click.stop
                   >
                     <button
-                      @click="openEditModal(role); closeDropdown()"
+                      @click="
+                        openEditModal(role)
+                        closeDropdown()
+                      "
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
                       <Edit2 class="w-3.5 h-3.5 text-blue-500" />
@@ -866,7 +1048,10 @@ const navigateToUserAssignments = () => {
                     </button>
 
                     <button
-                      @click="openUsersModal(role); closeDropdown()"
+                      @click="
+                        openUsersModal(role)
+                        closeDropdown()
+                      "
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
                       <Users class="w-3.5 h-3.5 text-indigo-500" />
@@ -874,7 +1059,10 @@ const navigateToUserAssignments = () => {
                     </button>
 
                     <button
-                      @click="openCloneModal(role); closeDropdown()"
+                      @click="
+                        openCloneModal(role)
+                        closeDropdown()
+                      "
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
                       <Copy class="w-3.5 h-3.5 text-amber-500" />
@@ -883,18 +1071,31 @@ const navigateToUserAssignments = () => {
 
                     <button
                       v-if="role.slug !== 'admin'"
-                      @click="toggleRoleActive(role); closeDropdown()"
+                      @click="
+                        toggleRoleActive(role)
+                        closeDropdown()
+                      "
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
                       <Activity class="w-3.5 h-3.5 text-emerald-500" />
-                      <span>{{ isRoleActive(role) ? languageStore.t('deactivate_role', 'Deactivate Role') : languageStore.t('activate_role', 'Activate Role') }}</span>
+                      <span>{{
+                        isRoleActive(role)
+                          ? languageStore.t('deactivate_role', 'Deactivate Role')
+                          : languageStore.t('activate_role', 'Activate Role')
+                      }}</span>
                     </button>
 
-                    <div v-if="!role.is_system" class="my-1 border-t border-slate-200 dark:border-slate-800"></div>
+                    <div
+                      v-if="!role.is_system"
+                      class="my-1 border-t border-slate-200 dark:border-slate-800"
+                    ></div>
 
                     <button
                       v-if="!role.is_system"
-                      @click="triggerDeleteConfirmation(role); closeDropdown()"
+                      @click="
+                        triggerDeleteConfirmation(role)
+                        closeDropdown()
+                      "
                       class="w-full px-3.5 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center gap-2.5 transition text-left cursor-pointer font-medium"
                     >
                       <Trash2 class="w-3.5 h-3.5 text-rose-500" />
@@ -908,8 +1109,14 @@ const navigateToUserAssignments = () => {
         </div>
 
         <!-- Table Footer -->
-        <div class="py-3 px-4 bg-slate-50/80 dark:bg-slate-950/50 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-          <span>{{ languageStore.t('showing', 'Showing') }} <strong>{{ filteredRoles.length }}</strong> {{ languageStore.t('of', 'of') }} <strong>{{ roles.length }}</strong> {{ languageStore.t('roles', 'roles') }}</span>
+        <div
+          class="py-3 px-4 bg-slate-50/80 dark:bg-slate-950/50 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400"
+        >
+          <span
+            >{{ languageStore.t('showing', 'Showing') }} <strong>{{ filteredRoles.length }}</strong>
+            {{ languageStore.t('of', 'of') }} <strong>{{ roles.length }}</strong>
+            {{ languageStore.t('roles', 'roles') }}</span
+          >
           <span class="text-[11px]">Tenant: {{ hotelStore.hotelName || 'Active Hotel' }}</span>
         </div>
       </div>
@@ -924,12 +1131,18 @@ const navigateToUserAssignments = () => {
           <div class="space-y-3">
             <div class="flex items-start justify-between gap-3">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                <div
+                  class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400"
+                >
                   <component :is="getRoleIcon(role.slug || role.name)" class="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 class="text-base font-black text-slate-900 dark:text-white capitalize">{{ role.name }}</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">{{ role.description || 'Hotel staff position' }}</p>
+                  <h3 class="text-base font-black text-slate-900 dark:text-white capitalize">
+                    {{ role.name }}
+                  </h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
+                    {{ role.description || 'Hotel staff position' }}
+                  </p>
                 </div>
               </div>
               <span
@@ -937,20 +1150,38 @@ const navigateToUserAssignments = () => {
                   'px-2 py-0.5 rounded-full text-[10px] font-bold border',
                   isRoleActive(role)
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30'
-                    : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                    : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700',
                 ]"
               >
-                {{ isRoleActive(role) ? languageStore.t('active', 'Active') : languageStore.t('inactive', 'Inactive') }}
+                {{
+                  isRoleActive(role)
+                    ? languageStore.t('active', 'Active')
+                    : languageStore.t('inactive', 'Inactive')
+                }}
               </span>
             </div>
 
-            <div class="flex items-center justify-between pt-2 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800">
-              <span class="font-medium">{{ languageStore.t('permissions', 'Permissions') }}: <strong class="text-blue-600 dark:text-blue-400">{{ getPermissionCount(role) }}</strong></span>
-              <span class="font-medium">{{ languageStore.t('staff', 'Staff') }}: <strong class="text-slate-900 dark:text-white">{{ role.users_count ?? 0 }}</strong></span>
+            <div
+              class="flex items-center justify-between pt-2 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800"
+            >
+              <span class="font-medium"
+                >{{ languageStore.t('permissions', 'Permissions') }}:
+                <strong class="text-blue-600 dark:text-blue-400">{{
+                  getPermissionCount(role)
+                }}</strong></span
+              >
+              <span class="font-medium"
+                >{{ languageStore.t('staff', 'Staff') }}:
+                <strong class="text-slate-900 dark:text-white">{{
+                  role.users_count ?? 0
+                }}</strong></span
+              >
             </div>
           </div>
 
-          <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+          <div
+            class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2"
+          >
             <button
               @click="openEditModal(role)"
               class="flex-1 py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-600/15 dark:hover:bg-blue-600/25 dark:text-blue-400 dark:border-blue-500/30 text-xs font-bold transition cursor-pointer flex items-center justify-center gap-1.5"

@@ -66,7 +66,8 @@ const getWaiterDisplayName = (waiter: any): string => {
   if (!waiter) return 'Unknown Staff'
   if (waiter.user?.name) return waiter.user.name
   if (waiter.name) return waiter.name
-  if (waiter.user?.first_name) return `${waiter.user.first_name} ${waiter.user.last_name || ''}`.trim()
+  if (waiter.user?.first_name)
+    return `${waiter.user.first_name} ${waiter.user.last_name || ''}`.trim()
   if (waiter.user?.email) return waiter.user.email.split('@')[0]
   if (waiter.employee_number) return `Waiter #${waiter.employee_number}`
   return `Waiter #${waiter.id}`
@@ -127,7 +128,7 @@ watch(
   () => {
     populateForm()
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 onMounted(() => {
@@ -141,7 +142,7 @@ watch(
       loadData()
       populateForm()
     }
-  }
+  },
 )
 
 const handleUpdate = async () => {
@@ -193,14 +194,22 @@ const handleClose = () => {
         class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-hidden flex flex-col transition-all"
       >
         <!-- Modal Header -->
-        <div class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
+        <div
+          class="flex items-center justify-between px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex-shrink-0"
+        >
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-500/20">
+            <div
+              class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-500/20"
+            >
               <Edit3 class="w-5 h-5" />
             </div>
             <div>
-              <h2 class="text-lg font-black text-slate-900 dark:text-white">Edit Table Assignment</h2>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Modify assigned table, waitstaff, or active status</p>
+              <h2 class="text-lg font-black text-slate-900 dark:text-white">
+                Edit Table Assignment
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Modify assigned table, waitstaff, or active status
+              </p>
             </div>
           </div>
 
@@ -242,7 +251,9 @@ const handleClose = () => {
 
             <!-- Field 1: Restaurant Table -->
             <div>
-              <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+              <label
+                class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2"
+              >
                 Restaurant Table <span class="text-rose-500">*</span>
               </label>
               <select
@@ -251,7 +262,12 @@ const handleClose = () => {
               >
                 <option value="" disabled>Choose a table...</option>
                 <option v-for="table in tables" :key="table.id" :value="table.id">
-                  Table {{ table.table_number }} {{ table.table_name ? `(${table.table_name})` : '' }} — {{ table.section || table.location || 'Main Section' }} ({{ table.capacity }} Seats)
+                  Table {{ table.table_number }}
+                  {{ table.table_name ? `(${table.table_name})` : '' }} —
+                  {{ table.section || table.location || 'Main Section' }} ({{
+                    table.capacity
+                  }}
+                  Seats)
                 </option>
               </select>
 
@@ -263,7 +279,10 @@ const handleClose = () => {
                 <div class="flex items-center gap-2">
                   <MapPin class="w-4 h-4 text-blue-500 flex-shrink-0" />
                   <span class="font-bold text-slate-900 dark:text-white">
-                    Section: {{ selectedTableData.section || selectedTableData.location || 'Main Dining Room' }}
+                    Section:
+                    {{
+                      selectedTableData.section || selectedTableData.location || 'Main Dining Room'
+                    }}
                   </span>
                 </div>
                 <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">
@@ -274,7 +293,9 @@ const handleClose = () => {
 
             <!-- Field 2: Assigned Waiter -->
             <div>
-              <label class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+              <label
+                class="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2"
+              >
                 Assigned Waitstaff <span class="text-rose-500">*</span>
               </label>
               <select
@@ -283,15 +304,20 @@ const handleClose = () => {
               >
                 <option value="" disabled>Choose a waiter...</option>
                 <option v-for="waiter in activeWaiters" :key="waiter.id" :value="waiter.id">
-                  {{ getWaiterDisplayName(waiter) }} {{ waiter.section ? `(${waiter.section})` : '' }}
+                  {{ getWaiterDisplayName(waiter) }}
+                  {{ waiter.section ? `(${waiter.section})` : '' }}
                 </option>
               </select>
             </div>
 
             <!-- Field 3: Active Assignment Toggle -->
-            <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex items-center justify-between gap-4">
+            <div
+              class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex items-center justify-between gap-4"
+            >
               <div>
-                <label class="block text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                <label
+                  class="block text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider"
+                >
                   Active Assignment <span class="text-rose-500">*</span>
                 </label>
                 <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
@@ -303,9 +329,11 @@ const handleClose = () => {
                 type="button"
                 @click="isActive = !isActive"
                 class="flex items-center gap-2 px-3 py-1.5 rounded-xl border transition cursor-pointer"
-                :class="isActive
-                  ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                  : 'border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-500'"
+                :class="
+                  isActive
+                    ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                    : 'border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-500'
+                "
               >
                 <component :is="isActive ? ToggleRight : ToggleLeft" class="w-5 h-5" />
                 <span class="text-xs font-extrabold">{{ isActive ? 'Active' : 'Inactive' }}</span>
@@ -315,7 +343,9 @@ const handleClose = () => {
         </div>
 
         <!-- Modal Footer -->
-        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex-shrink-0">
+        <div
+          class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex-shrink-0"
+        >
           <button
             type="button"
             @click="handleClose"

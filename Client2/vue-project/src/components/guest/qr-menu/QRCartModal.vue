@@ -54,8 +54,14 @@
                   d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                 ></path>
               </svg>
-              <p class="text-gray-500 text-lg font-medium">{{ languageStore.t('cart_empty', 'Your cart is empty') }}</p>
-              <p class="text-gray-400 text-sm mt-1">{{ languageStore.t('add_items_from_menu', 'Add items from the menu to get started') }}</p>
+              <p class="text-gray-500 text-lg font-medium">
+                {{ languageStore.t('cart_empty', 'Your cart is empty') }}
+              </p>
+              <p class="text-gray-400 text-sm mt-1">
+                {{
+                  languageStore.t('add_items_from_menu', 'Add items from the menu to get started')
+                }}
+              </p>
               <button
                 @click="$emit('close')"
                 class="mt-4 inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-6 py-2 rounded-lg font-medium hover:bg-amber-200 transition-colors cursor-pointer"

@@ -28,7 +28,7 @@ export const floorService = {
   async getActiveFloors(): Promise<FloorResponse> {
     try {
       const response = await axios.get('/manager/floors', {
-        params: { is_active: true }
+        params: { is_active: true },
       })
       return response.data
     } catch (error: any) {
@@ -45,5 +45,5 @@ export const floorService = {
       console.error('[FloorService] Error fetching floor:', error)
       throw error
     }
-  }
+  },
 }

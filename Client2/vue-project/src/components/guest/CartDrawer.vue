@@ -115,11 +115,17 @@ const checkout = () => {
             <div class="border-b border-slate-200 px-6 py-5">
               <div class="flex items-center justify-between">
                 <div>
-                  <h2 class="text-2xl font-bold text-slate-900">{{ languageStore.t('your_order', 'Your Order') }}</h2>
+                  <h2 class="text-2xl font-bold text-slate-900">
+                    {{ languageStore.t('your_order', 'Your Order') }}
+                  </h2>
 
                   <p class="mt-1 text-sm text-slate-500">
                     {{ totalItems }}
-                    {{ totalItems === 1 ? languageStore.t('item', 'item') : languageStore.t('items', 'items') }}
+                    {{
+                      totalItems === 1
+                        ? languageStore.t('item', 'item')
+                        : languageStore.t('items', 'items')
+                    }}
                     {{ languageStore.t('selected', 'selected') }}
                   </p>
                 </div>
@@ -166,10 +172,17 @@ const checkout = () => {
                   🛒
                 </div>
 
-                <h3 class="mt-6 text-2xl font-bold text-slate-800">{{ languageStore.t('your_cart_is_empty', 'Your cart is empty') }}</h3>
+                <h3 class="mt-6 text-2xl font-bold text-slate-800">
+                  {{ languageStore.t('your_cart_is_empty', 'Your cart is empty') }}
+                </h3>
 
                 <p class="mt-3 text-slate-500 leading-relaxed">
-                  {{ languageStore.t('browse_menu_msg', 'Browse our delicious menu and add your favourite meals.') }}
+                  {{
+                    languageStore.t(
+                      'browse_menu_msg',
+                      'Browse our delicious menu and add your favourite meals.',
+                    )
+                  }}
                 </p>
               </div>
 
@@ -196,7 +209,14 @@ const checkout = () => {
                             {{ item.name }}
                           </h4>
 
-                          <p class="text-sm text-slate-500 mt-1">{{ languageStore.t('freshly_prepared_chefs', 'Freshly prepared by our chefs') }}</p>
+                          <p class="text-sm text-slate-500 mt-1">
+                            {{
+                              languageStore.t(
+                                'freshly_prepared_chefs',
+                                'Freshly prepared by our chefs',
+                              )
+                            }}
+                          </p>
                         </div>
 
                         <button
@@ -223,7 +243,12 @@ const checkout = () => {
                       <div class="mt-3 flex items-center justify-between">
                         <div>
                           <p class="text-xl font-bold text-teal-600">
-                            {{ ((item.total_price !== undefined && item.total_price !== null) ? Number(item.total_price) : Number(item.price)).toFixed(2) }}
+                            {{
+                              (item.total_price !== undefined && item.total_price !== null
+                                ? Number(item.total_price)
+                                : Number(item.price)
+                              ).toFixed(2)
+                            }}
                             ETB
                           </p>
                         </div>
@@ -252,10 +277,18 @@ const checkout = () => {
                       </div>
 
                       <div class="mt-4 flex justify-between items-center border-t pt-3">
-                        <span class="text-sm text-slate-500">{{ languageStore.t('item_total', 'Item Total') }}</span>
+                        <span class="text-sm text-slate-500">{{
+                          languageStore.t('item_total', 'Item Total')
+                        }}</span>
 
                         <span class="font-bold text-slate-900">
-                          {{ (((item.total_price !== undefined && item.total_price !== null) ? Number(item.total_price) : Number(item.price)) * item.quantity).toFixed(2) }}
+                          {{
+                            (
+                              (item.total_price !== undefined && item.total_price !== null
+                                ? Number(item.total_price)
+                                : Number(item.price)) * item.quantity
+                            ).toFixed(2)
+                          }}
                           ETB
                         </span>
                       </div>
@@ -276,7 +309,12 @@ const checkout = () => {
                   <textarea
                     v-model="specialRequest"
                     rows="3"
-                    :placeholder="languageStore.t('special_request_placeholder', 'Example: No onions, extra spicy, less salt...')"
+                    :placeholder="
+                      languageStore.t(
+                        'special_request_placeholder',
+                        'Example: No onions, extra spicy, less salt...',
+                      )
+                    "
                     class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200 resize-none"
                   />
                 </div>
@@ -291,10 +329,17 @@ const checkout = () => {
                       </div>
 
                       <div>
-                        <h4 class="font-semibold text-slate-800">{{ languageStore.t('estimated_delivery', 'Estimated Delivery') }}</h4>
+                        <h4 class="font-semibold text-slate-800">
+                          {{ languageStore.t('estimated_delivery', 'Estimated Delivery') }}
+                        </h4>
 
                         <p class="text-sm text-slate-500">
-                          {{ languageStore.t('delivered_to_room', 'Your meal will be delivered to your room.') }}
+                          {{
+                            languageStore.t(
+                              'delivered_to_room',
+                              'Your meal will be delivered to your room.',
+                            )
+                          }}
                         </p>
                       </div>
                     </div>
@@ -302,13 +347,17 @@ const checkout = () => {
                     <div class="text-right">
                       <span class="text-2xl font-bold text-teal-600"> 20–25 </span>
 
-                      <p class="text-sm text-slate-500">{{ languageStore.t('minutes', 'Minutes') }}</p>
+                      <p class="text-sm text-slate-500">
+                        {{ languageStore.t('minutes', 'Minutes') }}
+                      </p>
                     </div>
                   </div>
                 </div>
 
                 <div class="rounded-2xl bg-white border border-slate-200 p-5">
-                  <h3 class="text-lg font-bold text-slate-900 mb-5">{{ languageStore.t('order_summary', 'Order Summary') }}</h3>
+                  <h3 class="text-lg font-bold text-slate-900 mb-5">
+                    {{ languageStore.t('order_summary', 'Order Summary') }}
+                  </h3>
 
                   <div class="space-y-3">
                     <div class="flex justify-between text-slate-600">
@@ -332,7 +381,9 @@ const checkout = () => {
                     <div class="border-t border-dashed border-slate-300 my-4" />
 
                     <div class="flex justify-between items-center">
-                      <span class="text-lg font-bold text-slate-900">{{ languageStore.t('grand_total', 'Grand Total') }}</span>
+                      <span class="text-lg font-bold text-slate-900">{{
+                        languageStore.t('grand_total', 'Grand Total')
+                      }}</span>
 
                       <span class="text-3xl font-bold text-teal-600">
                         {{ grandTotal.toFixed(2) }}
@@ -347,12 +398,38 @@ const checkout = () => {
                     <div class="text-2xl"></div>
 
                     <div>
-                      <h4 class="font-semibold text-slate-800">{{ languageStore.t('room_service_info', 'Room Service Information') }}</h4>
+                      <h4 class="font-semibold text-slate-800">
+                        {{ languageStore.t('room_service_info', 'Room Service Information') }}
+                      </h4>
 
                       <ul class="mt-2 space-y-1 text-sm text-slate-600">
-                        <li>• {{ languageStore.t('room_service_note1', 'Your order will be delivered directly to your room.') }}</li>
-                        <li>• {{ languageStore.t('room_service_note2', 'Payment can be charged to your room account.') }}</li>
-                        <li>• {{ languageStore.t('room_service_note3', 'Please contact Reception if you need assistance.') }}</li>
+                        <li>
+                          •
+                          {{
+                            languageStore.t(
+                              'room_service_note1',
+                              'Your order will be delivered directly to your room.',
+                            )
+                          }}
+                        </li>
+                        <li>
+                          •
+                          {{
+                            languageStore.t(
+                              'room_service_note2',
+                              'Payment can be charged to your room account.',
+                            )
+                          }}
+                        </li>
+                        <li>
+                          •
+                          {{
+                            languageStore.t(
+                              'room_service_note3',
+                              'Please contact Reception if you need assistance.',
+                            )
+                          }}
+                        </li>
                       </ul>
                     </div>
                   </div>
@@ -368,12 +445,32 @@ const checkout = () => {
                   <div class="flex items-center justify-center gap-3 py-4">
                     <div v-if="props.submitting" class="relative w-6 h-6">
                       <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="40" fill="none" stroke="#0EA5E9" stroke-width="5" opacity="0.3" />
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="40"
+                          fill="none"
+                          stroke="#0EA5E9"
+                          stroke-width="5"
+                          opacity="0.3"
+                        />
                       </svg>
-                      
-                      <div class="absolute inset-0 animate-spin" style="animation: spin 1.5s linear infinite;">
+
+                      <div
+                        class="absolute inset-0 animate-spin"
+                        style="animation: spin 1.5s linear infinite"
+                      >
                         <svg viewBox="0 0 100 100" class="w-full h-full">
-                          <circle cx="50" cy="50" r="40" fill="none" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" stroke-dasharray="60 240" />
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            fill="none"
+                            stroke="#FBBF24"
+                            stroke-width="6"
+                            stroke-linecap="round"
+                            stroke-dasharray="60 240"
+                          />
                         </svg>
                       </div>
                     </div>
@@ -396,7 +493,11 @@ const checkout = () => {
 
                     <div class="text-left">
                       <p class="text-lg font-bold text-white">
-                        {{ props.submitting ? languageStore.t('placing_order', 'Placing Order...') : languageStore.t('place_order', 'Place Order') }}
+                        {{
+                          props.submitting
+                            ? languageStore.t('placing_order', 'Placing Order...')
+                            : languageStore.t('place_order', 'Place Order')
+                        }}
                       </p>
 
                       <p class="text-sm text-teal-100">

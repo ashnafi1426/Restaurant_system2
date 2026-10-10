@@ -18,7 +18,7 @@ import {
   Building2,
   Percent,
   AlertTriangle,
-  TrendingUp
+  TrendingUp,
 } from 'lucide-vue-next'
 
 import { getDashboard } from '@/services/dashboardService'
@@ -46,7 +46,7 @@ const platformStats = ref<PlatformStatistics>({})
 
 const getCacheKey = () => `admin_dashboard_cache_${hotelStore.hotelId || 'platform'}`
 
-const ensureArray = <T = any>(val: any): T[] => {
+const ensureArray = <T = any,>(val: any): T[] => {
   if (Array.isArray(val)) return val
   if (val && typeof val === 'object') return Object.values(val)
   return []
@@ -132,9 +132,13 @@ watch(() => hotelStore.hotelId, initializeDashboard)
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans transition-colors">
+    <div
+      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans transition-colors"
+    >
       <!-- HEADER CARD -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
+      >
         <div>
           <div class="flex flex-wrap items-center gap-2.5">
             <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -188,9 +192,16 @@ watch(() => hotelStore.hotelId, initializeDashboard)
       </div>
 
       <!-- LOADING SKELETON -->
-      <div v-if="loading && !dashboard" class="py-24 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-500 mx-auto mb-3"></div>
-        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">Loading hotel dashboard metrics...</p>
+      <div
+        v-if="loading && !dashboard"
+        class="py-24 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs"
+      >
+        <div
+          class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-500 mx-auto mb-3"
+        ></div>
+        <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+          Loading hotel dashboard metrics...
+        </p>
       </div>
 
       <!-- MAIN DASHBOARD CONTENT -->
@@ -198,9 +209,15 @@ watch(() => hotelStore.hotelId, initializeDashboard)
         <!-- 4 OVERVIEW STAT CARDS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <!-- Total Rooms -->
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+          <div
+            class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between"
+          >
             <div class="space-y-1">
-              <p class="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total Rooms</p>
+              <p
+                class="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500"
+              >
+                Total Rooms
+              </p>
               <h3 class="text-2xl font-black text-slate-900 dark:text-white">
                 {{ dashboard?.overview?.totalRooms ?? 0 }}
               </h3>
@@ -214,9 +231,15 @@ watch(() => hotelStore.hotelId, initializeDashboard)
           </div>
 
           <!-- Occupancy Rate -->
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+          <div
+            class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between"
+          >
             <div class="space-y-1">
-              <p class="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">Occupancy Rate</p>
+              <p
+                class="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500"
+              >
+                Occupancy Rate
+              </p>
               <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400">
                 {{ dashboard?.overview?.occupancyRate ?? 0 }}%
               </h3>
@@ -224,15 +247,23 @@ watch(() => hotelStore.hotelId, initializeDashboard)
                 {{ dashboard?.roomStatistics?.occupied ?? 0 }} rooms currently occupied
               </p>
             </div>
-            <div class="p-3.5 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+            <div
+              class="p-3.5 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+            >
               <Percent class="w-6 h-6" />
             </div>
           </div>
 
           <!-- Active Staff -->
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+          <div
+            class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between"
+          >
             <div class="space-y-1">
-              <p class="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">Active Staff</p>
+              <p
+                class="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500"
+              >
+                Active Staff
+              </p>
               <h3 class="text-2xl font-black text-indigo-600 dark:text-indigo-400">
                 {{ dashboard?.overview?.activeStaff ?? 0 }}
               </h3>
@@ -240,21 +271,31 @@ watch(() => hotelStore.hotelId, initializeDashboard)
                 {{ dashboard?.overview?.totalUsers ?? 0 }} registered hotel users
               </p>
             </div>
-            <div class="p-3.5 rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+            <div
+              class="p-3.5 rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20"
+            >
               <Users class="w-6 h-6" />
             </div>
           </div>
 
           <!-- Today's Revenue -->
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+          <div
+            class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between"
+          >
             <div class="space-y-1">
-              <p class="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">Today's Revenue</p>
+              <p
+                class="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500"
+              >
+                Today's Revenue
+              </p>
               <h3 class="text-2xl font-black text-amber-500">
                 {{ formatRevenue(dashboard?.overview?.todayRevenue) }} ETB
               </h3>
               <p class="text-[11px] text-slate-500 font-medium">From room reservations & orders</p>
             </div>
-            <div class="p-3.5 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
+            <div
+              class="p-3.5 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20"
+            >
               <DollarSign class="w-6 h-6" />
             </div>
           </div>
@@ -262,11 +303,17 @@ watch(() => hotelStore.hotelId, initializeDashboard)
 
         <!-- CHARTS SECTION: MONTHLY REVENUE & ROOM STATUS -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+          <div
+            class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs"
+          >
             <div class="flex items-center justify-between mb-4">
               <div>
-                <h3 class="text-base font-black text-slate-900 dark:text-white">Revenue Performance</h3>
-                <p class="text-xs text-slate-500">Last 6 months revenue trajectory for this hotel</p>
+                <h3 class="text-base font-black text-slate-900 dark:text-white">
+                  Revenue Performance
+                </h3>
+                <p class="text-xs text-slate-500">
+                  Last 6 months revenue trajectory for this hotel
+                </p>
               </div>
               <div class="p-2 rounded-xl bg-primary-500/10 text-primary-500">
                 <TrendingUp class="w-4 h-4" />
@@ -276,7 +323,9 @@ watch(() => hotelStore.hotelId, initializeDashboard)
           </div>
 
           <!-- Room Status Chart (1 col) -->
-          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+          <div
+            class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs"
+          >
             <div class="flex items-center justify-between mb-4">
               <div>
                 <h3 class="text-base font-black text-slate-900 dark:text-white">Room Inventory</h3>
@@ -293,10 +342,14 @@ watch(() => hotelStore.hotelId, initializeDashboard)
         <!-- RECENT RESERVATIONS & OPERATIONAL ACTIVITY -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- Recent Reservations Table (2 cols) -->
-          <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+          <div
+            class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs"
+          >
             <div class="flex items-center justify-between mb-4">
               <div>
-                <h3 class="text-base font-black text-slate-900 dark:text-white">Recent Reservations</h3>
+                <h3 class="text-base font-black text-slate-900 dark:text-white">
+                  Recent Reservations
+                </h3>
                 <p class="text-xs text-slate-500">Latest guest bookings & check-ins</p>
               </div>
               <button
@@ -313,7 +366,9 @@ watch(() => hotelStore.hotelId, initializeDashboard)
           <!-- Staff Activity & Maintenance Alerts (1 col) -->
           <div class="space-y-6">
             <!-- Staff Activity Widget -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+            <div
+              class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs"
+            >
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-base font-black text-slate-900 dark:text-white">Staff Activity</h3>
                 <div class="p-1.5 rounded-xl bg-indigo-500/10 text-indigo-500">
@@ -324,9 +379,13 @@ watch(() => hotelStore.hotelId, initializeDashboard)
             </div>
 
             <!-- Maintenance Alerts Widget -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+            <div
+              class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs"
+            >
               <div class="flex items-center justify-between mb-4">
-                <h3 class="text-base font-black text-slate-900 dark:text-white">Maintenance Alerts</h3>
+                <h3 class="text-base font-black text-slate-900 dark:text-white">
+                  Maintenance Alerts
+                </h3>
                 <div class="p-1.5 rounded-xl bg-amber-500/10 text-amber-500">
                   <AlertTriangle class="w-4 h-4" />
                 </div>
@@ -337,10 +396,17 @@ watch(() => hotelStore.hotelId, initializeDashboard)
         </div>
 
         <!-- PLATFORM SUPER ADMIN SECTION (SHOWN ONLY TO SUPER ADMIN) -->
-        <div v-if="auth.isPlatformAdmin" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+        <div
+          v-if="auth.isPlatformAdmin"
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4"
+        >
+          <div
+            class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4"
+          >
             <div>
-              <h3 class="text-lg font-black text-slate-900 dark:text-white">Platform Multi-Hotel Overview</h3>
+              <h3 class="text-lg font-black text-slate-900 dark:text-white">
+                Platform Multi-Hotel Overview
+              </h3>
               <p class="text-xs text-slate-500">Total hotels enrolled and system-wide stats</p>
             </div>
             <button
@@ -352,25 +418,44 @@ watch(() => hotelStore.hotelId, initializeDashboard)
           </div>
 
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
-            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+            <div
+              class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800"
+            >
               <p class="text-[11px] font-extrabold uppercase text-slate-400">Total Hotels</p>
-              <h4 class="text-xl font-black text-slate-900 dark:text-white mt-1">{{ platformStats?.total_hotels ?? 0 }}</h4>
+              <h4 class="text-xl font-black text-slate-900 dark:text-white mt-1">
+                {{ platformStats?.total_hotels ?? 0 }}
+              </h4>
             </div>
-            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+            <div
+              class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800"
+            >
               <p class="text-[11px] font-extrabold uppercase text-slate-400">Active Hotels</p>
-              <h4 class="text-xl font-black text-emerald-500 mt-1">{{ platformStats?.active_hotels ?? 0 }}</h4>
+              <h4 class="text-xl font-black text-emerald-500 mt-1">
+                {{ platformStats?.active_hotels ?? 0 }}
+              </h4>
             </div>
-            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-              <p class="text-[11px] font-extrabold uppercase text-slate-400">Total Platform Users</p>
-              <h4 class="text-xl font-black text-indigo-500 mt-1">{{ platformStats?.total_users ?? 0 }}</h4>
+            <div
+              class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800"
+            >
+              <p class="text-[11px] font-extrabold uppercase text-slate-400">
+                Total Platform Users
+              </p>
+              <h4 class="text-xl font-black text-indigo-500 mt-1">
+                {{ platformStats?.total_users ?? 0 }}
+              </h4>
             </div>
-            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-              <p class="text-[11px] font-extrabold uppercase text-slate-400">Total Rooms Enrolled</p>
-              <h4 class="text-xl font-black text-amber-500 mt-1">{{ platformStats?.total_rooms ?? 0 }}</h4>
+            <div
+              class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800"
+            >
+              <p class="text-[11px] font-extrabold uppercase text-slate-400">
+                Total Rooms Enrolled
+              </p>
+              <h4 class="text-xl font-black text-amber-500 mt-1">
+                {{ platformStats?.total_rooms ?? 0 }}
+              </h4>
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </DashboardLayout>

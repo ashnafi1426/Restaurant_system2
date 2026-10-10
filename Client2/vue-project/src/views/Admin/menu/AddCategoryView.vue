@@ -75,7 +75,7 @@
               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
             >
               <option value="">Select an icon...</option>
-              <option value="sun"> Sun (Breakfast)</option>
+              <option value="sun">Sun (Breakfast)</option>
               <option value="leaf">🍃 Leaf (Vegetarian)</option>
               <option value="soup">🍲 Soup</option>
               <option value="utensils">Utensils (Main Course)</option>
@@ -172,7 +172,10 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const isMenuManagement = computed(() => {
-  return route.path.startsWith('/menu-management') || (!authStore.isPlatformAdmin && !authStore.hasRole('admin'))
+  return (
+    route.path.startsWith('/menu-management') ||
+    (!authStore.isPlatformAdmin && !authStore.hasRole('admin'))
+  )
 })
 
 const formData = ref({

@@ -130,9 +130,12 @@ onMounted(() => {
   loadGuests()
 })
 
-watch(() => hotelStore.hotelId, () => {
-  loadGuests()
-})
+watch(
+  () => hotelStore.hotelId,
+  () => {
+    loadGuests()
+  },
+)
 </script>
 
 <template>
@@ -158,9 +161,13 @@ watch(() => hotelStore.hotelId, () => {
 
       <!-- Breadcrumb -->
       <nav class="flex items-center text-sm text-slate-500">
-        <a href="/dashboard" class="hover:text-slate-700 transition">{{ languageStore.t('Dashboard', 'Dashboard') }}</a>
+        <a href="/dashboard" class="hover:text-slate-700 transition">{{
+          languageStore.t('Dashboard', 'Dashboard')
+        }}</a>
         <span class="mx-2">/</span>
-        <span class="font-medium text-slate-800">{{ languageStore.t('Guest Management', 'Guest Management') }}</span>
+        <span class="font-medium text-slate-800">{{
+          languageStore.t('Guest Management', 'Guest Management')
+        }}</span>
       </nav>
 
       <!-- Header -->
@@ -168,13 +175,20 @@ watch(() => hotelStore.hotelId, () => {
         <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <div class="flex items-center gap-3 mb-2">
-              <h1 class="text-4xl font-bold">{{ languageStore.t('Guest Management', 'Guest Management') }}</h1>
-              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/20 text-white border border-white/30 backdrop-blur-xs">
+              <h1 class="text-4xl font-bold">
+                {{ languageStore.t('Guest Management', 'Guest Management') }}
+              </h1>
+              <span
+                v-if="hotelStore.hotelName"
+                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/20 text-white border border-white/30 backdrop-blur-xs"
+              >
                 <Building2 class="w-3.5 h-3.5" />
                 {{ hotelStore.hotelName }}
               </span>
             </div>
-            <p class="text-blue-100 text-lg">{{ languageStore.t('guest_mgmt_desc', 'Manage hotel guest records and information') }}</p>
+            <p class="text-blue-100 text-lg">
+              {{ languageStore.t('guest_mgmt_desc', 'Manage hotel guest records and information') }}
+            </p>
           </div>
           <div class="flex gap-2">
             <button
@@ -196,7 +210,9 @@ watch(() => hotelStore.hotelId, () => {
         >
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-slate-600">{{ languageStore.t('Total Guests', 'Total Guests') }}</p>
+              <p class="text-sm font-medium text-slate-600">
+                {{ languageStore.t('Total Guests', 'Total Guests') }}
+              </p>
               <h2 class="mt-2 text-3xl font-bold text-slate-900">
                 {{ totalGuests }}
               </h2>
@@ -213,7 +229,9 @@ watch(() => hotelStore.hotelId, () => {
         >
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-slate-600">{{ languageStore.t('Current Page', 'Current Page') }}</p>
+              <p class="text-sm font-medium text-slate-600">
+                {{ languageStore.t('Current Page', 'Current Page') }}
+              </p>
               <h2 class="mt-2 text-3xl font-bold text-slate-900">
                 {{ currentPage }}
               </h2>
@@ -230,7 +248,9 @@ watch(() => hotelStore.hotelId, () => {
         >
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-slate-600">{{ languageStore.t('Per Page', 'Per Page') }}</p>
+              <p class="text-sm font-medium text-slate-600">
+                {{ languageStore.t('Per Page', 'Per Page') }}
+              </p>
               <h2 class="mt-2 text-3xl font-bold text-slate-900">
                 {{ filters.per_page }}
               </h2>
@@ -247,7 +267,9 @@ watch(() => hotelStore.hotelId, () => {
         >
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-slate-600">{{ languageStore.t('Showing', 'On This Page') }}</p>
+              <p class="text-sm font-medium text-slate-600">
+                {{ languageStore.t('Showing', 'On This Page') }}
+              </p>
               <h2 class="mt-2 text-3xl font-bold text-slate-900">
                 {{ guestsOnPage }}
               </h2>
@@ -287,9 +309,16 @@ watch(() => hotelStore.hotelId, () => {
         >
           <span class="material-symbols-rounded text-5xl text-slate-400">groups</span>
         </div>
-        <h2 class="text-2xl font-bold text-slate-700 mb-2">{{ languageStore.t('No Guests Found', 'No Guests Found') }}</h2>
+        <h2 class="text-2xl font-bold text-slate-700 mb-2">
+          {{ languageStore.t('No Guests Found', 'No Guests Found') }}
+        </h2>
         <p class="text-slate-500 mb-6 max-w-md mx-auto">
-          {{ languageStore.t('no_guests_match_filters', 'No guest records match your current filters') }}
+          {{
+            languageStore.t(
+              'no_guests_match_filters',
+              'No guest records match your current filters',
+            )
+          }}
         </p>
         <button
           @click="createGuest"
@@ -323,7 +352,9 @@ watch(() => hotelStore.hotelId, () => {
           </button>
 
           <div class="flex items-center gap-1 px-4">
-            <span class="font-semibold text-slate-700">{{ languageStore.t('Page', 'Page') }} {{ currentPage }}</span>
+            <span class="font-semibold text-slate-700"
+              >{{ languageStore.t('Page', 'Page') }} {{ currentPage }}</span
+            >
             <span class="text-slate-500">{{ languageStore.t('of', 'of') }} {{ lastPage }}</span>
           </div>
 

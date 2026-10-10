@@ -19,25 +19,25 @@ const statistics = computed(() => [
     value: roomCount.value,
     label: languageStore.t('luxury_suites_rooms', 'Luxury Suites & Rooms'),
     icon: BedDouble,
-    color: 'text-amber-400'
+    color: 'text-amber-400',
   },
   {
     value: '99%',
     label: languageStore.t('guest_satisfaction_rate', 'Guest Satisfaction Rate'),
     icon: Star,
-    color: 'text-emerald-400'
+    color: 'text-emerald-400',
   },
   {
     value: '25+',
     label: languageStore.t('years_of_excellence', 'Years of Excellence'),
     icon: Award,
-    color: 'text-blue-400'
+    color: 'text-blue-400',
   },
   {
     value: '80+',
     label: languageStore.t('professional_staff', 'Professional Staff'),
     icon: Users,
-    color: 'text-purple-400'
+    color: 'text-purple-400',
   },
 ])
 </script>
@@ -65,4 +65,3 @@ const statistics = computed(() => [
     </div>
   </section>
 </template>
-

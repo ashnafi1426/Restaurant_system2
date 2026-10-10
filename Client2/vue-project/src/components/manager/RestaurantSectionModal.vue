@@ -5,9 +5,13 @@
         class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
         @click.self="$emit('close')"
       >
-        <div class="bg-white dark:bg-[#0b1527] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden text-slate-900 dark:text-white">
+        <div
+          class="bg-white dark:bg-[#0b1527] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden text-slate-900 dark:text-white"
+        >
           <!-- Header -->
-          <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+          <div
+            class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50"
+          >
             <div>
               <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Layers class="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -29,14 +33,20 @@
           <!-- Body -->
           <div class="p-6 overflow-y-auto space-y-6 flex-1">
             <!-- Add / Edit Form -->
-            <div class="p-4 rounded-xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/30 dark:bg-blue-950/20 space-y-3">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400">
+            <div
+              class="p-4 rounded-xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/30 dark:bg-blue-950/20 space-y-3"
+            >
+              <h3
+                class="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400"
+              >
                 {{ editingSectionId ? 'Edit Section' : 'Add New Section' }}
               </h3>
 
               <div class="space-y-3">
                 <div>
-                  <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label
+                    class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                  >
                     Section Name <span class="text-rose-500">*</span>
                   </label>
                   <input
@@ -45,11 +55,15 @@
                     placeholder="e.g., Main Dining, Terrace, Rooftop Lounge"
                     class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <p v-if="validationError" class="text-rose-500 text-[11px] mt-1">{{ validationError }}</p>
+                  <p v-if="validationError" class="text-rose-500 text-[11px] mt-1">
+                    {{ validationError }}
+                  </p>
                 </div>
 
                 <div>
-                  <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label
+                    class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                  >
                     Description (Optional)
                   </label>
                   <input
@@ -61,7 +75,9 @@
                 </div>
 
                 <div class="flex items-center justify-between pt-1">
-                  <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-slate-300">
+                  <label
+                    class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-slate-300"
+                  >
                     <input
                       v-model="form.is_active"
                       type="checkbox"
@@ -96,21 +112,32 @@
             <!-- Existing Sections List -->
             <div>
               <div class="flex items-center justify-between mb-2.5">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <h3
+                  class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                >
                   Existing Sections ({{ sectionStore.sections.length }})
                 </h3>
               </div>
 
-              <div v-if="sectionStore.loading && !sectionStore.sections.length" class="text-center py-8">
+              <div
+                v-if="sectionStore.loading && !sectionStore.sections.length"
+                class="text-center py-8"
+              >
                 <Loader2 class="w-6 h-6 animate-spin text-blue-600 mx-auto" />
                 <p class="text-xs text-slate-500 mt-2">Loading sections...</p>
               </div>
 
-              <div v-else-if="!sectionStore.sections.length" class="text-center py-6 text-slate-400 text-xs">
+              <div
+                v-else-if="!sectionStore.sections.length"
+                class="text-center py-6 text-slate-400 text-xs"
+              >
                 No sections defined yet. Create your first section above.
               </div>
 
-              <div v-else class="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
+              <div
+                v-else
+                class="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden"
+              >
                 <div
                   v-for="sec in sectionStore.sections"
                   :key="sec.id"
@@ -123,7 +150,11 @@
                       </span>
                       <span
                         class="px-2 py-0.2 rounded-full text-[10px] font-bold"
-                        :class="sec.is_active ? 'bg-emerald-500/10 text-emerald-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'"
+                        :class="
+                          sec.is_active
+                            ? 'bg-emerald-500/10 text-emerald-600'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                        "
                       >
                         {{ sec.is_active ? 'Active' : 'Inactive' }}
                       </span>
@@ -134,7 +165,10 @@
                         {{ sec.tables_count }} tables
                       </span>
                     </div>
-                    <p v-if="sec.description" class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                    <p
+                      v-if="sec.description"
+                      class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate"
+                    >
                       {{ sec.description }}
                     </p>
                   </div>
@@ -163,7 +197,9 @@
           </div>
 
           <!-- Footer -->
-          <div class="px-6 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex justify-end">
+          <div
+            class="px-6 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex justify-end"
+          >
             <button
               type="button"
               @click="$emit('close')"
@@ -253,7 +289,11 @@ const handleSave = async () => {
 }
 
 const handleDelete = async (sec: RestaurantSection) => {
-  if (confirm(`Are you sure you want to delete the "${sec.name}" section? Tables in this section will be unassigned from it.`)) {
+  if (
+    confirm(
+      `Are you sure you want to delete the "${sec.name}" section? Tables in this section will be unassigned from it.`,
+    )
+  ) {
     try {
       await sectionStore.deleteSection(sec.id)
       if (editingSectionId.value === sec.id) {

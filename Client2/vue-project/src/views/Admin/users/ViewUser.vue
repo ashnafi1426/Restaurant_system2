@@ -119,23 +119,35 @@ const userInitial = computed(() => {
 
 const getRoleBadgeClass = (role?: string): string => {
   const r = (role || '').toLowerCase()
-  if (r.includes('admin')) return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30'
-  if (r.includes('manager')) return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30'
-  if (r.includes('reception')) return 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30'
-  if (r.includes('cashier')) return 'bg-slate-600/10 text-slate-700 dark:text-slate-300 border-slate-500/30'
-  if (r.includes('waiter') || r.includes('staff')) return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
-  if (r.includes('chef') || r.includes('kitchen')) return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+  if (r.includes('admin'))
+    return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30'
+  if (r.includes('manager'))
+    return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30'
+  if (r.includes('reception'))
+    return 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30'
+  if (r.includes('cashier'))
+    return 'bg-slate-600/10 text-slate-700 dark:text-slate-300 border-slate-500/30'
+  if (r.includes('waiter') || r.includes('staff'))
+    return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+  if (r.includes('chef') || r.includes('kitchen'))
+    return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
   return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/30'
 }
 
 const getRoleDescription = (role?: string): string => {
   const r = (role || '').toLowerCase()
-  if (r.includes('admin')) return 'Full administrative authority across system settings, staff management, and hotel properties.'
-  if (r.includes('manager')) return 'Supervises daily hotel and restaurant operations, floor shifts, waiter assignments, and performance.'
-  if (r.includes('reception')) return 'Handles front desk check-ins, guest reservations, room assignments, and guest hospitality.'
-  if (r.includes('cashier')) return 'Processes customer dining payments, billing settlements, table clearing, and financial reports.'
-  if (r.includes('chef') || r.includes('kitchen')) return 'Manages real-time kitchen order preparation, menu cooking statuses, and food fulfillment.'
-  if (r.includes('waiter')) return 'Takes dining orders, serves food to tables and rooms, and coordinates direct guest service.'
+  if (r.includes('admin'))
+    return 'Full administrative authority across system settings, staff management, and hotel properties.'
+  if (r.includes('manager'))
+    return 'Supervises daily hotel and restaurant operations, floor shifts, waiter assignments, and performance.'
+  if (r.includes('reception'))
+    return 'Handles front desk check-ins, guest reservations, room assignments, and guest hospitality.'
+  if (r.includes('cashier'))
+    return 'Processes customer dining payments, billing settlements, table clearing, and financial reports.'
+  if (r.includes('chef') || r.includes('kitchen'))
+    return 'Manages real-time kitchen order preparation, menu cooking statuses, and food fulfillment.'
+  if (r.includes('waiter'))
+    return 'Takes dining orders, serves food to tables and rooms, and coordinates direct guest service.'
   return 'Standard staff member with departmental operational privileges.'
 }
 
@@ -175,7 +187,7 @@ const deleteUser = async () => {
   if (!user.value) return
   const confirmMsg = languageStore.t(
     'delete_user_confirm',
-    `Are you sure you want to delete ${fullName.value}? This action cannot be undone.`
+    `Are you sure you want to delete ${fullName.value}? This action cannot be undone.`,
   )
   if (confirm(confirmMsg)) {
     isDeleting.value = true
@@ -209,10 +221,13 @@ const formatDate = (dateStr?: string | null): string => {
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans transition-colors">
-      
+    <div
+      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans transition-colors"
+    >
       <!-- Top Action Bar -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-5 rounded-2xl shadow-xs">
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-5 rounded-2xl shadow-xs"
+      >
         <div class="flex items-center gap-3">
           <button
             @click="router.push('/users')"
@@ -223,7 +238,9 @@ const formatDate = (dateStr?: string | null): string => {
           </button>
           <div>
             <div class="flex items-center gap-2">
-              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              <h1
+                class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight"
+              >
                 {{ fullName }}
               </h1>
               <span
@@ -236,7 +253,12 @@ const formatDate = (dateStr?: string | null): string => {
               </span>
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              {{ languageStore.t('staff_profile_details', 'Staff account overview and operational access credentials.') }}
+              {{
+                languageStore.t(
+                  'staff_profile_details',
+                  'Staff account overview and operational access credentials.',
+                )
+              }}
             </p>
           </div>
         </div>
@@ -247,9 +269,11 @@ const formatDate = (dateStr?: string | null): string => {
             @click="toggleStatus"
             :disabled="isTogglingStatus"
             class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition cursor-pointer disabled:opacity-50"
-            :class="user.is_active
-              ? 'border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 hover:bg-amber-100'
-              : 'border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100'"
+            :class="
+              user.is_active
+                ? 'border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 hover:bg-amber-100'
+                : 'border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100'
+            "
           >
             <RefreshCw v-if="isTogglingStatus" class="w-3.5 h-3.5 animate-spin" />
             <UserX v-else-if="user.is_active" class="w-3.5 h-3.5" />
@@ -277,8 +301,13 @@ const formatDate = (dateStr?: string | null): string => {
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center">
-        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 mb-3 animate-spin">
+      <div
+        v-if="loading"
+        class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center"
+      >
+        <div
+          class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 mb-3 animate-spin"
+        >
           <RefreshCw class="w-6 h-6" />
         </div>
         <p class="text-sm font-bold text-slate-700 dark:text-slate-300">Loading user profile...</p>
@@ -286,8 +315,13 @@ const formatDate = (dateStr?: string | null): string => {
       </div>
 
       <!-- User Not Found State -->
-      <div v-else-if="!user" class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center">
-        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 mb-3">
+      <div
+        v-else-if="!user"
+        class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center"
+      >
+        <div
+          class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 mb-3"
+        >
           <AlertCircle class="w-6 h-6" />
         </div>
         <h2 class="text-lg font-bold text-slate-900 dark:text-white">User Not Found</h2>
@@ -305,14 +339,19 @@ const formatDate = (dateStr?: string | null): string => {
 
       <!-- User Content -->
       <div v-else class="space-y-6">
-        
         <!-- Hero Identity Banner Card -->
-        <div class="relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-6">
-          <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+        <div
+          class="relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs p-6"
+        >
+          <div
+            class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-transparent rounded-full blur-3xl pointer-events-none"
+          ></div>
 
           <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5 relative z-10">
             <!-- Avatar -->
-            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white text-3xl sm:text-4xl font-black shadow-md flex-shrink-0">
+            <div
+              class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white text-3xl sm:text-4xl font-black shadow-md flex-shrink-0"
+            >
               {{ userInitial }}
             </div>
 
@@ -325,25 +364,37 @@ const formatDate = (dateStr?: string | null): string => {
                 <!-- Status Pill -->
                 <span
                   class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider"
-                  :class="user.is_active
-                    ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800'
-                    : 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-800'"
+                  :class="
+                    user.is_active
+                      ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800'
+                      : 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-800'
+                  "
                 >
-                  <span class="w-2 h-2 rounded-full" :class="user.is_active ? 'bg-emerald-500' : 'bg-rose-500'"></span>
+                  <span
+                    class="w-2 h-2 rounded-full"
+                    :class="user.is_active ? 'bg-emerald-500' : 'bg-rose-500'"
+                  ></span>
                   {{ user.is_active ? 'Active' : 'Inactive' }}
                 </span>
                 <!-- Hotel Tag -->
-                <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                <span
+                  v-if="hotelStore.hotelName"
+                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                >
                   <Building2 class="w-3 h-3 text-blue-500" />
                   {{ hotelStore.hotelName }}
                 </span>
               </div>
 
               <!-- Quick Contact Row -->
-              <div class="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400 pt-1">
+              <div
+                class="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400 pt-1"
+              >
                 <div class="flex items-center gap-1.5">
                   <Mail class="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
-                  <span class="font-medium text-slate-700 dark:text-slate-300">{{ user.email }}</span>
+                  <span class="font-medium text-slate-700 dark:text-slate-300">{{
+                    user.email
+                  }}</span>
                   <button
                     @click="copyToClipboard(user.email, 'email')"
                     class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 ml-1 transition"
@@ -356,7 +407,9 @@ const formatDate = (dateStr?: string | null): string => {
 
                 <div class="flex items-center gap-1.5">
                   <Phone class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-                  <span class="font-medium text-slate-700 dark:text-slate-300">{{ user.phone || 'No phone recorded' }}</span>
+                  <span class="font-medium text-slate-700 dark:text-slate-300">{{
+                    user.phone || 'No phone recorded'
+                  }}</span>
                   <button
                     v-if="user.phone"
                     @click="copyToClipboard(user.phone, 'phone')"
@@ -370,7 +423,9 @@ const formatDate = (dateStr?: string | null): string => {
 
                 <div class="flex items-center gap-1.5">
                   <KeyRound class="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />
-                  <span class="font-mono text-[11px] text-slate-400 truncate max-w-[140px]">{{ user.id }}</span>
+                  <span class="font-mono text-[11px] text-slate-400 truncate max-w-[140px]">{{
+                    user.id
+                  }}</span>
                   <button
                     @click="copyToClipboard(user.id, 'id')"
                     class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 ml-1 transition"
@@ -387,11 +442,16 @@ const formatDate = (dateStr?: string | null): string => {
 
         <!-- 3-Column Detailed Information Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
           <!-- Card 1: Account Information -->
-          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4">
-            <div class="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div class="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
+          <div
+            class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4"
+          >
+            <div
+              class="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800"
+            >
+              <div
+                class="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400"
+              >
                 <UserIcon class="w-4 h-4" />
               </div>
               <h3 class="font-bold text-slate-900 dark:text-white text-sm">Account Information</h3>
@@ -399,30 +459,57 @@ const formatDate = (dateStr?: string | null): string => {
 
             <div class="space-y-3.5 text-xs">
               <div>
-                <span class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5">First Name</span>
-                <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">{{ user.first_name || 'N/A' }}</span>
+                <span
+                  class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5"
+                  >First Name</span
+                >
+                <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">{{
+                  user.first_name || 'N/A'
+                }}</span>
               </div>
 
               <div>
-                <span class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5">Last Name</span>
-                <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">{{ user.last_name || 'N/A' }}</span>
+                <span
+                  class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5"
+                  >Last Name</span
+                >
+                <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">{{
+                  user.last_name || 'N/A'
+                }}</span>
               </div>
 
               <div>
-                <span class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5">Work Email Address</span>
-                <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">{{ user.email }}</span>
+                <span
+                  class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5"
+                  >Work Email Address</span
+                >
+                <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">{{
+                  user.email
+                }}</span>
               </div>
 
               <div>
-                <span class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5">Phone Number</span>
-                <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">{{ user.phone || 'None provided' }}</span>
+                <span
+                  class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5"
+                  >Phone Number</span
+                >
+                <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">{{
+                  user.phone || 'None provided'
+                }}</span>
               </div>
 
               <div>
-                <span class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5">Account Status</span>
+                <span
+                  class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5"
+                  >Account Status</span
+                >
                 <span
                   class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold"
-                  :class="user.is_active ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'"
+                  :class="
+                    user.is_active
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                      : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                  "
                 >
                   <CheckCircle2 v-if="user.is_active" class="w-3 h-3 text-emerald-600" />
                   <AlertCircle v-else class="w-3 h-3 text-rose-600" />
@@ -433,9 +520,15 @@ const formatDate = (dateStr?: string | null): string => {
           </div>
 
           <!-- Card 2: Role & System Privileges -->
-          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4">
-            <div class="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div class="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400">
+          <div
+            class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4"
+          >
+            <div
+              class="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800"
+            >
+              <div
+                class="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400"
+              >
                 <ShieldCheck class="w-4 h-4" />
               </div>
               <h3 class="font-bold text-slate-900 dark:text-white text-sm">Role & Department</h3>
@@ -443,7 +536,10 @@ const formatDate = (dateStr?: string | null): string => {
 
             <div class="space-y-3.5 text-xs">
               <div>
-                <span class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5">Assigned System Role</span>
+                <span
+                  class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5"
+                  >Assigned System Role</span
+                >
                 <div class="mt-1">
                   <span
                     class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider border shadow-2xs"
@@ -456,15 +552,25 @@ const formatDate = (dateStr?: string | null): string => {
               </div>
 
               <div>
-                <span class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5">Role Description</span>
-                <p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed mt-0.5 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                <span
+                  class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5"
+                  >Role Description</span
+                >
+                <p
+                  class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed mt-0.5 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800"
+                >
                   {{ getRoleDescription(user.role) }}
                 </p>
               </div>
 
               <div>
-                <span class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5">Property Membership</span>
-                <span class="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5 mt-0.5">
+                <span
+                  class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5"
+                  >Property Membership</span
+                >
+                <span
+                  class="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5 mt-0.5"
+                >
                   <Building2 class="w-3.5 h-3.5 text-blue-500" />
                   {{ hotelStore.hotelName || 'Default Property' }}
                 </span>
@@ -483,9 +589,15 @@ const formatDate = (dateStr?: string | null): string => {
           </div>
 
           <!-- Card 3: Activity & Security -->
-          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4">
-            <div class="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div class="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+          <div
+            class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4"
+          >
+            <div
+              class="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800"
+            >
+              <div
+                class="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400"
+              >
                 <Clock class="w-4 h-4" />
               </div>
               <h3 class="font-bold text-slate-900 dark:text-white text-sm">Security & Activity</h3>
@@ -493,32 +605,52 @@ const formatDate = (dateStr?: string | null): string => {
 
             <div class="space-y-3.5 text-xs">
               <div>
-                <span class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5">Last Login Session</span>
-                <span class="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5 mt-0.5">
+                <span
+                  class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5"
+                  >Last Login Session</span
+                >
+                <span
+                  class="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5 mt-0.5"
+                >
                   <Clock class="w-3.5 h-3.5 text-amber-500" />
                   {{ formatDate(user.last_login) }}
                 </span>
               </div>
 
               <div>
-                <span class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5">Account Created</span>
-                <span class="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5 mt-0.5">
+                <span
+                  class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5"
+                  >Account Created</span
+                >
+                <span
+                  class="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5 mt-0.5"
+                >
                   <Calendar class="w-3.5 h-3.5 text-blue-500" />
                   {{ formatDate(user.created_at) }}
                 </span>
               </div>
 
               <div>
-                <span class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5">Last Profile Modification</span>
-                <span class="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5 mt-0.5">
+                <span
+                  class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5"
+                  >Last Profile Modification</span
+                >
+                <span
+                  class="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5 mt-0.5"
+                >
                   <RefreshCw class="w-3.5 h-3.5 text-teal-500" />
                   {{ formatDate(user.updated_at) }}
                 </span>
               </div>
 
               <div>
-                <span class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5">Password Authentication</span>
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                <span
+                  class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-0.5"
+                  >Password Authentication</span
+                >
+                <span
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                >
                   <KeyRound class="w-3 h-3 text-slate-500" />
                   <span>Bcrypt Encrypted</span>
                 </span>
@@ -526,7 +658,6 @@ const formatDate = (dateStr?: string | null): string => {
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </DashboardLayout>

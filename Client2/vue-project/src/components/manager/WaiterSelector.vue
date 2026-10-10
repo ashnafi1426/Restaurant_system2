@@ -44,15 +44,16 @@
           </div>
         </transition>
 
-        <div v-if="isOpen && filteredWaiters.length === 0 && searchQuery" class="absolute top-full left-0 right-0 mt-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-500 shadow-lg z-10">
+        <div
+          v-if="isOpen && filteredWaiters.length === 0 && searchQuery"
+          class="absolute top-full left-0 right-0 mt-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-500 shadow-lg z-10"
+        >
           No waiters found
         </div>
       </div>
     </label>
 
-    <div v-if="loading" class="mt-1 text-xs text-gray-500">
-      Loading waiters...
-    </div>
+    <div v-if="loading" class="mt-1 text-xs text-gray-500">Loading waiters...</div>
     <div v-if="error" class="mt-1 text-xs text-red-500">
       {{ error }}
     </div>
@@ -116,15 +117,17 @@ const searchQuery = ref('')
 const isOpen = ref(false)
 
 const selectedWaiters = computed(() => {
-  const selected = Array.isArray(props.modelValue) ? props.modelValue : [props.modelValue].filter(Boolean)
-  return waiters.value.filter(w => selected.includes(w.id))
+  const selected = Array.isArray(props.modelValue)
+    ? props.modelValue
+    : [props.modelValue].filter(Boolean)
+  return waiters.value.filter((w) => selected.includes(w.id))
 })
 
 const filteredWaiters = computed(() => {
   if (!searchQuery.value) return waiters.value
   const query = searchQuery.value.toLowerCase()
   return waiters.value.filter(
-    w => w.name.toLowerCase().includes(query) || w.email.toLowerCase().includes(query)
+    (w) => w.name.toLowerCase().includes(query) || w.email.toLowerCase().includes(query),
   )
 })
 
@@ -181,7 +184,7 @@ function selectWaiter(waiter: Waiter) {
 
 function removeWaiter(waiterId: number | string) {
   if (Array.isArray(props.modelValue)) {
-    const selected = props.modelValue.filter(id => id !== waiterId)
+    const selected = props.modelValue.filter((id) => id !== waiterId)
     emit('update:modelValue', selected)
   }
 }

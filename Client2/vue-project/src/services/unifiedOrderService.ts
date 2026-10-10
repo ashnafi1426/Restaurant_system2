@@ -59,12 +59,14 @@ export const unifiedOrderService = {
       throw {
         success: false,
         message: error.response?.data?.message || 'Failed to create order',
-        errors: error.response?.data?.errors || {}
+        errors: error.response?.data?.errors || {},
       }
     }
   },
 
-  async initializeWalkInPayment(paymentData: WalkInPaymentRequest): Promise<PaymentInitializeResponse> {
+  async initializeWalkInPayment(
+    paymentData: WalkInPaymentRequest,
+  ): Promise<PaymentInitializeResponse> {
     try {
       const response = await axios.post('/walk-in-payments/initialize', paymentData)
       return response.data
@@ -73,7 +75,7 @@ export const unifiedOrderService = {
       throw {
         success: false,
         message: error.response?.data?.message || 'Failed to initialize payment',
-        errors: error.response?.data?.errors || {}
+        errors: error.response?.data?.errors || {},
       }
     }
   },
@@ -87,10 +89,10 @@ export const unifiedOrderService = {
       throw {
         success: false,
         message: error.response?.data?.message || 'Failed to get order',
-        errors: error.response?.data?.errors || {}
+        errors: error.response?.data?.errors || {},
       }
     }
-  }
+  },
 }
 
 export default unifiedOrderService

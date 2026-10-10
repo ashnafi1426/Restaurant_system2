@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import { computed, type Component } from 'vue'
-import {
-  LogIn,
-  LogOut,
-  Users,
-  BedDouble,
-  Clock,
-  CheckCircle2
-} from 'lucide-vue-next'
+import { LogIn, LogOut, Users, BedDouble, Clock, CheckCircle2 } from 'lucide-vue-next'
 
 interface Props {
   title: string
@@ -83,7 +76,9 @@ const iconComponent = computed(() => {
     :class="colorStyles.border"
   >
     <div class="flex items-center justify-between">
-      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+      <span
+        class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+      >
         {{ title }}
       </span>
       <div

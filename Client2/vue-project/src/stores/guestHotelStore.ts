@@ -41,7 +41,8 @@ export const useGuestHotelStore = defineStore('guestHotel', {
     hotelName: (state): string => state.currentHotel?.name || 'Grand Horizon Hotel',
     hotelCity: (state): string => state.currentHotel?.city || 'Addis Ababa',
     hotelCountry: (state): string => state.currentHotel?.country || 'Ethiopia',
-    hotelAddress: (state): string => state.currentHotel?.address || 'Bolé Road, Addis Ababa, Ethiopia',
+    hotelAddress: (state): string =>
+      state.currentHotel?.address || 'Bolé Road, Addis Ababa, Ethiopia',
     hotelPhone: (state): string => state.currentHotel?.phone || '+251 11 555 1234',
     hotelEmail: (state): string => state.currentHotel?.email || 'concierge@grandhorizon.com',
     currency: (state): string => state.currentHotel?.currency || 'ETB',
@@ -61,7 +62,7 @@ export const useGuestHotelStore = defineStore('guestHotel', {
             this.selectHotel(this.availableHotels[0])
           } else if (this.currentHotel && this.availableHotels.length > 0) {
             // Update current hotel with fresh details from backend
-            const matched = this.availableHotels.find(h => h.id === this.currentHotel?.id)
+            const matched = this.availableHotels.find((h) => h.id === this.currentHotel?.id)
             if (matched) {
               this.currentHotel = matched
               localStorage.setItem('guest_current_hotel', JSON.stringify(matched))
@@ -96,7 +97,7 @@ export const useGuestHotelStore = defineStore('guestHotel', {
       localStorage.setItem('guest_hotel_id', hotel.id)
       localStorage.setItem('hotel_id', hotel.id)
       localStorage.setItem('active_hotel_id', hotel.id)
-      
+
       // Dynamically adapt platform brand theme to the selected hotel property
       try {
         const themeStore = useThemeStore()
@@ -116,7 +117,7 @@ export const useGuestHotelStore = defineStore('guestHotel', {
         await this.fetchAvailableHotels()
       }
 
-      const matched = this.availableHotels.find(h => h.id === hotelId || h.slug === hotelId)
+      const matched = this.availableHotels.find((h) => h.id === hotelId || h.slug === hotelId)
       if (matched) {
         this.selectHotel(matched)
         return
@@ -136,6 +137,6 @@ export const useGuestHotelStore = defineStore('guestHotel', {
       this.currentHotel = null
       localStorage.removeItem('guest_current_hotel')
       this.openHotelSelector()
-    }
+    },
   },
 })

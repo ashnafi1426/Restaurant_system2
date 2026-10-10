@@ -87,7 +87,10 @@ export const useRestaurantTableStore = defineStore('restaurantTable', () => {
     }
   }
 
-  async function withTableMutation<T>(action: () => Promise<T>, fallbackMessage: string): Promise<T> {
+  async function withTableMutation<T>(
+    action: () => Promise<T>,
+    fallbackMessage: string,
+  ): Promise<T> {
     loading.value = true
     error.value = null
 
@@ -114,22 +117,19 @@ export const useRestaurantTableStore = defineStore('restaurantTable', () => {
   const createTable = async (data: CreateTableRequest) => {
     return withTableMutation(
       () => restaurantTableService.createTable(data),
-      'Failed to create table'
+      'Failed to create table',
     )
   }
 
   const updateTable = async (id: string, data: UpdateTableRequest) => {
     return withTableMutation(
       () => restaurantTableService.updateTable(id, data),
-      'Failed to update table'
+      'Failed to update table',
     )
   }
 
   const deleteTable = async (id: string) => {
-    return withTableMutation(
-      () => restaurantTableService.deleteTable(id),
-      'Failed to delete table'
-    )
+    return withTableMutation(() => restaurantTableService.deleteTable(id), 'Failed to delete table')
   }
 
   const regenerateQR = async (id: string) => {

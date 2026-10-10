@@ -16,27 +16,27 @@
    Navy #0B1B35, Vibrant Amber Gold #E9A11A, Crisp White
    ============================================================================ */
 :root,
-[data-hotel-theme="luxury-gold"],
-[data-hotel-theme="sheraton"] {
+[data-hotel-theme='luxury-gold'],
+[data-hotel-theme='sheraton'] {
   /* Brand Accent (10%) */
-  --brand-primary-rgb: 233, 161, 26;          /* #E9A11A */
-  --brand-primary-hover-rgb: 212, 146, 20;     /* #D49214 */
-  --brand-primary-active-rgb: 191, 131, 16;    /* #BF8310 */
-  --brand-accent-rgb: 245, 200, 105;          /* #F5C869 Champagne */
-  --brand-cta-text-rgb: 11, 27, 53;           /* #0B1B35 Dark Navy on Gold for 4.8:1 AA */
+  --brand-primary-rgb: 233, 161, 26; /* #E9A11A */
+  --brand-primary-hover-rgb: 212, 146, 20; /* #D49214 */
+  --brand-primary-active-rgb: 191, 131, 16; /* #BF8310 */
+  --brand-accent-rgb: 245, 200, 105; /* #F5C869 Champagne */
+  --brand-cta-text-rgb: 11, 27, 53; /* #0B1B35 Dark Navy on Gold for 4.8:1 AA */
 
   /* Canvas & Surfaces (60%) - Light Mode */
-  --brand-canvas-rgb: 255, 255, 255;          /* #FFFFFF Pure Background */
-  --brand-surface-rgb: 248, 250, 252;         /* #F8FAFC Card Surface */
-  --brand-surface-elevated-rgb: 255, 255, 255;/* #FFFFFF Dropdowns, Modals */
-  --brand-surface-subtle-rgb: 241, 245, 249;  /* #F1F5F9 Inset / Hover state */
+  --brand-canvas-rgb: 255, 255, 255; /* #FFFFFF Pure Background */
+  --brand-surface-rgb: 248, 250, 252; /* #F8FAFC Card Surface */
+  --brand-surface-elevated-rgb: 255, 255, 255; /* #FFFFFF Dropdowns, Modals */
+  --brand-surface-subtle-rgb: 241, 245, 249; /* #F1F5F9 Inset / Hover state */
 
   /* Structure & Typography (30%) - Light Mode */
-  --brand-headline-rgb: 11, 27, 53;           /* #0B1B35 Deep Navy Heading */
-  --brand-body-rgb: 51, 65, 85;               /* #334155 Slate-700 Readable */
-  --brand-muted-rgb: 100, 116, 139;           /* #64748B Slate-500 Secondary */
-  --brand-border-rgb: 226, 232, 240;          /* #E2E8F0 Subtle Border */
-  --brand-border-subtle-rgb: 241, 245, 249;   /* #F1F5F9 Ultra Light Border */
+  --brand-headline-rgb: 11, 27, 53; /* #0B1B35 Deep Navy Heading */
+  --brand-body-rgb: 51, 65, 85; /* #334155 Slate-700 Readable */
+  --brand-muted-rgb: 100, 116, 139; /* #64748B Slate-500 Secondary */
+  --brand-border-rgb: 226, 232, 240; /* #E2E8F0 Subtle Border */
+  --brand-border-subtle-rgb: 241, 245, 249; /* #F1F5F9 Ultra Light Border */
 
   /* Elevation Shadows & Colored Glows */
   --shadow-brand-glow: 0 4px 18px -2px rgba(var(--brand-primary-rgb), 0.32);
@@ -48,31 +48,31 @@
    2. THEME 2: HERITAGE WINE (DIRE DAWA RAS / BOUTIQUE HERITAGE)
    Imperial Burgundy #802325, Warm Gold #E5B54F, Warm Alabaster
    ============================================================================ */
-[data-hotel-theme="heritage-wine"],
-[data-hotel-theme="ras-hotel"] {
+[data-hotel-theme='heritage-wine'],
+[data-hotel-theme='ras-hotel'] {
   /* Brand Accent (10%) */
-  --brand-primary-rgb: 128, 35, 37;           /* #802325 Deep Wine Red */
-  --brand-primary-hover-rgb: 105, 26, 28;     /* #691A1C */
-  --brand-primary-active-rgb: 87, 18, 20;      /* #571214 */
-  --brand-accent-rgb: 229, 181, 79;           /* #E5B54F Warm Champagne */
-  --brand-cta-text-rgb: 255, 255, 255;        /* #FFFFFF High Contrast 7.8:1 AAA */
+  --brand-primary-rgb: 128, 35, 37; /* #802325 Deep Wine Red */
+  --brand-primary-hover-rgb: 105, 26, 28; /* #691A1C */
+  --brand-primary-active-rgb: 87, 18, 20; /* #571214 */
+  --brand-accent-rgb: 229, 181, 79; /* #E5B54F Warm Champagne */
+  --brand-cta-text-rgb: 255, 255, 255; /* #FFFFFF High Contrast 7.8:1 AAA */
 
   /* Canvas & Surfaces (60%) - Light Mode */
-  --brand-canvas-rgb: 253, 252, 251;          /* Warm Alabaster White */
-  --brand-surface-rgb: 248, 246, 244;         /* Warm Card Surface */
-  --brand-surface-elevated-rgb: 255, 255, 255;/* Clean White Modal */
-  --brand-surface-subtle-rgb: 243, 239, 236;  /* Soft Warm Neutral Inset */
+  --brand-canvas-rgb: 253, 252, 251; /* Warm Alabaster White */
+  --brand-surface-rgb: 248, 246, 244; /* Warm Card Surface */
+  --brand-surface-elevated-rgb: 255, 255, 255; /* Clean White Modal */
+  --brand-surface-subtle-rgb: 243, 239, 236; /* Soft Warm Neutral Inset */
 
   /* Structure & Typography (30%) - Light Mode */
-  --brand-headline-rgb: 38, 14, 16;           /* #260E10 Deep Espresso Burgundy */
-  --brand-body-rgb: 74, 62, 62;               /* #4A3E3E Warm Deep Gray */
-  --brand-muted-rgb: 120, 106, 106;           /* #786A6A Muted Taupe */
-  --brand-border-rgb: 232, 224, 222;          /* #E8E0DE Soft Warm Border */
-  --brand-border-subtle-rgb: 243, 239, 236;   /* Inset divider */
+  --brand-headline-rgb: 38, 14, 16; /* #260E10 Deep Espresso Burgundy */
+  --brand-body-rgb: 74, 62, 62; /* #4A3E3E Warm Deep Gray */
+  --brand-muted-rgb: 120, 106, 106; /* #786A6A Muted Taupe */
+  --brand-border-rgb: 232, 224, 222; /* #E8E0DE Soft Warm Border */
+  --brand-border-subtle-rgb: 243, 239, 236; /* Inset divider */
 
   /* Elevation Shadows & Colored Glows */
   --shadow-brand-glow: 0 4px 18px -2px rgba(var(--brand-primary-rgb), 0.28);
-  --shadow-brand-glow-lg: 0 8px 28px -4px rgba(var(--brand-primary-rgb), 0.40);
+  --shadow-brand-glow-lg: 0 8px 28px -4px rgba(var(--brand-primary-rgb), 0.4);
   --shadow-brand-surface: 0 4px 20px -2px rgba(38, 14, 16, 0.05);
 }
 
@@ -80,28 +80,28 @@
    3. AUTOMATIC DARK MODE OVERRIDES (LUXURY GOLD)
    Preserves Brand Hue Integrity, deepens surfaces, switches text contrast
    ============================================================================ */
-html.dark:not([data-hotel-theme="heritage-wine"]),
-html.dark[data-hotel-theme="luxury-gold"],
-html.dark[data-hotel-theme="sheraton"] {
+html.dark:not([data-hotel-theme='heritage-wine']),
+html.dark[data-hotel-theme='luxury-gold'],
+html.dark[data-hotel-theme='sheraton'] {
   /* Brand Accent (10%) */
-  --brand-primary-rgb: 245, 168, 34;          /* #F5A822 Luminous Gold for dark bg */
-  --brand-primary-hover-rgb: 255, 185, 64;    /* #FFB940 */
-  --brand-primary-active-rgb: 224, 148, 15;   /* #E0940F */
-  --brand-accent-rgb: 253, 218, 140;          /* #FDDA8C */
-  --brand-cta-text-rgb: 7, 16, 30;            /* #07101E Deep Dark Ink */
+  --brand-primary-rgb: 245, 168, 34; /* #F5A822 Luminous Gold for dark bg */
+  --brand-primary-hover-rgb: 255, 185, 64; /* #FFB940 */
+  --brand-primary-active-rgb: 224, 148, 15; /* #E0940F */
+  --brand-accent-rgb: 253, 218, 140; /* #FDDA8C */
+  --brand-cta-text-rgb: 7, 16, 30; /* #07101E Deep Dark Ink */
 
   /* Canvas & Surfaces (60%) - Dark Mode */
-  --brand-canvas-rgb: 7, 16, 30;              /* #07101E Midnight Deep Navy */
-  --brand-surface-rgb: 11, 27, 53;            /* #0B1B35 Elevated Navy Card */
-  --brand-surface-elevated-rgb: 16, 36, 68;   /* #102444 Popovers & Modals */
-  --brand-surface-subtle-rgb: 22, 44, 80;     /* #162C50 Hover / Inset */
+  --brand-canvas-rgb: 7, 16, 30; /* #07101E Midnight Deep Navy */
+  --brand-surface-rgb: 11, 27, 53; /* #0B1B35 Elevated Navy Card */
+  --brand-surface-elevated-rgb: 16, 36, 68; /* #102444 Popovers & Modals */
+  --brand-surface-subtle-rgb: 22, 44, 80; /* #162C50 Hover / Inset */
 
   /* Structure & Typography (30%) - Dark Mode */
-  --brand-headline-rgb: 255, 255, 255;        /* Crisp White */
-  --brand-body-rgb: 226, 232, 240;            /* #E2E8F0 Slate-200 */
-  --brand-muted-rgb: 148, 163, 184;           /* #94A3B8 Slate-400 */
-  --brand-border-rgb: 30, 58, 102;            /* #1E3A66 Navy Slate Border */
-  --brand-border-subtle-rgb: 19, 39, 71;      /* #132747 Inset Divider */
+  --brand-headline-rgb: 255, 255, 255; /* Crisp White */
+  --brand-body-rgb: 226, 232, 240; /* #E2E8F0 Slate-200 */
+  --brand-muted-rgb: 148, 163, 184; /* #94A3B8 Slate-400 */
+  --brand-border-rgb: 30, 58, 102; /* #1E3A66 Navy Slate Border */
+  --brand-border-subtle-rgb: 19, 39, 71; /* #132747 Inset Divider */
 
   /* Glows */
   --shadow-brand-glow: 0 4px 22px 0 rgba(var(--brand-primary-rgb), 0.42);
@@ -112,30 +112,30 @@ html.dark[data-hotel-theme="sheraton"] {
 /* ============================================================================
    4. AUTOMATIC DARK MODE OVERRIDES (HERITAGE WINE)
    ============================================================================ */
-html.dark[data-hotel-theme="heritage-wine"],
-html.dark[data-hotel-theme="ras-hotel"] {
+html.dark[data-hotel-theme='heritage-wine'],
+html.dark[data-hotel-theme='ras-hotel'] {
   /* Brand Accent (10%) */
-  --brand-primary-rgb: 179, 57, 60;           /* #B3393C Slightly boosted wine for dark mode */
-  --brand-primary-hover-rgb: 199, 72, 75;     /* #C7484B */
-  --brand-primary-active-rgb: 153, 45, 48;    /* #992D30 */
-  --brand-accent-rgb: 235, 194, 107;          /* #EBC26B Warm Gold */
-  --brand-cta-text-rgb: 255, 255, 255;        /* #FFFFFF */
+  --brand-primary-rgb: 179, 57, 60; /* #B3393C Slightly boosted wine for dark mode */
+  --brand-primary-hover-rgb: 199, 72, 75; /* #C7484B */
+  --brand-primary-active-rgb: 153, 45, 48; /* #992D30 */
+  --brand-accent-rgb: 235, 194, 107; /* #EBC26B Warm Gold */
+  --brand-cta-text-rgb: 255, 255, 255; /* #FFFFFF */
 
   /* Canvas & Surfaces (60%) - Dark Mode */
-  --brand-canvas-rgb: 22, 8, 9;               /* #160809 Deep Wine Charcoal */
-  --brand-surface-rgb: 36, 16, 18;            /* #241012 Deep Velvet Card */
-  --brand-surface-elevated-rgb: 51, 24, 27;   /* #33181B Modals & Dropdowns */
-  --brand-surface-subtle-rgb: 64, 30, 33;     /* #401E21 Insets */
+  --brand-canvas-rgb: 22, 8, 9; /* #160809 Deep Wine Charcoal */
+  --brand-surface-rgb: 36, 16, 18; /* #241012 Deep Velvet Card */
+  --brand-surface-elevated-rgb: 51, 24, 27; /* #33181B Modals & Dropdowns */
+  --brand-surface-subtle-rgb: 64, 30, 33; /* #401E21 Insets */
 
   /* Structure & Typography (30%) - Dark Mode */
-  --brand-headline-rgb: 255, 255, 255;        /* Pure White */
-  --brand-body-rgb: 243, 232, 232;            /* Soft warm white */
-  --brand-muted-rgb: 176, 154, 154;           /* Warm Muted Rose-Gray */
-  --brand-border-rgb: 61, 29, 32;             /* #3D1D20 Wine Border */
-  --brand-border-subtle-rgb: 43, 20, 22;      /* Inset Divider */
+  --brand-headline-rgb: 255, 255, 255; /* Pure White */
+  --brand-body-rgb: 243, 232, 232; /* Soft warm white */
+  --brand-muted-rgb: 176, 154, 154; /* Warm Muted Rose-Gray */
+  --brand-border-rgb: 61, 29, 32; /* #3D1D20 Wine Border */
+  --brand-border-subtle-rgb: 43, 20, 22; /* Inset Divider */
 
   /* Glows */
   --shadow-brand-glow: 0 4px 22px 0 rgba(var(--brand-primary-rgb), 0.38);
-  --shadow-brand-glow-lg: 0 8px 32px 0 rgba(var(--brand-primary-rgb), 0.50);
+  --shadow-brand-glow-lg: 0 8px 32px 0 rgba(var(--brand-primary-rgb), 0.5);
   --shadow-brand-surface: 0 8px 28px -6px rgba(0, 0, 0, 0.55);
 }

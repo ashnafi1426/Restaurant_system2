@@ -111,7 +111,10 @@ export async function getActiveOrders(filters?: CashierOrderFilters) {
   return response.data
 }
 
-export async function clearOrder(id: string, payload?: { mark_as_paid?: boolean; payment_method?: string }) {
+export async function clearOrder(
+  id: string,
+  payload?: { mark_as_paid?: boolean; payment_method?: string },
+) {
   const response = await api.post(`/cashier/dashboard/orders/${id}/clear`, payload || {})
   return response.data
 }

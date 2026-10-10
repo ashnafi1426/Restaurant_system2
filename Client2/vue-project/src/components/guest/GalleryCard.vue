@@ -44,18 +44,23 @@ const imageLoaded = ref(false)
 
     <!-- Content -->
     <div class="p-6">
-      <h3 class="text-xl font-bold text-slate-900 dark:text-white transition group-hover:text-amber-600 dark:group-hover:text-amber-400 line-clamp-1">
+      <h3
+        class="text-xl font-bold text-slate-900 dark:text-white transition group-hover:text-amber-600 dark:group-hover:text-amber-400 line-clamp-1"
+      >
         {{ languageStore.t(item.title, item.title) }}
       </h3>
 
       <div class="mt-4 flex items-center justify-between">
-        <span class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('luxury_hotel_gallery', 'Luxury Hotel Gallery') }}</span>
+        <span class="text-sm text-slate-500 dark:text-slate-400">{{
+          languageStore.t('luxury_hotel_gallery', 'Luxury Hotel Gallery')
+        }}</span>
 
-        <span class="font-semibold text-amber-600 dark:text-amber-400 transition group-hover:translate-x-2">
+        <span
+          class="font-semibold text-amber-600 dark:text-amber-400 transition group-hover:translate-x-2"
+        >
           {{ languageStore.t('view', 'View') }} →
         </span>
       </div>
     </div>
   </article>
 </template>
-

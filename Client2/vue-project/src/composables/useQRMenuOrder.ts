@@ -17,7 +17,7 @@ export function useQRMenuOrder() {
     total: number,
     qrToken: string,
     orderContext: OrderContext | null,
-    router: Router
+    router: Router,
   ) => {
     if (isPlacingOrder.value) return
     if (cartItems.length === 0) {
@@ -55,14 +55,14 @@ export function useQRMenuOrder() {
           ...orderResponse.data,
           id: createdOrderId,
           order_id: createdOrderId,
-          items: cartItems.map(item => ({
+          items: cartItems.map((item) => ({
             id: item.id,
             name: item.name,
             description: item.description,
             quantity: item.quantity,
             price: item.price,
             image: item.image,
-            total: item.price * item.quantity
+            total: item.price * item.quantity,
           })),
           subtotal: subtotal,
           tax: tax,
@@ -72,7 +72,7 @@ export function useQRMenuOrder() {
           payment_status: 'pending',
           payment_type: 'room_charge',
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         }
 
         // Store order data for OrderStatusPage
@@ -90,7 +90,10 @@ export function useQRMenuOrder() {
 
         // Verify it was stored
         const verifyStored = localStorage.getItem('pending_order_data')
-        console.log('[useQRMenuOrder] Verified stored data:', verifyStored ? 'Success ' : 'Failed ❌')
+        console.log(
+          '[useQRMenuOrder] Verified stored data:',
+          verifyStored ? 'Success ' : 'Failed ❌',
+        )
 
         // Redirect to real-time Order Status page with all necessary params
         console.log('[useQRMenuOrder] Redirecting to order status with ID:', createdOrderId)
@@ -100,8 +103,8 @@ export function useQRMenuOrder() {
           query: {
             hotel_id: orderResponse.data.hotel_id,
             qr_token: qrToken,
-            order_number: orderResponse.data.order_number
-          }
+            order_number: orderResponse.data.order_number,
+          },
         })
         return
       } else {
@@ -119,7 +122,7 @@ export function useQRMenuOrder() {
     cartItems: CartItem[],
     qrToken: string,
     orderContext: OrderContext,
-    paymentForm: PaymentForm
+    paymentForm: PaymentForm,
   ) => {
     if (isPlacingOrder.value) return
     if (cartItems.length === 0) {
@@ -154,7 +157,7 @@ export function useQRMenuOrder() {
           amount: paymentResponse.amount,
           qr_token: qrToken,
           table_number: orderContext.displayName,
-          items: cartItems.map(item => ({
+          items: cartItems.map((item) => ({
             name: item.name,
             quantity: item.quantity,
             price: item.price,

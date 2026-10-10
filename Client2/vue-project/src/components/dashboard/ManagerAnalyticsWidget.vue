@@ -2,7 +2,7 @@
   <div class="manager-analytics-widget bg-white rounded-lg shadow p-6">
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h3 class="text-lg font-bold text-gray-900"> Review Analytics</h3>
+        <h3 class="text-lg font-bold text-gray-900">Review Analytics</h3>
         <p class="text-xs text-gray-500 mt-1">Quick performance overview</p>
       </div>
       <router-link
@@ -14,7 +14,9 @@
     </div>
 
     <div class="grid grid-cols-2 gap-4 mb-6">
-      <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-lg border border-yellow-200">
+      <div
+        class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-lg border border-yellow-200"
+      >
         <p class="text-xs text-gray-600 mb-2">Overall Rating</p>
         <div class="flex items-end gap-2">
           <span class="text-3xl font-bold text-yellow-600">{{ overallRating }}</span>
@@ -23,11 +25,15 @@
         <p class="text-xs text-gray-600 mt-2">{{ totalReviews }} reviews</p>
       </div>
 
-      <div class="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+      <div
+        class="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200"
+      >
         <p class="text-xs text-gray-600 mb-2">Top Rated Item</p>
         <p class="text-sm font-semibold text-gray-900 truncate">{{ topItem?.name || 'N/A' }}</p>
         <div class="flex items-center gap-1 mt-2">
-          <span class="text-lg font-bold text-green-600">{{ topItem?.average_rating?.toFixed(1) || '0' }}</span>
+          <span class="text-lg font-bold text-green-600">{{
+            topItem?.average_rating?.toFixed(1) || '0'
+          }}</span>
           <span class="text-xs text-yellow-500">★ ({{ topItem?.review_count || 0 }})</span>
         </div>
       </div>
@@ -42,7 +48,9 @@
         <p class="text-xs text-gray-600 mb-2">Needs Attention</p>
         <p class="text-sm font-semibold text-gray-900 truncate">{{ lowestItem?.name || 'N/A' }}</p>
         <div class="flex items-center gap-1 mt-2">
-          <span class="text-lg font-bold text-red-600">{{ lowestItem?.average_rating?.toFixed(1) || '0' }}</span>
+          <span class="text-lg font-bold text-red-600">{{
+            lowestItem?.average_rating?.toFixed(1) || '0'
+          }}</span>
           <span class="text-xs text-yellow-500">★ ({{ lowestItem?.review_count || 0 }})</span>
         </div>
       </div>
@@ -60,7 +68,7 @@
               'px-2 py-1 text-xs font-semibold rounded-transition-colors',
               selectedPeriod === period
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
             ]"
           >
             {{ period.charAt(0).toUpperCase() + period.slice(1) }}
@@ -69,7 +77,11 @@
       </div>
 
       <div v-if="trends.length > 0" class="space-y-2">
-        <div v-for="(trend, index) in trends.slice(0, 5)" :key="index" class="flex items-center gap-2">
+        <div
+          v-for="(trend, index) in trends.slice(0, 5)"
+          :key="index"
+          class="flex items-center gap-2"
+        >
           <span class="text-xs w-12 text-gray-600">{{ trend.date }}</span>
           <div class="flex-1 h-6 bg-gray-100 rounded relative overflow-hidden">
             <div
@@ -118,7 +130,7 @@ const responseRate = ref(0)
 
 const topItem = computed(() => topItems.value[0] || null)
 const lowestItem = computed(() => lowestItems.value[0] || null)
-const maxTrendCount = computed(() => Math.max(...trends.value.map(t => t.count), 1))
+const maxTrendCount = computed(() => Math.max(...trends.value.map((t) => t.count), 1))
 
 const loadData = async () => {
   try {
@@ -136,8 +148,16 @@ const loadData = async () => {
     if (overallStats) {
       totalReviews.value = overallStats.total_reviews || 0
       overallRating.value = (overallStats.average_rating || 0).toFixed(1)
-      const total = (overallStats.approved_reviews || 0) + (overallStats.rejected_reviews || 0) + (overallStats.pending_reviews || 0)
-      responseRate.value = total > 0 ? Math.round(((overallStats.approved_reviews + overallStats.rejected_reviews) / total) * 100) : 0
+      const total =
+        (overallStats.approved_reviews || 0) +
+        (overallStats.rejected_reviews || 0) +
+        (overallStats.pending_reviews || 0)
+      responseRate.value =
+        total > 0
+          ? Math.round(
+              ((overallStats.approved_reviews + overallStats.rejected_reviews) / total) * 100,
+            )
+          : 0
     } else {
       totalReviews.value = top.reduce((sum, item) => sum + item.review_count, 0)
       if (top.length > 0) {
@@ -156,5 +176,4 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

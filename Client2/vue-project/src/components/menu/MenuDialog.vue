@@ -96,7 +96,8 @@ watch(
         category: props.menuItem.category || '',
         description: props.menuItem.description || '',
         image: (props.menuItem as any).image || '',
-        tax_rate_id: (props.menuItem as any).tax_rate_id || (props.menuItem as any).tax_rate?.id || '',
+        tax_rate_id:
+          (props.menuItem as any).tax_rate_id || (props.menuItem as any).tax_rate?.id || '',
         tax_included: Boolean((props.menuItem as any).tax_included),
         is_available: props.menuItem.is_available,
       }
@@ -253,7 +254,9 @@ function closeDialog() {
       <v-card-text class="px-3 sm:px-6 py-3 sm:py-6">
         <div class="space-y-3 sm:space-y-5">
           <div>
-            <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+            <label
+              class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2"
+            >
               Item Name *
             </label>
             <v-text-field
@@ -271,7 +274,9 @@ function closeDialog() {
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+              <label
+                class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2"
+              >
                 Price ($) *
               </label>
               <v-text-field
@@ -289,7 +294,9 @@ function closeDialog() {
             </div>
 
             <div>
-              <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+              <label
+                class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2"
+              >
                 Category *
               </label>
               <v-select
@@ -312,8 +319,12 @@ function closeDialog() {
           </div>
 
           <!-- Tax Configuration Section -->
-          <div class="p-3 sm:p-4 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 space-y-3">
-            <div class="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+          <div
+            class="p-3 sm:p-4 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 space-y-3"
+          >
+            <div
+              class="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300"
+            >
               <span>Tax Configuration</span>
               <span class="text-[11px] text-amber-600 font-medium">Auto-calculated</span>
             </div>
@@ -328,11 +339,7 @@ function closeDialog() {
                   class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-amber-500"
                 >
                   <option value="">No Tax (0%)</option>
-                  <option
-                    v-for="tax in taxRateStore.activeTaxRates"
-                    :key="tax.id"
-                    :value="tax.id"
-                  >
+                  <option v-for="tax in taxRateStore.activeTaxRates" :key="tax.id" :value="tax.id">
                     {{ tax.name }} ({{ tax.rate }}{{ tax.type === 'percentage' ? '%' : ' Fixed' }})
                   </option>
                 </select>
@@ -345,21 +352,31 @@ function closeDialog() {
                   type="checkbox"
                   class="w-4 h-4 rounded accent-amber-500 cursor-pointer"
                 />
-                <label for="dialog_tax_inc" class="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                <label
+                  for="dialog_tax_inc"
+                  class="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer"
+                >
                   Price Includes Tax
                 </label>
               </div>
             </div>
 
-            <div v-if="form.price > 0" class="flex items-center justify-between text-xs pt-1 border-t border-slate-200/60 dark:border-zinc-700/60 text-slate-600 dark:text-slate-400">
+            <div
+              v-if="form.price > 0"
+              class="flex items-center justify-between text-xs pt-1 border-t border-slate-200/60 dark:border-zinc-700/60 text-slate-600 dark:text-slate-400"
+            >
               <span>Base: ${{ pricePreview.basePrice }}</span>
               <span>Tax: ${{ pricePreview.taxAmount }}</span>
-              <span class="font-bold text-emerald-600 dark:text-emerald-400">Total: ${{ pricePreview.totalPrice }}</span>
+              <span class="font-bold text-emerald-600 dark:text-emerald-400"
+                >Total: ${{ pricePreview.totalPrice }}</span
+              >
             </div>
           </div>
 
           <div>
-            <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+            <label
+              class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2"
+            >
               Description
             </label>
             <v-textarea
@@ -376,7 +393,9 @@ function closeDialog() {
           </div>
 
           <div>
-            <label class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
+            <label
+              class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2"
+            >
               Image URL
             </label>
             <v-text-field

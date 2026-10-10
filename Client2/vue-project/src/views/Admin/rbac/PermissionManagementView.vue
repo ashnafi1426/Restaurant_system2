@@ -20,7 +20,7 @@ import {
   ChevronDown,
   Maximize2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-vue-next'
 
 const permissions = ref<Permission[]>([])
@@ -85,7 +85,7 @@ onMounted(() => {
 // Group permissions by module
 const groupedPermissionsMap = computed(() => {
   const map: Record<string, Permission[]> = {}
-  permissions.value.forEach(p => {
+  permissions.value.forEach((p) => {
     const mod = p.module || 'general'
     if (!map[mod]) map[mod] = []
     map[mod].push(p)
@@ -96,16 +96,16 @@ const groupedPermissionsMap = computed(() => {
 // Left Panel Group List
 const groupList = computed(() => {
   const keys = Object.keys(groupedPermissionsMap.value)
-  let list = keys.map(modKey => ({
+  let list = keys.map((modKey) => ({
     key: modKey,
     title: formatModuleName(modKey),
     count: groupedPermissionsMap.value[modKey].length,
-    initials: getGroupInitials(formatModuleName(modKey))
+    initials: getGroupInitials(formatModuleName(modKey)),
   }))
 
   if (groupSearchQuery.value.trim()) {
     const q = groupSearchQuery.value.toLowerCase().trim()
-    list = list.filter(g => g.title.toLowerCase().includes(q) || g.key.toLowerCase().includes(q))
+    list = list.filter((g) => g.title.toLowerCase().includes(q) || g.key.toLowerCase().includes(q))
   }
 
   return list
@@ -118,7 +118,7 @@ const activeGroupInfo = computed(() => {
       key: 'all',
       title: 'All Permission Groups',
       count: permissions.value.length,
-      initials: 'ALL'
+      initials: 'ALL',
     }
   }
   const title = formatModuleName(selectedGroupKey.value)
@@ -127,7 +127,7 @@ const activeGroupInfo = computed(() => {
     key: selectedGroupKey.value,
     title,
     count,
-    initials: getGroupInitials(title)
+    initials: getGroupInitials(title),
   }
 })
 
@@ -136,21 +136,24 @@ const displayedPermissions = computed(() => {
   let list = permissions.value
 
   if (selectedGroupKey.value !== 'all') {
-    list = list.filter(p => p.module === selectedGroupKey.value)
+    list = list.filter((p) => p.module === selectedGroupKey.value)
   }
 
   if (permissionSearchQuery.value.trim()) {
     const q = permissionSearchQuery.value.toLowerCase().trim()
-    list = list.filter(p =>
-      p.name.toLowerCase().includes(q) ||
-      p.slug.toLowerCase().includes(q) ||
-      p.module.toLowerCase().includes(q) ||
-      (p.description && p.description.toLowerCase().includes(q))
+    list = list.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.slug.toLowerCase().includes(q) ||
+        p.module.toLowerCase().includes(q) ||
+        (p.description && p.description.toLowerCase().includes(q)),
     )
   }
 
   if (selectedActionFilter.value !== 'all') {
-    list = list.filter(p => (p.action || '').toLowerCase() === selectedActionFilter.value.toLowerCase())
+    list = list.filter(
+      (p) => (p.action || '').toLowerCase() === selectedActionFilter.value.toLowerCase(),
+    )
   }
 
   return list
@@ -229,7 +232,7 @@ const nextPermPage = () => {
 // Available Action options
 const availableActions = computed(() => {
   const actions = new Set<string>()
-  permissions.value.forEach(p => {
+  permissions.value.forEach((p) => {
     if (p.action) actions.add(p.action.toLowerCase())
   })
   return Array.from(actions)
@@ -239,21 +242,23 @@ const availableActions = computed(() => {
 const filteredDropdownGroups = computed(() => {
   if (!groupDropdownSearch.value.trim()) return groupList.value
   const q = groupDropdownSearch.value.toLowerCase().trim()
-  return groupList.value.filter(g => g.title.toLowerCase().includes(q) || g.key.toLowerCase().includes(q))
+  return groupList.value.filter(
+    (g) => g.title.toLowerCase().includes(q) || g.key.toLowerCase().includes(q),
+  )
 })
 
 // Checkbox select all logic
 const isAllSelected = computed(() => {
   if (displayedPermissions.value.length === 0) return false
-  return displayedPermissions.value.every(p => selectedPermissionIds.value.includes(p.id))
+  return displayedPermissions.value.every((p) => selectedPermissionIds.value.includes(p.id))
 })
 
 const toggleSelectAll = () => {
   if (isAllSelected.value) {
-    const currentIds = new Set(displayedPermissions.value.map(p => p.id))
-    selectedPermissionIds.value = selectedPermissionIds.value.filter(id => !currentIds.has(id))
+    const currentIds = new Set(displayedPermissions.value.map((p) => p.id))
+    selectedPermissionIds.value = selectedPermissionIds.value.filter((id) => !currentIds.has(id))
   } else {
-    const currentIds = displayedPermissions.value.map(p => p.id)
+    const currentIds = displayedPermissions.value.map((p) => p.id)
     const set = new Set([...selectedPermissionIds.value, ...currentIds])
     selectedPermissionIds.value = Array.from(set)
   }
@@ -271,8 +276,12 @@ const togglePermissionSelect = (id: number) => {
 // Helpers
 function formatModuleName(mod: string) {
   if (!mod) return 'General'
-  const formatted = mod.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-  if (formatted.toLowerCase().includes('management') || formatted.toLowerCase().includes('operations') || formatted.toLowerCase().includes('catalog')) {
+  const formatted = mod.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+  if (
+    formatted.toLowerCase().includes('management') ||
+    formatted.toLowerCase().includes('operations') ||
+    formatted.toLowerCase().includes('catalog')
+  ) {
     return formatted
   }
   return `${formatted} Management`
@@ -351,7 +360,11 @@ const selectDropdownGroup = (groupKey: string) => {
 }
 
 const selectCustomDropdownGroup = (customName: string) => {
-  const slugified = customName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+  const slugified = customName
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
   permForm.value.module = slugified
   showGroupDropdown.value = false
 }
@@ -365,13 +378,16 @@ const savePermission = async () => {
 
   let moduleKey = permForm.value.module.trim()
   if (!moduleKey) {
-    moduleKey = rawName.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+    moduleKey = rawName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
     permForm.value.module = moduleKey
   }
 
   let actionKey = permForm.value.action.trim()
   if (!actionKey) {
-    actionKey = (modalMode.value === 'group' || isGroupCheckbox.value) ? 'access' : 'see'
+    actionKey = modalMode.value === 'group' || isGroupCheckbox.value ? 'access' : 'see'
     permForm.value.action = actionKey
   }
 
@@ -391,21 +407,29 @@ const savePermission = async () => {
         name: rawName,
         module: moduleKey.toLowerCase(),
         action: actionKey.toLowerCase(),
-        description: permForm.value.description || ((modalMode.value === 'group' || isGroupCheckbox.value) ? `Access group for ${rawName}` : undefined),
+        description:
+          permForm.value.description ||
+          (modalMode.value === 'group' || isGroupCheckbox.value
+            ? `Access group for ${rawName}`
+            : undefined),
       })
-      successMessage.value = (modalMode.value === 'group' || isGroupCheckbox.value)
-        ? `Permission Group "${rawName}" created successfully!`
-        : `Permission "${rawName}" created successfully!`
+      successMessage.value =
+        modalMode.value === 'group' || isGroupCheckbox.value
+          ? `Permission Group "${rawName}" created successfully!`
+          : `Permission "${rawName}" created successfully!`
     }
 
     showCreateModal.value = false
     selectedGroupKey.value = moduleKey.toLowerCase()
     permForm.value = { name: '', module: '', action: '', description: '' }
     await fetchPermissions()
-    setTimeout(() => { successMessage.value = '' }, 3500)
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 3500)
   } catch (err: any) {
     console.error('[Permissions] Save error:', err)
-    errorMessage.value = err?.response?.data?.message || err?.message || 'Failed to save permission.'
+    errorMessage.value =
+      err?.response?.data?.message || err?.message || 'Failed to save permission.'
   } finally {
     saving.value = false
   }
@@ -422,7 +446,9 @@ const deletePermission = async (perm: Permission) => {
     await rbacService.deletePermission(perm.id)
     successMessage.value = `Permission "${perm.name}" deleted successfully.`
     await fetchPermissions()
-    setTimeout(() => { successMessage.value = '' }, 3500)
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 3500)
   } catch (err: any) {
     console.error('[Permissions] Delete error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to delete permission.'
@@ -434,13 +460,18 @@ const deletePermission = async (perm: Permission) => {
 
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white p-4 sm:p-6 space-y-6 font-sans">
-      
+    <div
+      class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white p-4 sm:p-6 space-y-6 font-sans"
+    >
       <!-- TOP BANNER HEADER -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs">
+      <div
+        class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs"
+      >
         <div class="space-y-1">
           <div class="flex items-center gap-3">
-            <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shadow-xs">
+            <div
+              class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shadow-xs"
+            >
               <Key class="w-6 h-6" />
             </div>
             <div>
@@ -476,25 +507,45 @@ const deletePermission = async (perm: Permission) => {
       </div>
 
       <!-- NOTIFICATION BANNERS -->
-      <Transition enter-active-class="transition duration-200" enter-from-class="opacity-0 -translate-y-2" enter-to-class="opacity-100 translate-y-0">
-        <div v-if="successMessage" class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center justify-between">
+      <Transition
+        enter-active-class="transition duration-200"
+        enter-from-class="opacity-0 -translate-y-2"
+        enter-to-class="opacity-100 translate-y-0"
+      >
+        <div
+          v-if="successMessage"
+          class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center justify-between"
+        >
           <div class="flex items-center gap-2.5">
             <CheckCircle2 class="w-4 h-4 text-emerald-500 flex-shrink-0" />
             <span>{{ successMessage }}</span>
           </div>
-          <button @click="successMessage = ''" class="text-emerald-500 hover:text-emerald-700 dark:hover:text-white cursor-pointer">
+          <button
+            @click="successMessage = ''"
+            class="text-emerald-500 hover:text-emerald-700 dark:hover:text-white cursor-pointer"
+          >
             <XCircle class="w-4 h-4" />
           </button>
         </div>
       </Transition>
 
-      <Transition enter-active-class="transition duration-200" enter-from-class="opacity-0 -translate-y-2" enter-to-class="opacity-100 translate-y-0">
-        <div v-if="errorMessage" class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center justify-between">
+      <Transition
+        enter-active-class="transition duration-200"
+        enter-from-class="opacity-0 -translate-y-2"
+        enter-to-class="opacity-100 translate-y-0"
+      >
+        <div
+          v-if="errorMessage"
+          class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center justify-between"
+        >
           <div class="flex items-center gap-2.5">
             <AlertCircle class="w-4 h-4 text-rose-500 flex-shrink-0" />
             <span>{{ errorMessage }}</span>
           </div>
-          <button @click="errorMessage = ''" class="text-rose-500 hover:text-rose-700 dark:hover:text-white cursor-pointer">
+          <button
+            @click="errorMessage = ''"
+            class="text-rose-500 hover:text-rose-700 dark:hover:text-white cursor-pointer"
+          >
             <XCircle class="w-4 h-4" />
           </button>
         </div>
@@ -502,12 +553,15 @@ const deletePermission = async (perm: Permission) => {
 
       <!-- MAIN SPLIT CONTENT GRID -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
         <!-- LEFT PANEL: PERMISSION GROUP SIDEBAR -->
-        <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 space-y-4 shadow-xs flex flex-col min-h-[500px]">
+        <div
+          class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 space-y-4 shadow-xs flex flex-col min-h-[500px]"
+        >
           <!-- Group Header -->
           <div class="flex items-center justify-between pb-1">
-            <h2 class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">Permission Group</h2>
+            <h2 class="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
+              Permission Group
+            </h2>
             <button
               @click="openCreateGroupModal()"
               class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-blue-600 dark:text-blue-400 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700"
@@ -537,16 +591,20 @@ const deletePermission = async (perm: Permission) => {
                 'w-full flex items-center justify-between p-3.5 rounded-2xl text-left transition cursor-pointer border',
                 selectedGroupKey === 'all'
                   ? 'bg-blue-50 dark:bg-blue-600/20 border-blue-500 text-blue-900 dark:text-white font-black shadow-xs'
-                  : 'bg-slate-50/60 dark:bg-slate-950/40 border-slate-200/80 dark:border-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
+                  : 'bg-slate-50/60 dark:bg-slate-950/40 border-slate-200/80 dark:border-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white',
               ]"
             >
               <div class="flex items-center gap-3 min-w-0">
-                <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-600 dark:text-blue-400 font-black text-xs flex items-center justify-center flex-shrink-0">
+                <div
+                  class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-600 dark:text-blue-400 font-black text-xs flex items-center justify-center flex-shrink-0"
+                >
                   ALL
                 </div>
                 <span class="text-xs truncate font-extrabold">All Permission Groups</span>
               </div>
-              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300/60 dark:border-slate-700">
+              <span
+                class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300/60 dark:border-slate-700"
+              >
                 {{ permissions.length }}
               </span>
             </button>
@@ -560,14 +618,16 @@ const deletePermission = async (perm: Permission) => {
                 'w-full flex items-center justify-between p-3.5 rounded-2xl text-left transition cursor-pointer border group',
                 selectedGroupKey === group.key
                   ? 'bg-blue-50 dark:bg-blue-600/20 border-blue-500 text-blue-900 dark:text-white font-black shadow-xs'
-                  : 'bg-slate-50/60 dark:bg-slate-950/40 border-slate-200/80 dark:border-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
+                  : 'bg-slate-50/60 dark:bg-slate-950/40 border-slate-200/80 dark:border-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white',
               ]"
             >
               <div class="flex items-center gap-3 min-w-0">
                 <div
                   :class="[
                     'w-8 h-8 rounded-xl text-xs font-black flex items-center justify-center flex-shrink-0 transition-colors',
-                    selectedGroupKey === group.key ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:bg-slate-300 dark:group-hover:bg-slate-700 group-hover:text-slate-900 dark:group-hover:text-white'
+                    selectedGroupKey === group.key
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:bg-slate-300 dark:group-hover:bg-slate-700 group-hover:text-slate-900 dark:group-hover:text-white',
                   ]"
                 >
                   {{ group.initials }}
@@ -581,7 +641,7 @@ const deletePermission = async (perm: Permission) => {
                     'px-2.5 py-0.5 rounded-full text-[11px] font-bold border',
                     selectedGroupKey === group.key
                       ? 'bg-blue-500/20 dark:bg-blue-500/30 text-blue-700 dark:text-blue-200 border-blue-400/30'
-                      : 'bg-slate-200/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border-slate-300/60 dark:border-slate-700'
+                      : 'bg-slate-200/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border-slate-300/60 dark:border-slate-700',
                   ]"
                 >
                   {{ group.count }}
@@ -598,7 +658,10 @@ const deletePermission = async (perm: Permission) => {
           </div>
 
           <!-- Group Sidebar Pagination Bar -->
-          <div v-if="groupList.length > groupPerPage" class="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-400">
+          <div
+            v-if="groupList.length > groupPerPage"
+            class="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-400"
+          >
             <button
               @click="groupPage--"
               :disabled="groupPage <= 1"
@@ -607,7 +670,9 @@ const deletePermission = async (perm: Permission) => {
             >
               <ChevronLeft class="w-3.5 h-3.5" />
             </button>
-            <span class="text-[11px] font-black text-slate-700 dark:text-slate-300">Group {{ groupPage }} / {{ groupLastPage }}</span>
+            <span class="text-[11px] font-black text-slate-700 dark:text-slate-300"
+              >Group {{ groupPage }} / {{ groupLastPage }}</span
+            >
             <button
               @click="groupPage++"
               :disabled="groupPage >= groupLastPage"
@@ -620,12 +685,17 @@ const deletePermission = async (perm: Permission) => {
         </div>
 
         <!-- RIGHT PANEL: GROUP PERMISSIONS & CONTROLS -->
-        <div class="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-6 shadow-xs flex flex-col min-h-[500px]">
-          
+        <div
+          class="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-6 shadow-xs flex flex-col min-h-[500px]"
+        >
           <!-- Group Title Banner Header -->
-          <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+          <div
+            class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800"
+          >
             <div class="flex items-center gap-4">
-              <div class="w-12 h-12 rounded-2xl bg-blue-600 text-white font-black text-base flex items-center justify-center shadow-md shadow-blue-600/30">
+              <div
+                class="w-12 h-12 rounded-2xl bg-blue-600 text-white font-black text-base flex items-center justify-center shadow-md shadow-blue-600/30"
+              >
                 {{ activeGroupInfo.initials }}
               </div>
               <div>
@@ -648,8 +718,9 @@ const deletePermission = async (perm: Permission) => {
           </div>
 
           <!-- Controls Toolbar Bar (Select All, Search, Filter) -->
-          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50 dark:bg-slate-950/70 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-            
+          <div
+            class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50 dark:bg-slate-950/70 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800"
+          >
             <!-- Select All Checkbox Toggle -->
             <button
               @click="toggleSelectAll"
@@ -658,7 +729,9 @@ const deletePermission = async (perm: Permission) => {
               <div
                 :class="[
                   'w-4.5 h-4.5 rounded-md flex items-center justify-center transition border',
-                  isAllSelected ? 'bg-blue-500 border-blue-500 text-white' : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900'
+                  isAllSelected
+                    ? 'bg-blue-500 border-blue-500 text-white'
+                    : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900',
                 ]"
               >
                 <Check v-if="isAllSelected" class="w-3.5 h-3.5 stroke-[3]" />
@@ -690,21 +763,34 @@ const deletePermission = async (perm: Permission) => {
                     {{ act.toUpperCase() }}
                   </option>
                 </select>
-                <Filter class="w-3.5 h-3.5 absolute right-2.5 top-2.5 text-slate-400 pointer-events-none" />
+                <Filter
+                  class="w-3.5 h-3.5 absolute right-2.5 top-2.5 text-slate-400 pointer-events-none"
+                />
               </div>
             </div>
           </div>
 
           <!-- Permissions 2-Column Grid -->
           <div v-if="loading && permissions.length === 0" class="py-20 text-center">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-3"></div>
-            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Loading permissions catalog...</p>
+            <div
+              class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-3"
+            ></div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              Loading permissions catalog...
+            </p>
           </div>
 
-          <div v-else-if="displayedPermissions.length === 0" class="py-20 text-center space-y-2 bg-slate-50/50 dark:bg-slate-950/30 rounded-2xl border border-slate-200 dark:border-slate-800/60">
+          <div
+            v-else-if="displayedPermissions.length === 0"
+            class="py-20 text-center space-y-2 bg-slate-50/50 dark:bg-slate-950/30 rounded-2xl border border-slate-200 dark:border-slate-800/60"
+          >
             <Shield class="w-10 h-10 text-slate-400 dark:text-slate-600 mx-auto opacity-50" />
-            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300">No permissions found in this group</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Try adjusting your search criteria or add a new permission.</p>
+            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300">
+              No permissions found in this group
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              Try adjusting your search criteria or add a new permission.
+            </p>
           </div>
 
           <div v-else class="flex-1 flex flex-col justify-between space-y-4">
@@ -717,7 +803,7 @@ const deletePermission = async (perm: Permission) => {
                   'flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer select-none group',
                   selectedPermissionIds.includes(perm.id)
                     ? 'bg-blue-50/70 dark:bg-blue-600/15 border-blue-500/60 text-slate-900 dark:text-white shadow-xs'
-                    : 'bg-slate-50/60 dark:bg-slate-950/40 border-slate-200/80 dark:border-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/50 hover:border-slate-300 dark:hover:border-slate-700'
+                    : 'bg-slate-50/60 dark:bg-slate-950/40 border-slate-200/80 dark:border-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/50 hover:border-slate-300 dark:hover:border-slate-700',
                 ]"
               >
                 <div class="flex items-center gap-3 min-w-0 flex-1">
@@ -727,10 +813,13 @@ const deletePermission = async (perm: Permission) => {
                       'w-4.5 h-4.5 rounded-md flex items-center justify-center flex-shrink-0 transition border',
                       selectedPermissionIds.includes(perm.id)
                         ? 'bg-blue-600 border-blue-600 text-white'
-                        : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 group-hover:border-slate-400 dark:group-hover:border-slate-500'
+                        : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 group-hover:border-slate-400 dark:group-hover:border-slate-500',
                     ]"
                   >
-                    <Check v-if="selectedPermissionIds.includes(perm.id)" class="w-3.5 h-3.5 stroke-[3]" />
+                    <Check
+                      v-if="selectedPermissionIds.includes(perm.id)"
+                      class="w-3.5 h-3.5 stroke-[3]"
+                    />
                   </div>
 
                   <!-- Permission Title & Key -->
@@ -738,7 +827,9 @@ const deletePermission = async (perm: Permission) => {
                     <h4 class="text-xs font-extrabold text-slate-900 dark:text-white truncate">
                       {{ perm.name }}
                     </h4>
-                    <p class="text-[10px] font-mono text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                    <p
+                      class="text-[10px] font-mono text-slate-500 dark:text-slate-400 truncate mt-0.5"
+                    >
                       {{ perm.slug }}
                     </p>
                   </div>
@@ -746,11 +837,15 @@ const deletePermission = async (perm: Permission) => {
 
                 <!-- Active Status Pill & Actions -->
                 <div class="flex items-center gap-2 flex-shrink-0 ml-2">
-                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <span
+                    class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                  >
                     Active
                   </span>
 
-                  <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                  <div
+                    class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
+                  >
                     <button
                       @click.stop="openEditModal(perm)"
                       class="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition cursor-pointer"
@@ -792,9 +887,19 @@ const deletePermission = async (perm: Permission) => {
                 </div>
 
                 <div class="text-[11px] font-medium">
-                  Showing <span class="font-extrabold text-slate-900 dark:text-white">{{ permShowingFrom }}</span> to
-                  <span class="font-extrabold text-slate-900 dark:text-white">{{ permShowingTo }}</span> of
-                  <span class="font-extrabold text-slate-900 dark:text-white">{{ totalPerms }}</span> permissions
+                  Showing
+                  <span class="font-extrabold text-slate-900 dark:text-white">{{
+                    permShowingFrom
+                  }}</span>
+                  to
+                  <span class="font-extrabold text-slate-900 dark:text-white">{{
+                    permShowingTo
+                  }}</span>
+                  of
+                  <span class="font-extrabold text-slate-900 dark:text-white">{{
+                    totalPerms
+                  }}</span>
+                  permissions
                 </div>
               </div>
 
@@ -819,7 +924,7 @@ const deletePermission = async (perm: Permission) => {
                       'w-7 h-7 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center border',
                       permPage === p
                         ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-600/20'
-                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800',
                     ]"
                   >
                     {{ p }}
@@ -855,11 +960,21 @@ const deletePermission = async (perm: Permission) => {
             ></div>
 
             <!-- Modal Window -->
-            <div class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full p-6 space-y-6 shadow-2xl overflow-visible my-auto animate-in fade-in zoom-in duration-150">
+            <div
+              class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full p-6 space-y-6 shadow-2xl overflow-visible my-auto animate-in fade-in zoom-in duration-150"
+            >
               <!-- Header -->
-              <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+              <div
+                class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800"
+              >
                 <h2 class="text-xl font-black text-slate-900 dark:text-white">
-                  {{ editingPermission ? 'Edit Permission' : (modalMode === 'group' ? 'Create Permission Group' : 'Create Permission') }}
+                  {{
+                    editingPermission
+                      ? 'Edit Permission'
+                      : modalMode === 'group'
+                        ? 'Create Permission Group'
+                        : 'Create Permission'
+                  }}
                 </h2>
                 <button
                   @click="showCreateModal = false"
@@ -876,7 +991,9 @@ const deletePermission = async (perm: Permission) => {
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <!-- Name Input -->
                   <div class="space-y-1.5">
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                    <label
+                      class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+                    >
                       Name <span class="text-rose-500">*</span>
                     </label>
                     <input
@@ -889,7 +1006,9 @@ const deletePermission = async (perm: Permission) => {
 
                   <!-- Permission Group Custom Searchable Dropdown -->
                   <div class="space-y-1.5 relative">
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                    <label
+                      class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+                    >
                       {{ modalMode === 'group' ? 'Group Code (Auto)' : 'Permission Group' }}
                     </label>
 
@@ -900,7 +1019,11 @@ const deletePermission = async (perm: Permission) => {
                         class="w-full px-4 py-2.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white font-medium text-left flex items-center justify-between cursor-pointer focus:outline-none focus:border-blue-500"
                       >
                         <span class="truncate">
-                          {{ permForm.module ? formatModuleName(permForm.module) : 'Select Permission Group' }}
+                          {{
+                            permForm.module
+                              ? formatModuleName(permForm.module)
+                              : 'Select Permission Group'
+                          }}
                         </span>
                         <ChevronDown class="w-4 h-4 text-slate-400" />
                       </button>
@@ -931,7 +1054,12 @@ const deletePermission = async (perm: Permission) => {
                             {{ group.title }}
                           </button>
                           <div
-                            v-if="groupDropdownSearch.trim() && !filteredDropdownGroups.some(g => g.title.toLowerCase() === groupDropdownSearch.toLowerCase())"
+                            v-if="
+                              groupDropdownSearch.trim() &&
+                              !filteredDropdownGroups.some(
+                                (g) => g.title.toLowerCase() === groupDropdownSearch.toLowerCase(),
+                              )
+                            "
                             @click="selectCustomDropdownGroup(groupDropdownSearch)"
                             class="px-3 py-2 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg cursor-pointer flex items-center gap-1.5"
                           >
@@ -953,14 +1081,21 @@ const deletePermission = async (perm: Permission) => {
                       @change="handleIsGroupChange"
                       class="w-4 h-4 rounded bg-slate-50 dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-blue-600 focus:ring-0 cursor-pointer"
                     />
-                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Is group</span>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300"
+                      >Is group</span
+                    >
                   </label>
                 </div>
 
                 <!-- Full Form Expandable Section (Action & Description) -->
-                <div v-if="showFullForm || modalMode === 'permission'" class="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 animate-in fade-in duration-150">
+                <div
+                  v-if="showFullForm || modalMode === 'permission'"
+                  class="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 animate-in fade-in duration-150"
+                >
                   <div class="space-y-1.5">
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                    <label
+                      class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+                    >
                       Action Key <span class="text-rose-500">*</span>
                     </label>
                     <input
@@ -969,11 +1104,15 @@ const deletePermission = async (perm: Permission) => {
                       placeholder="e.g. see, create, update, delete"
                       class="w-full px-4 py-2.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500 font-medium"
                     />
-                    <p class="text-[10px] text-slate-500 dark:text-slate-400">e.g. see, view, create, edit, delete</p>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400">
+                      e.g. see, view, create, edit, delete
+                    </p>
                   </div>
 
                   <div class="space-y-1.5">
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                    <label
+                      class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300"
+                    >
                       Description
                     </label>
                     <textarea
@@ -984,17 +1123,23 @@ const deletePermission = async (perm: Permission) => {
                     ></textarea>
                   </div>
 
-                  <div class="p-3 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-xs text-blue-700 dark:text-blue-300">
+                  <div
+                    class="p-3 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-xs text-blue-700 dark:text-blue-300"
+                  >
                     <span class="font-bold">Auto-generated Key Slug:</span>
                     <code class="ml-1 font-mono text-amber-600 dark:text-amber-400">
-                      {{ (permForm.module || 'group').toLowerCase() }}.{{ (permForm.action || 'see').toLowerCase() }}
+                      {{ (permForm.module || 'group').toLowerCase() }}.{{
+                        (permForm.action || 'see').toLowerCase()
+                      }}
                     </code>
                   </div>
                 </div>
               </div>
 
               <!-- Footer Buttons -->
-              <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
+              <div
+                class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800"
+              >
                 <button
                   type="button"
                   @click="showFullForm = !showFullForm"
@@ -1018,7 +1163,15 @@ const deletePermission = async (perm: Permission) => {
                     :disabled="saving || !permForm.name.trim()"
                     class="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black shadow-md shadow-blue-600/20 transition cursor-pointer disabled:opacity-50"
                   >
-                    {{ saving ? 'Saving...' : (editingPermission ? 'Update Permission' : (modalMode === 'group' ? 'Create Group' : 'Create Permission')) }}
+                    {{
+                      saving
+                        ? 'Saving...'
+                        : editingPermission
+                          ? 'Update Permission'
+                          : modalMode === 'group'
+                            ? 'Create Group'
+                            : 'Create Permission'
+                    }}
                   </button>
                 </div>
               </div>
@@ -1026,7 +1179,6 @@ const deletePermission = async (perm: Permission) => {
           </div>
         </Transition>
       </Teleport>
-
     </div>
   </DashboardLayout>
 </template>
@@ -1044,7 +1196,9 @@ const deletePermission = async (perm: Permission) => {
 
 .modal-enter-active .relative,
 .modal-leave-active .relative {
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
 }
 
 .modal-enter-from .relative,

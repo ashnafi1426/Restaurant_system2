@@ -2,18 +2,27 @@
   <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow transition">
     <div class="flex items-center justify-between mb-3">
       <div class="flex items-center gap-2">
-        <h4 class="font-semibold text-gray-900">{{ languageStore.t('order', 'Order') }} #{{ assignment.order?.order_number }}</h4>
+        <h4 class="font-semibold text-gray-900">
+          {{ languageStore.t('order', 'Order') }} #{{ assignment.order?.order_number }}
+        </h4>
         <StatusBadge :status="assignment.status" />
       </div>
       <span v-if="assignment.order?.priority" :class="getPriorityClass(assignment.order.priority)">
-        {{ languageStore.t(assignment.order.priority.toLowerCase(), assignment.order.priority.toUpperCase()) }}
+        {{
+          languageStore.t(
+            assignment.order.priority.toLowerCase(),
+            assignment.order.priority.toUpperCase(),
+          )
+        }}
       </span>
     </div>
 
     <div class="grid grid-cols-2 gap-3 mb-4 text-sm text-gray-700">
       <div>
         <p class="text-gray-500">{{ languageStore.t('guest', 'Guest') }}</p>
-        <p class="font-medium">{{ assignment.order?.guest_name || languageStore.t('unknown', 'Unknown') }}</p>
+        <p class="font-medium">
+          {{ assignment.order?.guest_name || languageStore.t('unknown', 'Unknown') }}
+        </p>
       </div>
       <div>
         <p class="text-gray-500">{{ languageStore.t('room', 'Room') }}</p>

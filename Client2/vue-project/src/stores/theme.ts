@@ -1,10 +1,17 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { resolveHotelThemeId, HOTEL_PRESET_THEMES, type PropertyThemeTokens } from '@/utils/colorTokens'
+import {
+  resolveHotelThemeId,
+  HOTEL_PRESET_THEMES,
+  type PropertyThemeTokens,
+} from '@/utils/colorTokens'
 
 export const useThemeStore = defineStore('theme', () => {
   const savedMode = localStorage.getItem('app-theme') || localStorage.getItem('theme')
-  const prefersDark = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)').matches : false
+  const prefersDark =
+    typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+      : false
   const isDark = ref<boolean>(savedMode ? savedMode === 'dark' : prefersDark)
 
   const savedHotelTheme = localStorage.getItem('guest_hotel_theme') || 'luxury-gold'
@@ -19,10 +26,11 @@ export const useThemeStore = defineStore('theme', () => {
     }
 
     // Determine current canvas background color for browser chrome
-    const currentPreset = HOTEL_PRESET_THEMES[hotelTheme.value] || HOTEL_PRESET_THEMES['luxury-gold']
+    const currentPreset =
+      HOTEL_PRESET_THEMES[hotelTheme.value] || HOTEL_PRESET_THEMES['luxury-gold']
     const color = isDark.value
-      ? (currentPreset.canvasDarkHex || '#07101E')
-      : (currentPreset.canvasLightHex || '#FFFFFF')
+      ? currentPreset.canvasDarkHex || '#07101E'
+      : currentPreset.canvasLightHex || '#FFFFFF'
 
     metaTag.setAttribute('content', color)
   }

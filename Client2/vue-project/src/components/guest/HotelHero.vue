@@ -56,7 +56,12 @@ const currentDate = computed(() => {
             </p>
 
             <p class="text-slate-500 mt-2">
-              {{ languageStore.t('enjoy_meals_delivered', 'Enjoy freshly prepared meals delivered directly to your room.') }}
+              {{
+                languageStore.t(
+                  'enjoy_meals_delivered',
+                  'Enjoy freshly prepared meals delivered directly to your room.',
+                )
+              }}
             </p>
           </div>
         </div>

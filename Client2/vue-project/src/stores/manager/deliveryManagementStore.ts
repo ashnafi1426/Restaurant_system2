@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import deliveryManagementService, { type DeliveryTask } from '@/services/manager/deliveryManagementService'
+import deliveryManagementService, {
+  type DeliveryTask,
+} from '@/services/manager/deliveryManagementService'
 
 export const useDeliveryManagementStore = defineStore('deliveryManagement', () => {
   const deliveries = ref<DeliveryTask[]>([])
@@ -43,7 +45,11 @@ export const useDeliveryManagementStore = defineStore('deliveryManagement', () =
         currentPage.value = responseData.pagination.current_page || 1
         totalDeliveries.value = responseData.pagination.total || 0
         perPage.value = responseData.pagination.per_page || perPage.value
-      } else if (responseData.data && Array.isArray(responseData.data) && (responseData.current_page || responseData.total)) {
+      } else if (
+        responseData.data &&
+        Array.isArray(responseData.data) &&
+        (responseData.current_page || responseData.total)
+      ) {
         deliveries.value = responseData.data
         currentPage.value = responseData.current_page || page
         totalDeliveries.value = responseData.total || 0
@@ -87,7 +93,7 @@ export const useDeliveryManagementStore = defineStore('deliveryManagement', () =
     deliveryId: string,
     newWaiterId: string,
     currentWaiterId: string,
-    reason?: string
+    reason?: string,
   ) {
     isLoading.value = true
     error.value = null
@@ -96,10 +102,10 @@ export const useDeliveryManagementStore = defineStore('deliveryManagement', () =
         deliveryId,
         newWaiterId,
         currentWaiterId,
-        reason
+        reason,
       )
 
-      const index = deliveries.value.findIndex(d => d.id === deliveryId)
+      const index = deliveries.value.findIndex((d) => d.id === deliveryId)
       if (index !== -1) {
         deliveries.value[index] = updated
       }
@@ -122,7 +128,7 @@ export const useDeliveryManagementStore = defineStore('deliveryManagement', () =
     isLoading.value = true
     try {
       await deliveryManagementService.cancelDelivery(deliveryId, reason)
-      deliveries.value = deliveries.value.filter(d => d.id !== deliveryId)
+      deliveries.value = deliveries.value.filter((d) => d.id !== deliveryId)
       totalDeliveries.value -= 1
     } catch (err: any) {
       console.error('[DeliveryManagementStore] Error cancelling delivery:', err)

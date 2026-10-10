@@ -61,9 +61,11 @@ function getPageNumbers() {
   >
     <!-- Info Text -->
     <div class="text-sm text-slate-600 order-2 sm:order-1">
-      {{ languageStore.t('showing', 'Showing') }} <span class="font-semibold">{{ props.meta.from }}</span> {{ languageStore.t('to', 'to') }}
+      {{ languageStore.t('showing', 'Showing') }}
+      <span class="font-semibold">{{ props.meta.from }}</span> {{ languageStore.t('to', 'to') }}
       <span class="font-semibold">{{ props.meta.to }}</span> {{ languageStore.t('of', 'of') }}
-      <span class="font-semibold">{{ props.meta.total }}</span> {{ languageStore.t('rooms', 'rooms') }}
+      <span class="font-semibold">{{ props.meta.total }}</span>
+      {{ languageStore.t('rooms', 'rooms') }}
     </div>
 
     <!-- Pagination Controls -->

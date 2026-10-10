@@ -15,21 +15,36 @@ const emit = defineEmits(['close', 'delete', 'force-delete', 'deactivate'])
 </script>
 
 <template>
-  <div v-if="open" class="fixed inset-0 bg-black/50 backdrop-blur-xs flex justify-center items-center z-50 p-4">
-    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+  <div
+    v-if="open"
+    class="fixed inset-0 bg-black/50 backdrop-blur-xs flex justify-center items-center z-50 p-4"
+  >
+    <div
+      class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4"
+    >
       <div class="flex items-center gap-3 text-red-600 dark:text-red-400">
         <div class="p-2.5 bg-red-100 dark:bg-red-950/50 rounded-xl">
           <AlertTriangle class="w-6 h-6" />
         </div>
-        <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ languageStore.t('delete_room', 'Delete Room') }}</h2>
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white">
+          {{ languageStore.t('delete_room', 'Delete Room') }}
+        </h2>
       </div>
 
       <p v-if="!errorMessage" class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-        {{ languageStore.t('delete_room_confirm', 'Are you sure you want to delete this room? This action cannot be undone.') }}
+        {{
+          languageStore.t(
+            'delete_room_confirm',
+            'Are you sure you want to delete this room? This action cannot be undone.',
+          )
+        }}
       </p>
 
       <!-- Server Warning / Error Alert -->
-      <div v-if="errorMessage" class="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl text-xs space-y-2 text-amber-900 dark:text-amber-200">
+      <div
+        v-if="errorMessage"
+        class="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl text-xs space-y-2 text-amber-900 dark:text-amber-200"
+      >
         <p class="font-medium leading-relaxed">{{ errorMessage }}</p>
       </div>
 

@@ -79,41 +79,82 @@ watch(() => hotelStore.hotelId, fetchNotifications)
     <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
       <div class="max-w-7xl mx-auto">
         <div class="mb-8">
-          <h1 class="text-4xl font-bold text-slate-900">{{ languageStore.t('notifications', 'Notifications') }}</h1>
-          <p class="text-slate-600 mt-2">{{ languageStore.t('stay_updated_with_delivery_notifications', 'Stay updated with your delivery notifications') }}</p>
+          <h1 class="text-4xl font-bold text-slate-900">
+            {{ languageStore.t('notifications', 'Notifications') }}
+          </h1>
+          <p class="text-slate-600 mt-2">
+            {{
+              languageStore.t(
+                'stay_updated_with_delivery_notifications',
+                'Stay updated with your delivery notifications',
+              )
+            }}
+          </p>
         </div>
 
         <div v-if="loading" class="flex items-center justify-center py-16">
           <div class="text-center">
             <div class="relative w-12 h-12 mx-auto">
               <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="#0EA5E9" stroke-width="6" opacity="0.3" />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="45"
+                  fill="none"
+                  stroke="#0EA5E9"
+                  stroke-width="6"
+                  opacity="0.3"
+                />
               </svg>
               <div class="absolute inset-0 animate-spin">
                 <svg viewBox="0 0 100 100" class="w-full h-full">
-                  <circle cx="50" cy="50" r="45" fill="none" stroke="#FBBF24" stroke-width="8" stroke-linecap="round" stroke-dasharray="70 280" />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    fill="none"
+                    stroke="#FBBF24"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                    stroke-dasharray="70 280"
+                  />
                 </svg>
               </div>
             </div>
-            <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm mt-4">{{ languageStore.t('loading_notifications', 'Loading notifications...') }}</p>
+            <p class="text-slate-700 dark:text-yellow-300 font-semibold text-sm mt-4">
+              {{ languageStore.t('loading_notifications', 'Loading notifications...') }}
+            </p>
           </div>
         </div>
 
         <div v-else-if="error" class="bg-red-50 border-l-4 border-red-600 rounded-lg p-6 mb-6">
-          <p class="text-red-700 font-semibold">{{ languageStore.t('error_loading_notifications', 'Error loading notifications') }}</p>
+          <p class="text-red-700 font-semibold">
+            {{ languageStore.t('error_loading_notifications', 'Error loading notifications') }}
+          </p>
           <p class="text-red-600 text-sm mt-2">{{ error }}</p>
         </div>
 
-        <div v-else-if="notifications.length === 0" class="bg-white rounded-lg shadow-sm p-12 text-center">
-          <p class="text-slate-600 text-lg">{{ languageStore.t('no_notifications', 'No notifications') }}</p>
-          <p class="text-slate-500 mt-2">{{ languageStore.t('all_caught_up', "You're all caught up!") }}</p>
+        <div
+          v-else-if="notifications.length === 0"
+          class="bg-white rounded-lg shadow-sm p-12 text-center"
+        >
+          <p class="text-slate-600 text-lg">
+            {{ languageStore.t('no_notifications', 'No notifications') }}
+          </p>
+          <p class="text-slate-500 mt-2">
+            {{ languageStore.t('all_caught_up', "You're all caught up!") }}
+          </p>
         </div>
 
         <div v-else class="space-y-4">
-          <div v-for="notif in notifications" :key="notif.id" :class="[
-            'bg-white rounded-lg shadow-sm p-6 border-l-4 transition',
-            notif.read ? 'border-slate-300' : 'border-blue-500 bg-blue-50'
-          ]">
+          <div
+            v-for="notif in notifications"
+            :key="notif.id"
+            :class="[
+              'bg-white rounded-lg shadow-sm p-6 border-l-4 transition',
+              notif.read ? 'border-slate-300' : 'border-blue-500 bg-blue-50',
+            ]"
+          >
             <div class="flex items-start justify-between">
               <div class="flex-1">
                 <p :class="['font-semibold', notif.read ? 'text-slate-900' : 'text-blue-900']">

@@ -71,7 +71,9 @@ const filteredList = computed(() => {
   }
 
   if (statusFilter.value !== '') {
-    list = list.filter((r) => String(r.status || '').toLowerCase() === statusFilter.value.toLowerCase())
+    list = list.filter(
+      (r) => String(r.status || '').toLowerCase() === statusFilter.value.toLowerCase(),
+    )
   }
 
   if (floorFilter.value !== '') {
@@ -206,11 +208,18 @@ onBeforeUnmount(() => {
     >
       <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
         <div class="relative flex-1">
-          <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+          <Search
+            class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+          />
           <input
             v-model="search"
             type="text"
-            :placeholder="languageStore.t('search_rooms_placeholder', 'Search rooms by number, room type, floor...')"
+            :placeholder="
+              languageStore.t(
+                'search_rooms_placeholder',
+                'Search rooms by number, room type, floor...',
+              )
+            "
             class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
           />
         </div>
@@ -222,11 +231,15 @@ onBeforeUnmount(() => {
           :class="[
             isFilterOpen
               ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
-              : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+              : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
           ]"
         >
           <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-          <span>{{ isFilterOpen ? languageStore.t('hide_filter', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
+          <span>{{
+            isFilterOpen
+              ? languageStore.t('hide_filter', 'Hide Filter')
+              : languageStore.t('filter', 'Filter')
+          }}</span>
         </button>
       </div>
 
@@ -286,7 +299,9 @@ onBeforeUnmount(() => {
               <option value="available">{{ languageStore.t('available', 'Available') }}</option>
               <option value="occupied">{{ languageStore.t('occupied', 'Occupied') }}</option>
               <option value="reserved">{{ languageStore.t('reserved', 'Reserved') }}</option>
-              <option value="maintenance">{{ languageStore.t('maintenance', 'Maintenance') }}</option>
+              <option value="maintenance">
+                {{ languageStore.t('maintenance', 'Maintenance') }}
+              </option>
               <option value="cleaning">{{ languageStore.t('cleaning', 'Cleaning') }}</option>
             </select>
           </div>
@@ -316,7 +331,9 @@ onBeforeUnmount(() => {
               v-model="activeFilter"
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
             >
-              <option value="">{{ languageStore.t('all_activation_states', 'All Activation States') }}</option>
+              <option value="">
+                {{ languageStore.t('all_activation_states', 'All Activation States') }}
+              </option>
               <option value="active">{{ languageStore.t('active', 'Active') }}</option>
               <option value="inactive">{{ languageStore.t('inactive', 'Inactive') }}</option>
             </select>
@@ -336,18 +353,34 @@ onBeforeUnmount(() => {
       </div>
     </Transition>
 
-    <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
+    <div
+      class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
+    >
       <div class="hidden md:block overflow-x-auto w-full">
         <table class="w-full text-left border-collapse">
-          <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+          <thead
+            class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
+          >
             <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-              <th class="px-3 py-3 pl-5 whitespace-nowrap">{{ languageStore.t('room', 'Room') }}</th>
+              <th class="px-3 py-3 pl-5 whitespace-nowrap">
+                {{ languageStore.t('room', 'Room') }}
+              </th>
               <th class="px-3 py-3 whitespace-nowrap">{{ languageStore.t('type', 'Type') }}</th>
-              <th class="px-3 py-3 text-center whitespace-nowrap">{{ languageStore.t('floor', 'Floor') }}</th>
-              <th class="px-3 py-3 text-center whitespace-nowrap">{{ languageStore.t('capacity', 'Capacity') }}</th>
-              <th class="px-3 py-3 text-right whitespace-nowrap">{{ languageStore.t('price_night', 'Price/Night') }}</th>
-              <th class="px-3 py-3 text-center whitespace-nowrap">{{ languageStore.t('status', 'Status') }}</th>
-              <th class="px-3 py-3 text-right pr-5 whitespace-nowrap">{{ languageStore.t('actions', 'Actions') }}</th>
+              <th class="px-3 py-3 text-center whitespace-nowrap">
+                {{ languageStore.t('floor', 'Floor') }}
+              </th>
+              <th class="px-3 py-3 text-center whitespace-nowrap">
+                {{ languageStore.t('capacity', 'Capacity') }}
+              </th>
+              <th class="px-3 py-3 text-right whitespace-nowrap">
+                {{ languageStore.t('price_night', 'Price/Night') }}
+              </th>
+              <th class="px-3 py-3 text-center whitespace-nowrap">
+                {{ languageStore.t('status', 'Status') }}
+              </th>
+              <th class="px-3 py-3 text-right pr-5 whitespace-nowrap">
+                {{ languageStore.t('actions', 'Actions') }}
+              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
@@ -356,8 +389,17 @@ onBeforeUnmount(() => {
                 <div class="flex flex-col items-center justify-center gap-3">
                   <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
                   <div class="space-y-0.5">
-                    <p class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200">{{ languageStore.t('loading_rooms', 'Loading Rooms...') }}</p>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ languageStore.t('fetching_rooms_sub', 'Fetching room availability and occupancy') }}</p>
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200">
+                      {{ languageStore.t('loading_rooms', 'Loading Rooms...') }}
+                    </p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                      {{
+                        languageStore.t(
+                          'fetching_rooms_sub',
+                          'Fetching room availability and occupancy',
+                        )
+                      }}
+                    </p>
                   </div>
                 </div>
               </td>
@@ -371,7 +413,9 @@ onBeforeUnmount(() => {
               >
                 <td class="px-3 py-3 pl-5 whitespace-nowrap">
                   <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs">
+                    <div
+                      class="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs"
+                    >
                       <BedDouble class="w-3.5 h-3.5" />
                     </div>
                     <div>
@@ -395,14 +439,24 @@ onBeforeUnmount(() => {
                 </td>
 
                 <td class="px-3 py-3 text-center whitespace-nowrap">
-                  <span class="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700">
+                  <span
+                    class="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-700"
+                  >
                     <Users class="w-3.5 h-3.5 text-slate-400" />
                     {{ room.room_type?.capacity || (room as any).capacity || 2 }}
                   </span>
                 </td>
 
-                <td class="px-3 py-3 text-right whitespace-nowrap font-extrabold text-slate-900 dark:text-white font-mono">
-                  ${{ parseFloat(String(room.room_type?.base_price_per_night || (room as any).price_per_night || 0)).toFixed(2) }}
+                <td
+                  class="px-3 py-3 text-right whitespace-nowrap font-extrabold text-slate-900 dark:text-white font-mono"
+                >
+                  ${{
+                    parseFloat(
+                      String(
+                        room.room_type?.base_price_per_night || (room as any).price_per_night || 0,
+                      ),
+                    ).toFixed(2)
+                  }}
                 </td>
 
                 <td class="px-3 py-3 text-center whitespace-nowrap">
@@ -414,7 +468,10 @@ onBeforeUnmount(() => {
                     <button
                       @click="toggleMenu(String(room.id), $event)"
                       class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                      :class="{ 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white': openMenu === String(room.id) }"
+                      :class="{
+                        'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white':
+                          openMenu === String(room.id),
+                      }"
                       :title="languageStore.t('actions', 'Actions')"
                     >
                       <MoreVertical class="w-4 h-4" />
@@ -464,8 +521,16 @@ onBeforeUnmount(() => {
               </tr>
 
               <tr v-if="paginatedRooms.length === 0">
-                <td colspan="7" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                  {{ languageStore.t('no_rooms_match', 'No rooms match your current search or filter criteria.') }}
+                <td
+                  colspan="7"
+                  class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
+                >
+                  {{
+                    languageStore.t(
+                      'no_rooms_match',
+                      'No rooms match your current search or filter criteria.',
+                    )
+                  }}
                 </td>
               </tr>
             </template>
@@ -474,9 +539,14 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-        <div v-if="loading" class="py-16 text-center flex flex-col items-center justify-center gap-3">
+        <div
+          v-if="loading"
+          class="py-16 text-center flex flex-col items-center justify-center gap-3"
+        >
           <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-          <span class="text-xs font-extrabold text-slate-700 dark:text-slate-300">{{ languageStore.t('loading_rooms', 'Loading rooms...') }}</span>
+          <span class="text-xs font-extrabold text-slate-700 dark:text-slate-300">{{
+            languageStore.t('loading_rooms', 'Loading rooms...')
+          }}</span>
         </div>
         <template v-else>
           <div
@@ -495,7 +565,9 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-400">
-              <div>{{ languageStore.t('type', 'Type') }}: {{ room.room_type?.name || 'Standard' }}</div>
+              <div>
+                {{ languageStore.t('type', 'Type') }}: {{ room.room_type?.name || 'Standard' }}
+              </div>
               <div>{{ languageStore.t('floor', 'Floor') }}: {{ room.floor || 1 }}</div>
             </div>
 
@@ -520,8 +592,16 @@ onBeforeUnmount(() => {
               </button>
             </div>
           </div>
-          <div v-if="paginatedRooms.length === 0" class="p-8 text-center text-slate-500 text-xs font-bold">
-            {{ languageStore.t('no_rooms_match', 'No rooms match your current search or filter criteria.') }}
+          <div
+            v-if="paginatedRooms.length === 0"
+            class="p-8 text-center text-slate-500 text-xs font-bold"
+          >
+            {{
+              languageStore.t(
+                'no_rooms_match',
+                'No rooms match your current search or filter criteria.',
+              )
+            }}
           </div>
         </template>
       </div>
@@ -531,14 +611,20 @@ onBeforeUnmount(() => {
         class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
       >
         <div class="text-slate-500 dark:text-slate-400 font-medium">
-          {{ languageStore.t('showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
-          <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
-          <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> {{ languageStore.t('rooms', 'rooms') }}
+          {{ languageStore.t('showing', 'Showing') }}
+          <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
+          {{ languageStore.t('to', 'to') }}
+          <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span>
+          {{ languageStore.t('of', 'of') }}
+          <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span>
+          {{ languageStore.t('rooms', 'rooms') }}
         </div>
 
         <div class="flex items-center gap-2 sm:gap-3">
           <div class="flex items-center gap-1.5">
-            <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page') }}:</span>
+            <span class="text-slate-500 dark:text-slate-400 font-medium"
+              >{{ languageStore.t('per_page', 'Per page') }}:</span
+            >
             <select
               :value="perPage"
               @change="changePerPage"
@@ -567,7 +653,7 @@ onBeforeUnmount(() => {
               :class="[
                 currentPage === page
                   ? 'bg-blue-600 text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
               ]"
             >
               {{ page }}

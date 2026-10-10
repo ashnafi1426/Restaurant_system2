@@ -72,10 +72,10 @@ const handleLogout = async () => {
   try {
     // Call logout to clear auth state
     await auth.logout()
-    
+
     // Navigate immediately to login page
     await router.replace('/login')
-    
+
     // Optionally reload to clear any cached state
     window.location.href = '/login'
   } catch (error) {
@@ -133,17 +133,17 @@ const menuIcons: Record<string, Component> = {
 }
 
 const sectionIcons: Record<string, Component> = {
-  'General': LayoutDashboard,
-  'Platform': Building2,
-  'Administration': SlidersHorizontal,
+  General: LayoutDashboard,
+  Platform: Building2,
+  Administration: SlidersHorizontal,
   'Property Management': BedDouble,
   'Front Desk': LogIn,
   'Dining & Kitchen': Utensils,
-  'Operations': ClipboardList,
-  'Deliveries': Truck,
-  'Billing': CreditCard,
+  Operations: ClipboardList,
+  Deliveries: Truck,
+  Billing: CreditCard,
   'Reports & Analytics': BarChart3,
-  'Account': Settings,
+  Account: Settings,
 }
 
 interface MenuItem {
@@ -159,54 +159,304 @@ interface MenuItem {
 }
 
 const operationalMenuItems: MenuItem[] = [
-  { name: 'Hotels', path: '/admin/hotels', icon: 'Hotels', superAdminOnly: true, section: 'Platform' },
-  { name: 'Hotel Admins', path: '/admin/hotel-admins', icon: 'Staff', superAdminOnly: true, section: 'Platform' },
-  { name: 'All Users & Staff', path: '/admin/platform-users', icon: 'Users', superAdminOnly: true, section: 'Platform' },
-  { name: 'Users & Staff', path: '/users', icon: 'Users', permission: 'users.view', roleSlug: 'admin', section: 'Administration' },
-  { name: 'Role Management', path: '/admin/roles', icon: 'Security', permission: 'roles.view', roleSlug: 'admin', section: 'Administration' },
-  { name: 'Permission Catalog', path: '/admin/permissions', icon: 'Key', permission: 'permissions.view', roleSlug: 'admin', section: 'Administration' },
-  { name: 'Permission Matrix', path: '/admin/permission-matrix', icon: 'Grid', permission: 'roles.assign_permissions', roleSlug: 'admin', section: 'Administration' },
-  { name: 'User Role Assignments', path: '/admin/user-roles', icon: 'Staff', permission: 'users.update', roleSlug: 'admin', section: 'Administration' },
-  { name: 'Rooms Management', path: '/admin/rooms', icon: 'Rooms', permission: 'rooms.view', roleSlug: ['admin', 'manager', 'receptionist'], section: 'Property Management' },
-  { name: 'Room Types', path: '/admin/room-types', icon: 'Room Types', permission: 'rooms.view', roleSlug: ['admin', 'manager', 'receptionist'], section: 'Property Management' },
-  { name: 'Reservations', path: '/reservations', icon: 'Reservations', permission: 'reservations.view', roleSlug: ['admin', 'manager', 'receptionist'], section: 'Front Desk' },
-  { name: 'Check In', path: '/check-in', icon: 'Check In', permission: 'checkin.view', roleSlug: ['admin', 'manager', 'receptionist'], section: 'Front Desk' },
-  { name: 'Check Out', path: '/check-out', icon: 'Check Out', permission: 'checkout.view', roleSlug: ['admin', 'manager', 'receptionist'], section: 'Front Desk' },
-  { name: 'Orders Management', path: '/orders', icon: 'Utensils', permission: 'orders.view', roleSlug: ['admin', 'manager'], section: 'Dining & Kitchen' },
-  { name: 'Menu Management', path: '/menu-management', icon: 'Restaurant', permission: 'menu.view', roleSlug: ['admin', 'manager', 'chef'], section: 'Dining & Kitchen' },
-  { name: 'Tax Management', path: '/admin/taxes', icon: 'Percent', roleSlug: ['admin', 'manager'], section: 'Dining & Kitchen' },
-  { name: 'Kitchen Dashboard', path: '/chef', icon: 'CookingPot',permission: 'kitchen.view', roleSlug: ['admin', 'chef', 'kitchen', 'manager'], section: 'Dining & Kitchen' },
-  { name: 'Food Orders', path: '/chef/food-orders', icon: 'Food Orders', permission: 'kitchen.view', roleSlug: ['admin', 'chef'], section: 'Dining & Kitchen' },
-  { name: 'Pending Orders', path: '/chef/pending-orders', icon: 'Pending Orders', permission: 'kitchen.accept', roleSlug: ['admin', 'chef'], section: 'Dining & Kitchen' },
-  { name: 'Preparing Orders', path: '/chef/preparing-orders', icon: 'Preparing Orders', permission: 'kitchen.prepare', roleSlug: ['admin', 'chef'], section: 'Dining & Kitchen' },
-  { name: 'Served Orders', path: '/chef/served-orders', icon: 'Served Orders', permission: 'kitchen.mark_ready', roleSlug: ['admin', 'chef'], section: 'Dining & Kitchen' },
-  { name: 'Waiter Management', path: '/manager/waiters', icon: 'Waiters', permission: 'waiters.view', roleSlug: ['admin', 'manager'], section: 'Operations' },
-  { name: 'Restaurant Tables', path: '/manager/restaurant-tables', icon: 'Restaurant', permission: 'tables.view', roleSlug: ['admin', 'manager'], section: 'Operations' },
-  { name: 'Table Assignments', path: '/manager/table-assignments', icon: 'MapPin', permission: 'tables.assign', roleSlug: ['admin', 'manager'], section: 'Operations' },
-  { name: 'Floor Management', path: '/manager/floor-assignment', icon: 'Manager', permission: 'floors.view', roleSlug: ['admin', 'manager'], section: 'Operations' },
-  { name: 'Daily Operations', path: '/manager/operations', icon: 'Operations', permission: 'reports.occupancy', roleSlug: ['admin', 'manager'], section: 'Operations' },
-  { name: 'Room Service Management', path: '/manager/delivery-management', icon: 'Truck', permission: 'delivery.reassign', roleSlug: ['admin', 'manager'], section: 'Deliveries' },
-  { name: 'Assigned Orders', path: '/waiter/assigned-orders', icon: 'Room Service', permission: 'delivery.accept', roleSlug: ['admin', 'waiter'], section: 'Deliveries' },
-  { name: 'Ready for Pickup', path: '/waiter/ready-pickup', icon: 'Pending Orders', permission: 'delivery.pickup', roleSlug: ['admin', 'waiter'], section: 'Deliveries' },
-  { name: 'On Delivery', path: '/waiter/on-delivery', icon: 'Truck', permission: 'delivery.deliver', roleSlug: ['admin', 'waiter'], section: 'Deliveries' },
-  { name: 'Delivery History', path: '/waiter/delivery-history', icon: 'Reports', permission: 'delivery.view', roleSlug: ['admin', 'waiter'], section: 'Deliveries' },
-  { name: 'Payments & Billing', path: '/cashier/payments', icon: 'Payments', permission: 'payments.view', roleSlug: ['admin', 'manager', 'cashier'], section: 'Billing' },
-  { name: 'Financial Reports', path: '/cashier/reports', icon: 'Reports', permission: 'reports.sales', roleSlug: ['admin', 'manager', 'cashier'], section: 'Billing' },
-  { name: 'Reports & Analytics', path: '/reports', icon: 'Reports', permission: 'reports.view', roleSlug: ['admin', 'manager'], section: 'Reports & Analytics' },
-  { name: 'Review Moderation', path: '/reviews/moderation', icon: 'Notifications', permission: 'reviews.moderate', roleSlug: ['admin', 'manager'], section: 'Reports & Analytics' },
-  { name: 'Review Analytics', path: '/reviews/analytics', icon: 'Analytics', permission: 'reviews.analytics', roleSlug: ['admin', 'manager'], section: 'Reports & Analytics' },
+  {
+    name: 'Hotels',
+    path: '/admin/hotels',
+    icon: 'Hotels',
+    superAdminOnly: true,
+    section: 'Platform',
+  },
+  {
+    name: 'Hotel Admins',
+    path: '/admin/hotel-admins',
+    icon: 'Staff',
+    superAdminOnly: true,
+    section: 'Platform',
+  },
+  {
+    name: 'All Users & Staff',
+    path: '/admin/platform-users',
+    icon: 'Users',
+    superAdminOnly: true,
+    section: 'Platform',
+  },
+  {
+    name: 'Users & Staff',
+    path: '/users',
+    icon: 'Users',
+    permission: 'users.view',
+    roleSlug: 'admin',
+    section: 'Administration',
+  },
+  {
+    name: 'Role Management',
+    path: '/admin/roles',
+    icon: 'Security',
+    permission: 'roles.view',
+    roleSlug: 'admin',
+    section: 'Administration',
+  },
+  {
+    name: 'Permission Catalog',
+    path: '/admin/permissions',
+    icon: 'Key',
+    permission: 'permissions.view',
+    roleSlug: 'admin',
+    section: 'Administration',
+  },
+  {
+    name: 'Permission Matrix',
+    path: '/admin/permission-matrix',
+    icon: 'Grid',
+    permission: 'roles.assign_permissions',
+    roleSlug: 'admin',
+    section: 'Administration',
+  },
+  {
+    name: 'User Role Assignments',
+    path: '/admin/user-roles',
+    icon: 'Staff',
+    permission: 'users.update',
+    roleSlug: 'admin',
+    section: 'Administration',
+  },
+  {
+    name: 'Rooms Management',
+    path: '/admin/rooms',
+    icon: 'Rooms',
+    permission: 'rooms.view',
+    roleSlug: ['admin', 'manager', 'receptionist'],
+    section: 'Property Management',
+  },
+  {
+    name: 'Room Types',
+    path: '/admin/room-types',
+    icon: 'Room Types',
+    permission: 'rooms.view',
+    roleSlug: ['admin', 'manager', 'receptionist'],
+    section: 'Property Management',
+  },
+  {
+    name: 'Reservations',
+    path: '/reservations',
+    icon: 'Reservations',
+    permission: 'reservations.view',
+    roleSlug: ['admin', 'manager', 'receptionist'],
+    section: 'Front Desk',
+  },
+  {
+    name: 'Check In',
+    path: '/check-in',
+    icon: 'Check In',
+    permission: 'checkin.view',
+    roleSlug: ['admin', 'manager', 'receptionist'],
+    section: 'Front Desk',
+  },
+  {
+    name: 'Check Out',
+    path: '/check-out',
+    icon: 'Check Out',
+    permission: 'checkout.view',
+    roleSlug: ['admin', 'manager', 'receptionist'],
+    section: 'Front Desk',
+  },
+  {
+    name: 'Orders Management',
+    path: '/orders',
+    icon: 'Utensils',
+    permission: 'orders.view',
+    roleSlug: ['admin', 'manager'],
+    section: 'Dining & Kitchen',
+  },
+  {
+    name: 'Menu Management',
+    path: '/menu-management',
+    icon: 'Restaurant',
+    permission: 'menu.view',
+    roleSlug: ['admin', 'manager', 'chef'],
+    section: 'Dining & Kitchen',
+  },
+  {
+    name: 'Tax Management',
+    path: '/admin/taxes',
+    icon: 'Percent',
+    roleSlug: ['admin', 'manager'],
+    section: 'Dining & Kitchen',
+  },
+  {
+    name: 'Kitchen Dashboard',
+    path: '/chef',
+    icon: 'CookingPot',
+    permission: 'kitchen.view',
+    roleSlug: ['admin', 'chef', 'kitchen', 'manager'],
+    section: 'Dining & Kitchen',
+  },
+  {
+    name: 'Food Orders',
+    path: '/chef/food-orders',
+    icon: 'Food Orders',
+    permission: 'kitchen.view',
+    roleSlug: ['admin', 'chef'],
+    section: 'Dining & Kitchen',
+  },
+  {
+    name: 'Pending Orders',
+    path: '/chef/pending-orders',
+    icon: 'Pending Orders',
+    permission: 'kitchen.accept',
+    roleSlug: ['admin', 'chef'],
+    section: 'Dining & Kitchen',
+  },
+  {
+    name: 'Preparing Orders',
+    path: '/chef/preparing-orders',
+    icon: 'Preparing Orders',
+    permission: 'kitchen.prepare',
+    roleSlug: ['admin', 'chef'],
+    section: 'Dining & Kitchen',
+  },
+  {
+    name: 'Served Orders',
+    path: '/chef/served-orders',
+    icon: 'Served Orders',
+    permission: 'kitchen.mark_ready',
+    roleSlug: ['admin', 'chef'],
+    section: 'Dining & Kitchen',
+  },
+  {
+    name: 'Waiter Management',
+    path: '/manager/waiters',
+    icon: 'Waiters',
+    permission: 'waiters.view',
+    roleSlug: ['admin', 'manager'],
+    section: 'Operations',
+  },
+  {
+    name: 'Restaurant Tables',
+    path: '/manager/restaurant-tables',
+    icon: 'Restaurant',
+    permission: 'tables.view',
+    roleSlug: ['admin', 'manager'],
+    section: 'Operations',
+  },
+  {
+    name: 'Table Assignments',
+    path: '/manager/table-assignments',
+    icon: 'MapPin',
+    permission: 'tables.assign',
+    roleSlug: ['admin', 'manager'],
+    section: 'Operations',
+  },
+  {
+    name: 'Floor Management',
+    path: '/manager/floor-assignment',
+    icon: 'Manager',
+    permission: 'floors.view',
+    roleSlug: ['admin', 'manager'],
+    section: 'Operations',
+  },
+  {
+    name: 'Daily Operations',
+    path: '/manager/operations',
+    icon: 'Operations',
+    permission: 'reports.occupancy',
+    roleSlug: ['admin', 'manager'],
+    section: 'Operations',
+  },
+  {
+    name: 'Room Service Management',
+    path: '/manager/delivery-management',
+    icon: 'Truck',
+    permission: 'delivery.reassign',
+    roleSlug: ['admin', 'manager'],
+    section: 'Deliveries',
+  },
+  {
+    name: 'Assigned Orders',
+    path: '/waiter/assigned-orders',
+    icon: 'Room Service',
+    permission: 'delivery.accept',
+    roleSlug: ['admin', 'waiter'],
+    section: 'Deliveries',
+  },
+  {
+    name: 'Ready for Pickup',
+    path: '/waiter/ready-pickup',
+    icon: 'Pending Orders',
+    permission: 'delivery.pickup',
+    roleSlug: ['admin', 'waiter'],
+    section: 'Deliveries',
+  },
+  {
+    name: 'On Delivery',
+    path: '/waiter/on-delivery',
+    icon: 'Truck',
+    permission: 'delivery.deliver',
+    roleSlug: ['admin', 'waiter'],
+    section: 'Deliveries',
+  },
+  {
+    name: 'Delivery History',
+    path: '/waiter/delivery-history',
+    icon: 'Reports',
+    permission: 'delivery.view',
+    roleSlug: ['admin', 'waiter'],
+    section: 'Deliveries',
+  },
+  {
+    name: 'Payments & Billing',
+    path: '/cashier/payments',
+    icon: 'Payments',
+    permission: 'payments.view',
+    roleSlug: ['admin', 'manager', 'cashier'],
+    section: 'Billing',
+  },
+  {
+    name: 'Financial Reports',
+    path: '/cashier/reports',
+    icon: 'Reports',
+    permission: 'reports.sales',
+    roleSlug: ['admin', 'manager', 'cashier'],
+    section: 'Billing',
+  },
+  {
+    name: 'Reports & Analytics',
+    path: '/reports',
+    icon: 'Reports',
+    permission: 'reports.view',
+    roleSlug: ['admin', 'manager'],
+    section: 'Reports & Analytics',
+  },
+  {
+    name: 'Review Moderation',
+    path: '/reviews/moderation',
+    icon: 'Notifications',
+    permission: 'reviews.moderate',
+    roleSlug: ['admin', 'manager'],
+    section: 'Reports & Analytics',
+  },
+  {
+    name: 'Review Analytics',
+    path: '/reviews/analytics',
+    icon: 'Analytics',
+    permission: 'reviews.analytics',
+    roleSlug: ['admin', 'manager'],
+    section: 'Reports & Analytics',
+  },
 ]
 
 const sidebarRefreshKey = ref(0)
 
 const userRoleSlug = computed(() => {
   return String(
-    hotelStore.currentHotel?.role || 
-    auth.currentHotel?.role ||
-    auth.currentRole || 
-    auth.user?.role || 
-    'guest'
-  ).toLowerCase().trim()
+    hotelStore.currentHotel?.role ||
+      auth.currentHotel?.role ||
+      auth.currentRole ||
+      auth.user?.role ||
+      'guest',
+  )
+    .toLowerCase()
+    .trim()
 })
 
 const activeRouteRole = computed(() => {
@@ -216,9 +466,15 @@ const activeRouteRole = computed(() => {
 
 const isAdminUser = computed(() => {
   const role = userRoleSlug.value
-  const hotelRole = String(hotelStore.currentHotel?.role || auth.currentHotel?.role || '').toLowerCase().trim()
-  const authRole = String(auth.currentRole || '').toLowerCase().trim()
-  const userRole = String(auth.user?.role || '').toLowerCase().trim()
+  const hotelRole = String(hotelStore.currentHotel?.role || auth.currentHotel?.role || '')
+    .toLowerCase()
+    .trim()
+  const authRole = String(auth.currentRole || '')
+    .toLowerCase()
+    .trim()
+  const userRole = String(auth.user?.role || '')
+    .toLowerCase()
+    .trim()
 
   return (
     auth.isPlatformAdmin ||
@@ -255,10 +511,10 @@ const menus = computed(() => {
   const _ = sidebarRefreshKey.value
 
   const items: MenuItem[] = [
-    { name: 'Dashboard', path: userDashboardPath.value, icon: 'Dashboard', section: 'General' }
+    { name: 'Dashboard', path: userDashboardPath.value, icon: 'Dashboard', section: 'General' },
   ]
 
-  const filteredOps = operationalMenuItems.filter(item => {
+  const filteredOps = operationalMenuItems.filter((item) => {
     if (item.superAdminOnly) {
       return auth.isPlatformAdmin
     }
@@ -270,7 +526,7 @@ const menus = computed(() => {
     if (item.roleSlug) {
       const allowedRoles = Array.isArray(item.roleSlug) ? item.roleSlug : [item.roleSlug]
       const currentRole = userRoleSlug.value
-      const hasMatchingRole = allowedRoles.some(r => r.toLowerCase() === currentRole)
+      const hasMatchingRole = allowedRoles.some((r) => r.toLowerCase() === currentRole)
       if (!hasMatchingRole && !auth.isPlatformAdmin && !isAdminUser.value) {
         return false
       }
@@ -289,7 +545,12 @@ const menus = computed(() => {
   })
 
   items.push(...filteredOps)
-  items.push({ name: 'Profile Settings', path: userProfilePath.value, icon: 'Settings', section: 'Account' })
+  items.push({
+    name: 'Profile Settings',
+    path: userProfilePath.value,
+    icon: 'Settings',
+    section: 'Account',
+  })
 
   return items
 })
@@ -297,12 +558,12 @@ const menus = computed(() => {
 const groupedMenus = computed(() => {
   if (!isAdminUser.value) {
     return {
-      'General': menus.value
+      General: menus.value,
     }
   }
 
   const groups: Record<string, MenuItem[]> = {}
-  menus.value.forEach(menu => {
+  menus.value.forEach((menu) => {
     const section = menu.section || 'General'
     if (!groups[section]) {
       groups[section] = []
@@ -315,17 +576,17 @@ const groupedMenus = computed(() => {
 const searchQuery = ref('')
 const searchInputRef = ref<HTMLInputElement | null>(null)
 const openSections = ref<Record<string, boolean>>({
-  'General': true,
-  'Platform': false,
-  'Administration': false,
+  General: true,
+  Platform: false,
+  Administration: false,
   'Property Management': false,
   'Front Desk': false,
   'Dining & Kitchen': false,
-  'Operations': false,
-  'Deliveries': false,
-  'Billing': false,
+  Operations: false,
+  Deliveries: false,
+  Billing: false,
   'Reports & Analytics': false,
-  'Account': false,
+  Account: false,
 })
 
 const toggleSection = (section: string) => {
@@ -334,7 +595,14 @@ const toggleSection = (section: string) => {
 
 function isActive(path: string): boolean {
   const current = route.path
-  if (path === '/admin' || path === '/manager' || path === '/receptionist' || path === '/chef' || path === '/waiter' || path === '/cashier/dashboard') {
+  if (
+    path === '/admin' ||
+    path === '/manager' ||
+    path === '/receptionist' ||
+    path === '/chef' ||
+    path === '/waiter' ||
+    path === '/cashier/dashboard'
+  ) {
     return current === path
   }
   if (path === '/menu-management') {
@@ -345,7 +613,7 @@ function isActive(path: string): boolean {
 
 const updateActiveSection = () => {
   Object.entries(groupedMenus.value).forEach(([section, items]) => {
-    if (items.some(item => isActive(item.path))) {
+    if (items.some((item) => isActive(item.path))) {
       openSections.value[section] = true
     }
   })
@@ -355,7 +623,7 @@ watch(
   () => {
     updateActiveSection()
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 const refreshSidebar = () => {
@@ -368,7 +636,7 @@ watch(
   () => {
     refreshSidebar()
   },
-  { deep: true, immediate: true }
+  { deep: true, immediate: true },
 )
 
 const handleHotelSwitched = () => {
@@ -381,9 +649,8 @@ const filteredGroupedMenus = computed(() => {
 
   const filtered: Record<string, MenuItem[]> = {}
   Object.entries(groupedMenus.value).forEach(([section, items]) => {
-    const matchingItems = items.filter(item => 
-      item.name.toLowerCase().includes(query) || 
-      section.toLowerCase().includes(query)
+    const matchingItems = items.filter(
+      (item) => item.name.toLowerCase().includes(query) || section.toLowerCase().includes(query),
     )
     if (matchingItems.length > 0) {
       filtered[section] = matchingItems
@@ -438,19 +705,21 @@ onUnmounted(() => {
   >
     <div
       class="flex items-center bg-white dark:bg-slate-950 transition-all duration-300 border-b border-slate-200/80 dark:border-slate-800/80 flex-shrink-0"
-      :class="isSidebarExpanded ? 'h-16 px-4 justify-between' : 'h-16 py-2 px-2 flex-col justify-center'"
+      :class="
+        isSidebarExpanded ? 'h-16 px-4 justify-between' : 'h-16 py-2 px-2 flex-col justify-center'
+      "
     >
       <template v-if="isSidebarExpanded">
         <div class="flex items-center min-w-0">
           <div class="w-10 h-10 flex items-center justify-center flex-shrink-0">
-            <img 
-              src="/images/Hotel logo.png" 
-              alt="Hotel Logo" 
+            <img
+              src="/images/Hotel logo.png"
+              alt="Hotel Logo"
               class="w-full h-full object-contain select-none"
             />
           </div>
         </div>
-        
+
         <!-- Desktop Collapse Button (Circular style matching reference) -->
         <button
           @click="sidebarStore.toggleCollapse()"
@@ -484,13 +753,15 @@ onUnmounted(() => {
       </template>
     </div>
 
-    <nav 
+    <nav
       class="flex-1 min-h-0 py-3 overflow-y-auto transition-all duration-300 space-y-4 pr-1 pb-6"
       :class="isSidebarExpanded ? 'px-3' : 'px-2'"
     >
       <div v-if="isSidebarExpanded" class="px-0.5 pb-1">
         <div class="relative flex items-center">
-          <Search class="absolute left-3 w-3.5 h-3.5 text-slate-400 dark:text-slate-500 pointer-events-none" />
+          <Search
+            class="absolute left-3 w-3.5 h-3.5 text-slate-400 dark:text-slate-500 pointer-events-none"
+          />
           <input
             ref="searchInputRef"
             v-model="searchQuery"
@@ -505,7 +776,10 @@ onUnmounted(() => {
           >
             <X class="w-3.5 h-3.5" />
           </button>
-          <kbd v-else class="absolute right-2 px-1.5 py-0.5 text-[9px] font-bold text-slate-500 dark:text-slate-400 bg-slate-200/80 dark:bg-slate-700/80 rounded border border-slate-300/80 dark:border-slate-600/80">
+          <kbd
+            v-else
+            class="absolute right-2 px-1.5 py-0.5 text-[9px] font-bold text-slate-500 dark:text-slate-400 bg-slate-200/80 dark:bg-slate-700/80 rounded border border-slate-300/80 dark:border-slate-600/80"
+          >
             ⌘K
           </kbd>
         </div>
@@ -520,28 +794,27 @@ onUnmounted(() => {
             @click="handleNavigate"
             class="group relative flex items-center gap-3 rounded-lg transition-all duration-200"
             :class="[
-              isSidebarExpanded 
-                ? 'px-4 py-3' 
-                : 'justify-center py-3',
+              isSidebarExpanded ? 'px-4 py-3' : 'justify-center py-3',
               isActive(menu.path)
                 ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-semibold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50',
             ]"
             :title="!isSidebarExpanded ? languageStore.t(menu.name, menu.name) : ''"
           >
             <component
               :is="menuIcons[menu.icon] || menuIcons['Dashboard']"
               class="flex-shrink-0 w-5 h-5"
-              :class="isActive(menu.path) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500'"
+              :class="
+                isActive(menu.path)
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : 'text-slate-500 dark:text-slate-500'
+              "
               :stroke-width="1.75"
             />
-            <span
-              v-if="isSidebarExpanded"
-              class="text-sm font-medium"
-            >
+            <span v-if="isSidebarExpanded" class="text-sm font-medium">
               {{ languageStore.t(menu.name, menu.name) }}
             </span>
-            
+
             <div
               v-if="!isSidebarExpanded && !sidebarStore.hoverExpand"
               class="absolute left-full ml-3 px-3 py-1.5 bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white text-xs font-semibold rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none"
@@ -557,28 +830,27 @@ onUnmounted(() => {
             @click="handleNavigate"
             class="group relative flex items-center gap-3 rounded-lg transition-all duration-200"
             :class="[
-              isSidebarExpanded 
-                ? 'px-4 py-3' 
-                : 'justify-center py-3',
+              isSidebarExpanded ? 'px-4 py-3' : 'justify-center py-3',
               isActive(items[0].path)
                 ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-semibold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50',
             ]"
             :title="!isSidebarExpanded ? languageStore.t(items[0].name, items[0].name) : ''"
           >
             <component
               :is="menuIcons[items[0].icon] || menuIcons['Dashboard']"
               class="flex-shrink-0 w-5 h-5"
-              :class="isActive(items[0].path) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500'"
+              :class="
+                isActive(items[0].path)
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : 'text-slate-500 dark:text-slate-500'
+              "
               :stroke-width="1.75"
             />
-            <span
-              v-if="isSidebarExpanded"
-              class="text-sm font-medium"
-            >
+            <span v-if="isSidebarExpanded" class="text-sm font-medium">
               {{ languageStore.t(items[0].name, items[0].name) }}
             </span>
-            
+
             <div
               v-if="!isSidebarExpanded && !sidebarStore.hoverExpand"
               class="absolute left-full ml-3 px-3 py-1.5 bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white text-xs font-semibold rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none"
@@ -589,11 +861,10 @@ onUnmounted(() => {
         </template>
 
         <template v-else-if="isAdminUser && section !== 'General'">
-          <div
-            v-if="isSidebarExpanded"
-            class="px-4 pt-4 pb-1"
-          >
-            <p class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          <div v-if="isSidebarExpanded" class="px-4 pt-4 pb-1">
+            <p
+              class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500"
+            >
               {{ languageStore.t(section, section) }}
             </p>
           </div>
@@ -621,10 +892,14 @@ onUnmounted(() => {
               <component
                 :is="menuIcons[menu.icon] || menuIcons['Dashboard']"
                 class="flex-shrink-0 w-5 h-5"
-                :class="isActive(menu.path) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500'"
+                :class="
+                  isActive(menu.path)
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-slate-500 dark:text-slate-500'
+                "
                 :stroke-width="1.75"
               />
-              
+
               <div
                 v-if="!sidebarStore.hoverExpand"
                 class="absolute left-full ml-3 px-3 py-1.5 bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white text-xs font-semibold rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none"
@@ -648,7 +923,7 @@ onUnmounted(() => {
                 />
                 <span class="text-sm font-medium">{{ languageStore.t(section, section) }}</span>
               </div>
-              
+
               <ChevronDown
                 class="w-4 h-4 text-slate-400 dark:text-slate-500 transition-transform duration-300 flex-shrink-0"
                 :class="openSections[section] ? '' : '-rotate-90'"
@@ -675,7 +950,11 @@ onUnmounted(() => {
                 <component
                   :is="menuIcons[menu.icon] || menuIcons['Dashboard']"
                   class="flex-shrink-0 w-4.5 h-4.5"
-                  :class="isActive(menu.path) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500'"
+                  :class="
+                    isActive(menu.path)
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : 'text-slate-500 dark:text-slate-500'
+                  "
                   :stroke-width="1.75"
                 />
                 <span class="text-sm font-medium">
@@ -698,7 +977,11 @@ onUnmounted(() => {
               <component
                 :is="menuIcons[items[0].icon] || menuIcons['Dashboard']"
                 class="flex-shrink-0 w-5 h-5"
-                :class="isActive(items[0].path) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-500'"
+                :class="
+                  isActive(items[0].path)
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-slate-500 dark:text-slate-500'
+                "
                 :stroke-width="1.75"
               />
               <span class="text-sm font-medium">
@@ -710,14 +993,24 @@ onUnmounted(() => {
       </div>
     </nav>
 
-    <div class="p-3 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/90 dark:bg-slate-950/90 flex items-center justify-between flex-shrink-0">
+    <div
+      class="p-3 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/90 dark:bg-slate-950/90 flex items-center justify-between flex-shrink-0"
+    >
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
-        <div class="w-8 h-8 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30 flex items-center justify-center font-black text-xs flex-shrink-0 shadow-xs">
+        <div
+          class="w-8 h-8 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30 flex items-center justify-center font-black text-xs flex-shrink-0 shadow-xs"
+        >
           {{ (auth.user?.full_name || auth.user?.first_name || 'U').charAt(0).toUpperCase() }}
         </div>
         <div v-if="isSidebarExpanded" class="flex-1 min-w-0 pr-1">
-          <p class="text-xs font-bold text-slate-900 dark:text-white truncate leading-tight">{{ auth.user?.full_name || auth.user?.first_name || 'Administrator' }}</p>
-          <p class="text-[10px] text-blue-600 dark:text-blue-400 font-semibold capitalize truncate mt-0.5 leading-tight">{{ languageStore.t(auth.user?.role || 'Admin', auth.user?.role || 'Admin') }}</p>
+          <p class="text-xs font-bold text-slate-900 dark:text-white truncate leading-tight">
+            {{ auth.user?.full_name || auth.user?.first_name || 'Administrator' }}
+          </p>
+          <p
+            class="text-[10px] text-blue-600 dark:text-blue-400 font-semibold capitalize truncate mt-0.5 leading-tight"
+          >
+            {{ languageStore.t(auth.user?.role || 'Admin', auth.user?.role || 'Admin') }}
+          </p>
         </div>
       </div>
 

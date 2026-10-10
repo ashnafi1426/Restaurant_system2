@@ -42,7 +42,12 @@ export const usePasswordResetStore = defineStore('passwordReset', () => {
     }
   }
 
-  async function resetPassword(email: string, token: string, password: string, passwordConfirmation: string) {
+  async function resetPassword(
+    email: string,
+    token: string,
+    password: string,
+    passwordConfirmation: string,
+  ) {
     resetting.value = true
     error.value = null
     successMessage.value = null

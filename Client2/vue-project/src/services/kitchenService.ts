@@ -72,13 +72,12 @@ class KitchenService {
       this.getStatistics(),
     ])
 
-    const orders = ordersResult.status === 'fulfilled' 
-      ? ordersResult.value 
-      : { pending: [], preparing: [], ready: [], served: [] }
-      
-    const statistics = statsResult.status === 'fulfilled' 
-      ? statsResult.value 
-      : null
+    const orders =
+      ordersResult.status === 'fulfilled'
+        ? ordersResult.value
+        : { pending: [], preparing: [], ready: [], served: [] }
+
+    const statistics = statsResult.status === 'fulfilled' ? statsResult.value : null
 
     return {
       orders,

@@ -24,7 +24,11 @@
       </ul>
 
       <div class="button-group">
-        <button class="theme-btn" @click="handleThemeToggle" :title="theme.isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'">
+        <button
+          class="theme-btn"
+          @click="handleThemeToggle"
+          :title="theme.isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+        >
           <span v-if="!theme.isDarkMode" class="theme-icon"></span>
           <span v-else class="theme-icon"></span>
         </button>
@@ -72,7 +76,9 @@ const handleThemeToggle = () => {
   top: 0;
   z-index: 1000;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 :global(.dark) .navbar {

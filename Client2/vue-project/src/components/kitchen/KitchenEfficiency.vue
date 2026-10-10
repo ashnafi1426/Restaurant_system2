@@ -1,7 +1,13 @@
 <template>
-  <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white shadow-md overflow-hidden">
-    <div class="border-b border-slate-200 dark:border-slate-800 px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50 dark:bg-slate-800/80">
-      <h2 class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+  <div
+    class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white shadow-md overflow-hidden"
+  >
+    <div
+      class="border-b border-slate-200 dark:border-slate-800 px-4 sm:px-5 py-3 sm:py-3.5 bg-slate-50 dark:bg-slate-800/80"
+    >
+      <h2
+        class="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2"
+      >
         <Clock class="w-4 h-4 text-amber-500" />
         <span>{{ languageStore.t('kitchen_efficiency', 'Kitchen Efficiency') }}</span>
       </h2>
@@ -9,26 +15,45 @@
 
     <div class="space-y-4 sm:space-y-5 px-4 sm:px-5 py-4">
       <div>
-        <p class="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">{{ languageStore.t('avg_prep_time', 'Avg. Prep Time') }}</p>
+        <p
+          class="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400"
+        >
+          {{ languageStore.t('avg_prep_time', 'Avg. Prep Time') }}
+        </p>
         <p class="mt-1 text-3xl font-black text-slate-900 dark:text-white" v-if="avgPrepTime">
           {{ avgPrepTimeMinutes }}<span class="text-xl">:{{ avgPrepTimeSeconds }}</span>
-          <span class="text-xs text-slate-500 dark:text-slate-400 ml-1 font-bold">{{ languageStore.t('min', 'min') }}</span>
+          <span class="text-xs text-slate-500 dark:text-slate-400 ml-1 font-bold">{{
+            languageStore.t('min', 'min')
+          }}</span>
         </p>
-        <p v-else class="mt-1 text-sm text-slate-400">-- {{ languageStore.t('no_data', 'No data') }}</p>
+        <p v-else class="mt-1 text-sm text-slate-400">
+          -- {{ languageStore.t('no_data', 'No data') }}
+        </p>
         <p
           v-if="prepTimeTrend"
           class="mt-1 text-xs font-bold flex items-center gap-1"
           :class="prepTimeTrend > 0 ? 'text-rose-500' : 'text-emerald-500'"
         >
-          <span>{{ prepTimeTrend > 0 ? '↑' : '↓' }} {{ Math.abs(prepTimeTrend) }}% {{ languageStore.t('vs_yesterday', 'vs. yesterday') }}</span>
+          <span
+            >{{ prepTimeTrend > 0 ? '↑' : '↓' }} {{ Math.abs(prepTimeTrend) }}%
+            {{ languageStore.t('vs_yesterday', 'vs. yesterday') }}</span
+          >
         </p>
       </div>
 
       <div>
-        <p class="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">{{ languageStore.t('in_progress', 'In Progress') }}</p>
+        <p
+          class="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400"
+        >
+          {{ languageStore.t('in_progress', 'In Progress') }}
+        </p>
         <p class="mt-1 text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-          <span class="text-amber-500 text-2xl font-black">{{ statistics?.preparing_orders || 0 }}</span>
-          <span class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase">{{ languageStore.t('preparing', 'preparing') }}</span>
+          <span class="text-amber-500 text-2xl font-black">{{
+            statistics?.preparing_orders || 0
+          }}</span>
+          <span class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase">{{
+            languageStore.t('preparing', 'preparing')
+          }}</span>
         </p>
       </div>
 

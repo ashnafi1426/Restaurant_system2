@@ -22,8 +22,12 @@ const laundryStats = computed(() => {
   <section class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
     <div class="flex justify-between items-center mb-8">
       <div>
-        <h2 class="text-xl font-bold">{{ languageStore.t('laundry_management', 'Laundry Management') }}</h2>
-        <p class="text-sm text-slate-500">{{ languageStore.t('laundry_requests_processing', 'Laundry requests and processing') }}</p>
+        <h2 class="text-xl font-bold">
+          {{ languageStore.t('laundry_management', 'Laundry Management') }}
+        </h2>
+        <p class="text-sm text-slate-500">
+          {{ languageStore.t('laundry_requests_processing', 'Laundry requests and processing') }}
+        </p>
       </div>
       <div class="w-12 h-12 rounded-2xl bg-pink-100 flex items-center justify-center">
         <Shirt class="w-6 h-6 text-pink-600" />
@@ -32,7 +36,9 @@ const laundryStats = computed(() => {
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
       <div class="bg-blue-50 rounded-2xl p-4">
-        <p class="text-sm text-slate-500">{{ languageStore.t('total_requests', 'Total Requests') }}</p>
+        <p class="text-sm text-slate-500">
+          {{ languageStore.t('total_requests', 'Total Requests') }}
+        </p>
         <h3 class="text-3xl font-bold text-blue-700 mt-2">{{ laundryStats.total }}</h3>
       </div>
 
@@ -53,7 +59,9 @@ const laundryStats = computed(() => {
     </div>
 
     <div class="space-y-3">
-      <p class="text-sm font-medium text-slate-600">{{ languageStore.t('pending_requests', 'Pending Requests') }}</p>
+      <p class="text-sm font-medium text-slate-600">
+        {{ languageStore.t('pending_requests', 'Pending Requests') }}
+      </p>
 
       <div
         v-for="request in manager.pendingLaundry.slice(0, 5)"
@@ -62,8 +70,12 @@ const laundryStats = computed(() => {
       >
         <div class="flex items-start justify-between mb-2">
           <div>
-            <p class="font-medium text-sm">{{ languageStore.t('room', 'Room') }} {{ request.roomNumber }}</p>
-            <p class="text-xs text-slate-500">{{ request.itemCount }} {{ languageStore.t('items', 'items') }}</p>
+            <p class="font-medium text-sm">
+              {{ languageStore.t('room', 'Room') }} {{ request.roomNumber }}
+            </p>
+            <p class="text-xs text-slate-500">
+              {{ request.itemCount }} {{ languageStore.t('items', 'items') }}
+            </p>
           </div>
 
           <span
@@ -79,12 +91,24 @@ const laundryStats = computed(() => {
         </div>
 
         <div class="space-y-1 text-xs text-slate-600">
-          <p v-if="request.itemDetails">{{ languageStore.t('items', 'Items') }}: {{ request.itemDetails }}</p>
+          <p v-if="request.itemDetails">
+            {{ languageStore.t('items', 'Items') }}: {{ request.itemDetails }}
+          </p>
           <div class="flex items-center justify-between mt-2">
-            <span>{{ languageStore.t('priority', 'Priority') }}: {{ request.priority ? languageStore.t(request.priority.toLowerCase(), request.priority.toUpperCase()) : languageStore.t('normal', 'NORMAL') }}</span>
+            <span
+              >{{ languageStore.t('priority', 'Priority') }}:
+              {{
+                request.priority
+                  ? languageStore.t(request.priority.toLowerCase(), request.priority.toUpperCase())
+                  : languageStore.t('normal', 'NORMAL')
+              }}</span
+            >
             <div class="flex items-center gap-1">
               <Clock class="w-3 h-3" />
-              <span>{{ request.estimatedCompletion || '--' }} {{ languageStore.t('hours', 'hours') }}</span>
+              <span
+                >{{ request.estimatedCompletion || '--' }}
+                {{ languageStore.t('hours', 'hours') }}</span
+              >
             </div>
           </div>
         </div>
@@ -96,7 +120,9 @@ const laundryStats = computed(() => {
     </div>
 
     <div v-if="laundryStats.total > 0" class="mt-6 pt-4 border-t">
-      <p class="text-xs text-slate-600 mb-2">{{ languageStore.t('overall_progress', 'Overall Progress') }}</p>
+      <p class="text-xs text-slate-600 mb-2">
+        {{ languageStore.t('overall_progress', 'Overall Progress') }}
+      </p>
       <div class="flex gap-1 h-2 rounded-full overflow-hidden bg-slate-100">
         <div
           class="bg-yellow-500"

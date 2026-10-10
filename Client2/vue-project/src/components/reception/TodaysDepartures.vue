@@ -22,30 +22,45 @@ const goToCheckOut = () => {
 </script>
 
 <template>
-  <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
-    <div class="flex items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+  <div
+    class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs"
+  >
+    <div
+      class="flex items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800"
+    >
       <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-sm">
+        <div
+          class="w-8 h-8 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-sm"
+        >
           <LogOut class="w-4 h-4" />
         </div>
         <div>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">Today's Expected Departures</h3>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">
+            Today's Expected Departures
+          </h3>
           <p class="text-xs text-slate-500 dark:text-slate-400">Scheduled guest check-outs</p>
         </div>
       </div>
-      <span class="px-2.5 py-1 text-xs font-bold bg-rose-500/10 text-rose-700 dark:text-rose-400 rounded-full">
+      <span
+        class="px-2.5 py-1 text-xs font-bold bg-rose-500/10 text-rose-700 dark:text-rose-400 rounded-full"
+      >
         {{ departures.length }} Total
       </span>
     </div>
 
-    <div v-if="departures.length > 0" class="divide-y divide-slate-100 dark:divide-slate-800/60 my-2">
+    <div
+      v-if="departures.length > 0"
+      class="divide-y divide-slate-100 dark:divide-slate-800/60 my-2"
+    >
       <div
         v-for="dep in departures.slice(0, 4)"
         :key="dep.id"
         class="py-3 flex items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 px-2 rounded-xl transition"
       >
         <div class="flex items-center gap-3 min-w-0">
-          <div class="w-9 h-9 rounded-full bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-300 font-extrabold flex items-center justify-center text-xs flex-shrink-0">
+          <div
+            class="w-9 h-9 rounded-full bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-300 font-extrabold flex items-center justify-center text-xs flex-shrink-0"
+          >
             {{ getInitials(dep.guest?.first_name || '', dep.guest?.last_name || '') }}
           </div>
           <div class="min-w-0">
@@ -78,7 +93,9 @@ const goToCheckOut = () => {
 
     <div v-else class="text-center py-8">
       <Clock class="w-7 h-7 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-      <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">No scheduled departures for today</p>
+      <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+        No scheduled departures for today
+      </p>
     </div>
   </div>
 </template>

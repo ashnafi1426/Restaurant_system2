@@ -52,10 +52,10 @@ onUnmounted(() => {
         variant === 'header'
           ? 'h-10 px-3.5 rounded-full border border-slate-200 dark:border-slate-700 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-200 hover:text-[#0B1B35] dark:hover:text-white text-[12px] font-semibold'
           : variant === 'pill'
-          ? 'h-10 px-3.5 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:border-[#E9A11A]'
-          : variant === 'compact'
-          ? 'h-9 px-2.5 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#E9A11A] text-slate-700 dark:text-slate-200'
-          : 'h-10 p-2 rounded-full border border-transparent text-slate-600 dark:text-slate-300 hover:text-[#E9A11A]'
+            ? 'h-10 px-3.5 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:border-[#E9A11A]'
+            : variant === 'compact'
+              ? 'h-9 px-2.5 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#E9A11A] text-slate-700 dark:text-slate-200'
+              : 'h-10 p-2 rounded-full border border-transparent text-slate-600 dark:text-slate-300 hover:text-[#E9A11A]',
       ]"
       :title="`Current language: ${languageStore.currentOption.nativeName}. Click to change.`"
       aria-haspopup="true"
@@ -84,7 +84,9 @@ onUnmounted(() => {
         v-if="isOpen"
         class="absolute right-0 mt-2 w-44 rounded-2xl bg-white dark:bg-[#0B1B35] border border-slate-200 dark:border-slate-700 shadow-xl py-1.5 z-50 overflow-hidden font-sans"
       >
-        <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5">
+        <div
+          class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5"
+        >
           <Globe class="w-3 h-3 text-[#E9A11A]" />
           <span>{{ languageStore.t('language', 'Language') }}</span>
         </div>
@@ -98,11 +100,13 @@ onUnmounted(() => {
             :class="[
               languageStore.currentLanguage === opt.code
                 ? 'bg-[#E9A11A]/10 text-[#E9A11A] font-semibold'
-                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60',
             ]"
           >
             <div class="flex items-center gap-2.5">
-              <span class="w-6 h-5 rounded flex items-center justify-center text-[11px] bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold">
+              <span
+                class="w-6 h-5 rounded flex items-center justify-center text-[11px] bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold"
+              >
                 {{ opt.code === 'am' ? 'አማ' : 'EN' }}
               </span>
               <div class="flex flex-col text-left leading-tight">

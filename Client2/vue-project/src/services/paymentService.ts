@@ -44,9 +44,7 @@ interface PaymentStatusResponse {
   status?: string
 }
 
-async function initializePayment(
-  payload: InitializePaymentPayload
-): Promise<PaymentResponse> {
+async function initializePayment(payload: InitializePaymentPayload): Promise<PaymentResponse> {
   try {
     const response = await fetch(`${API_BASE_URL}/payments/initialize`, {
       method: 'POST',
@@ -70,19 +68,16 @@ async function initializePayment(
 }
 
 async function initializeReservationPayment(
-  payload: ReservationPaymentPayload
+  payload: ReservationPaymentPayload,
 ): Promise<PaymentResponse> {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/reservation-payments/initialize`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      }
-    )
+    const response = await fetch(`${API_BASE_URL}/reservation-payments/initialize`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
 
     const data: PaymentResponse = await response.json()
 

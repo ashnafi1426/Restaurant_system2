@@ -71,7 +71,10 @@
                       >
                         Price <span class="text-red-500">*</span>
                       </label>
-                      <span v-if="formData.price && parseFloat(formData.price) > 0" class="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span
+                        v-if="formData.price && parseFloat(formData.price) > 0"
+                        class="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      >
                         Total with Tax: ${{ pricePreview.totalPrice }}
                       </span>
                     </div>
@@ -89,8 +92,12 @@
                       />
                     </div>
                     <p v-if="errors.price" class="text-red-600 text-xs mt-1">{{ errors.price }}</p>
-                    <p v-else-if="formData.price && parseFloat(formData.price) > 0" class="text-[11px] text-slate-500 mt-1">
-                      Base: ${{ pricePreview.basePrice }} + Tax: ${{ pricePreview.taxAmount }} = <strong class="text-slate-800">Total ${{ pricePreview.totalPrice }}</strong>
+                    <p
+                      v-else-if="formData.price && parseFloat(formData.price) > 0"
+                      class="text-[11px] text-slate-500 mt-1"
+                    >
+                      Base: ${{ pricePreview.basePrice }} + Tax: ${{ pricePreview.taxAmount }} =
+                      <strong class="text-slate-800">Total ${{ pricePreview.totalPrice }}</strong>
                     </p>
                   </div>
 
@@ -146,14 +153,18 @@
             </div>
 
             <!-- Dedicated Tax & Pricing Configuration Card -->
-            <div class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4">
+            <div
+              class="bg-white rounded-lg sm:rounded-xl border border-slate-200 p-4 sm:p-6 shadow-sm space-y-4"
+            >
               <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div>
                   <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                     <span class="p-1 rounded-md bg-amber-500/10 text-amber-600 text-xs">%</span>
                     Tax & Pricing Configuration
                   </h3>
-                  <p class="text-xs text-slate-500 mt-0.5">Assign hotel tax rate & configure inclusive/exclusive pricing</p>
+                  <p class="text-xs text-slate-500 mt-0.5">
+                    Assign hotel tax rate & configure inclusive/exclusive pricing
+                  </p>
                 </div>
                 <router-link
                   to="/admin/taxes"
@@ -166,7 +177,10 @@
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label for="tax_rate" class="block text-xs font-semibold text-slate-600 uppercase mb-2">
+                  <label
+                    for="tax_rate"
+                    class="block text-xs font-semibold text-slate-600 uppercase mb-2"
+                  >
                     Applied Tax Rate
                   </label>
                   <select
@@ -175,11 +189,19 @@
                     class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
                   >
                     <option value="">No Tax (0.00%)</option>
-                    <option v-for="tax in taxRateStore.activeTaxRates" :key="tax.id" :value="tax.id">
-                      {{ tax.name }} ({{ tax.rate }}{{ tax.type === 'percentage' ? '%' : ' Fixed' }}) {{ tax.is_default ? '★ Default' : '' }}
+                    <option
+                      v-for="tax in taxRateStore.activeTaxRates"
+                      :key="tax.id"
+                      :value="tax.id"
+                    >
+                      {{ tax.name }} ({{ tax.rate
+                      }}{{ tax.type === 'percentage' ? '%' : ' Fixed' }})
+                      {{ tax.is_default ? '★ Default' : '' }}
                     </option>
                   </select>
-                  <p class="text-[11px] text-slate-400 mt-1">Select from hotel pre-configured tax rates</p>
+                  <p class="text-[11px] text-slate-400 mt-1">
+                    Select from hotel pre-configured tax rates
+                  </p>
                 </div>
 
                 <div>
@@ -198,31 +220,50 @@
                     </label>
                   </div>
                   <p class="text-[11px] text-slate-400 mt-1">
-                    {{ formData.tax_included ? 'Tax is extracted from price' : 'Tax will be added on top at order checkout' }}
+                    {{
+                      formData.tax_included
+                        ? 'Tax is extracted from price'
+                        : 'Tax will be added on top at order checkout'
+                    }}
                   </p>
                 </div>
               </div>
 
               <!-- Live Price Breakdown Preview Card -->
-              <div v-if="formData.price && parseFloat(formData.price) > 0" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
-                <div class="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+              <div
+                v-if="formData.price && parseFloat(formData.price) > 0"
+                class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2"
+              >
+                <div
+                  class="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center justify-between"
+                >
                   <span>Live Pricing Breakdown Preview</span>
                   <span class="text-[11px] font-normal text-slate-500">
-                    {{ selectedTaxRate ? `${selectedTaxRate.name} (${selectedTaxRate.rate}%)` : 'No Tax' }}
+                    {{
+                      selectedTaxRate
+                        ? `${selectedTaxRate.name} (${selectedTaxRate.rate}%)`
+                        : 'No Tax'
+                    }}
                   </span>
                 </div>
                 <div class="grid grid-cols-3 gap-2 text-center pt-1">
                   <div class="p-2 rounded-lg bg-white border border-slate-100">
                     <div class="text-[11px] text-slate-500">Base Net Price</div>
-                    <div class="text-sm font-bold text-slate-800">${{ pricePreview.basePrice }}</div>
+                    <div class="text-sm font-bold text-slate-800">
+                      ${{ pricePreview.basePrice }}
+                    </div>
                   </div>
                   <div class="p-2 rounded-lg bg-white border border-slate-100">
                     <div class="text-[11px] text-slate-500">Estimated Tax</div>
-                    <div class="text-sm font-bold text-amber-600">${{ pricePreview.taxAmount }}</div>
+                    <div class="text-sm font-bold text-amber-600">
+                      ${{ pricePreview.taxAmount }}
+                    </div>
                   </div>
                   <div class="p-2 rounded-lg bg-white border border-slate-100">
                     <div class="text-[11px] text-slate-500">Total Customer Pays</div>
-                    <div class="text-sm font-bold text-emerald-600">${{ pricePreview.totalPrice }}</div>
+                    <div class="text-sm font-bold text-emerald-600">
+                      ${{ pricePreview.totalPrice }}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -397,11 +438,22 @@
         <div
           class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center sm:justify-between mt-8 pt-6 border-t border-slate-200"
         >
-          <div v-if="formData.price && parseFloat(formData.price) > 0" class="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200/80">
+          <div
+            v-if="formData.price && parseFloat(formData.price) > 0"
+            class="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200/80"
+          >
             <span class="font-medium text-slate-500">Customer Selling Price:</span>
-            <span class="font-black text-emerald-600 text-base font-mono">${{ pricePreview.totalPrice }}</span>
+            <span class="font-black text-emerald-600 text-base font-mono"
+              >${{ pricePreview.totalPrice }}</span
+            >
             <span class="text-[11px] text-slate-400">
-              ({{ selectedTaxRate ? (formData.tax_included ? `Includes ${selectedTaxRate.rate}% ${selectedTaxRate.name}` : `$${pricePreview.basePrice} base + $${pricePreview.taxAmount} tax`) : 'No Tax' }})
+              ({{
+                selectedTaxRate
+                  ? formData.tax_included
+                    ? `Includes ${selectedTaxRate.rate}% ${selectedTaxRate.name}`
+                    : `$${pricePreview.basePrice} base + $${pricePreview.taxAmount} tax`
+                  : 'No Tax'
+              }})
             </span>
           </div>
           <div v-else class="hidden sm:block"></div>
@@ -451,7 +503,10 @@ const taxRateStore = useTaxRateStore()
 const authStore = useAuthStore()
 
 const isMenuManagement = computed(() => {
-  return route.path.startsWith('/menu-management') || (!authStore.isPlatformAdmin && !authStore.hasRole('admin'))
+  return (
+    route.path.startsWith('/menu-management') ||
+    (!authStore.isPlatformAdmin && !authStore.hasRole('admin'))
+  )
 })
 
 const formData = ref({

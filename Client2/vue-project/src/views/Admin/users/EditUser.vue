@@ -72,7 +72,10 @@ onMounted(loadUser)
           <p class="text-gray-500 mt-1">Update an existing system user.</p>
         </div>
 
-        <button @click="$router.back()" class="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 font-medium text-sm transition cursor-pointer">
+        <button
+          @click="$router.back()"
+          class="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 font-medium text-sm transition cursor-pointer"
+        >
           Cancel
         </button>
       </div>
@@ -90,14 +93,12 @@ onMounted(loadUser)
             <p class="font-semibold text-green-700">✓ {{ successMessage }}</p>
           </div>
 
-          <div
-            v-if="hasErrors"
-            class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4"
-          >
+          <div v-if="hasErrors" class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
             <h3 class="mb-2 font-semibold text-red-700">Please fix the following errors</h3>
             <ul class="list-disc list-inside text-sm text-red-600">
               <li v-for="(messages, field) in userStore.errors" :key="field">
-                <strong class="capitalize">{{ String(field).replace('_', ' ') }}</strong>: {{ messages[0] }}
+                <strong class="capitalize">{{ String(field).replace('_', ' ') }}</strong
+                >: {{ messages[0] }}
               </li>
             </ul>
           </div>

@@ -109,14 +109,16 @@ class WaiterService {
     }
   }
 
-  async getAssignments(params: {
-    status?: string
-    date?: string
-    search?: string
-    sort_by?: string
-    sort_order?: string
-    per_page?: number
-  } = {}): Promise<{ data: WaiterAssignment[]; pagination: any }> {
+  async getAssignments(
+    params: {
+      status?: string
+      date?: string
+      search?: string
+      sort_by?: string
+      sort_order?: string
+      per_page?: number
+    } = {},
+  ): Promise<{ data: WaiterAssignment[]; pagination: any }> {
     const response = await api.get('/waiter/assignments', {
       params: this.getTenantParams(params),
     })
@@ -183,11 +185,7 @@ class WaiterService {
     return this.deliverOrder(id, remarks)
   }
 
-  async failDelivery(
-    id: string,
-    reason: string,
-    remarks?: string,
-  ): Promise<WaiterAssignment> {
+  async failDelivery(id: string, reason: string, remarks?: string): Promise<WaiterAssignment> {
     const response = await api.patch(`/waiter/assignments/${id}/failed`, {
       reason,
       remarks,
@@ -195,15 +193,17 @@ class WaiterService {
     return response.data.data
   }
 
-  async getHistory(params: {
-    date?: string
-    action?: string
-    start_date?: string
-    end_date?: string
-    sort_by?: string
-    sort_order?: string
-    per_page?: number
-  } = {}): Promise<{ data: DeliveryLog[]; pagination: any }> {
+  async getHistory(
+    params: {
+      date?: string
+      action?: string
+      start_date?: string
+      end_date?: string
+      sort_by?: string
+      sort_order?: string
+      per_page?: number
+    } = {},
+  ): Promise<{ data: DeliveryLog[]; pagination: any }> {
     const response = await api.get('/waiter/history', { params })
     return {
       data: response.data.data,
@@ -230,18 +230,12 @@ class WaiterService {
     }
   }
 
-  async getPerformanceReport(params: {
-    start_date: string
-    end_date: string
-  }): Promise<any> {
+  async getPerformanceReport(params: { start_date: string; end_date: string }): Promise<any> {
     const response = await api.get('/waiter/report/performance', { params })
     return response.data.data
   }
 
-  async exportPerformanceReport(params: {
-    start_date: string
-    end_date: string
-  }): Promise<Blob> {
+  async exportPerformanceReport(params: { start_date: string; end_date: string }): Promise<Blob> {
     const response = await api.get('/waiter/report/performance/export', {
       params,
       responseType: 'blob',

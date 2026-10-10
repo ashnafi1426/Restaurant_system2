@@ -55,8 +55,15 @@ const filteredAssignments = computed(() => {
       return false
     }
 
-    const isTable = Boolean(o.table_number || o.table?.table_number || o.is_table_order || o.order_type === 'dine_in' || o.order_type === 'walk_in')
-    const hasRoom = Boolean(o.room_number || o.room?.room_number) && !isTable && o.room_number !== 'Room Service'
+    const isTable = Boolean(
+      o.table_number ||
+      o.table?.table_number ||
+      o.is_table_order ||
+      o.order_type === 'dine_in' ||
+      o.order_type === 'walk_in',
+    )
+    const hasRoom =
+      Boolean(o.room_number || o.room?.room_number) && !isTable && o.room_number !== 'Room Service'
 
     if (typeFilter === 'room' && !hasRoom) return false
     if (typeFilter === 'walk_in' && !isTable && hasRoom) return false
@@ -67,7 +74,13 @@ const filteredAssignments = computed(() => {
       const tableNum = String(o.table_number || o.table?.table_number || '').toLowerCase()
       const guest = String(o.guest_name || o.guest?.full_name || '').toLowerCase()
       const dest = String(o.destination || '').toLowerCase()
-      if (!ordNum.includes(q) && !roomNum.includes(q) && !tableNum.includes(q) && !guest.includes(q) && !dest.includes(q)) {
+      if (
+        !ordNum.includes(q) &&
+        !roomNum.includes(q) &&
+        !tableNum.includes(q) &&
+        !guest.includes(q) &&
+        !dest.includes(q)
+      ) {
         return false
       }
     }
@@ -167,7 +180,9 @@ const formatDateTime = (dateStr: string) => {
   if (!dateStr) return '-'
   try {
     const d = new Date(dateStr)
-    return isNaN(d.getTime()) ? dateStr : d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    return isNaN(d.getTime())
+      ? dateStr
+      : d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   } catch (err) {
     console.error('[AssignedOrders] Error formatting date:', err)
     return dateStr
@@ -183,7 +198,10 @@ const statusBadgeClasses: Record<string, string> = {
 }
 
 const getStatusBadge = (status: string) => {
-  return statusBadgeClasses[(status || '').toLowerCase()] || 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
+  return (
+    statusBadgeClasses[(status || '').toLowerCase()] ||
+    'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
+  )
 }
 
 watch(itemsPerPage, () => {
@@ -194,9 +212,12 @@ onMounted(() => {
   loadAssignments()
 })
 
-watch(() => hotelStore.hotelId, () => {
-  loadAssignments()
-})
+watch(
+  () => hotelStore.hotelId,
+  () => {
+    loadAssignments()
+  },
+)
 </script>
 
 <template>
@@ -206,26 +227,45 @@ watch(() => hotelStore.hotelId, () => {
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
       <!-- Header -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+      >
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-md flex-shrink-0 text-white">
+          <div
+            class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-md flex-shrink-0 text-white"
+          >
             <Truck class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{{ languageStore.t('assigned_orders', 'Assigned Orders') }}</h1>
-              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                {{ languageStore.t('assigned_orders', 'Assigned Orders') }}
+              </h1>
+              <span
+                v-if="hotelStore.hotelName"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
+              >
                 <Building2 class="w-3 h-3" />
                 {{ hotelStore.hotelName }}
               </span>
             </div>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('manage_assigned_orders_sub', 'Manage your assigned orders and live delivery progress.') }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {{
+                languageStore.t(
+                  'manage_assigned_orders_sub',
+                  'Manage your assigned orders and live delivery progress.',
+                )
+              }}
+            </p>
           </div>
         </div>
 
         <div class="flex items-center gap-2">
-          <div class="px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 font-extrabold text-xs sm:text-sm">
-            {{ languageStore.t('assigned', 'Assigned') }}: {{ assignments.length }} {{ languageStore.t('orders', 'Orders') }}
+          <div
+            class="px-4 py-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 font-extrabold text-xs sm:text-sm"
+          >
+            {{ languageStore.t('assigned', 'Assigned') }}: {{ assignments.length }}
+            {{ languageStore.t('orders', 'Orders') }}
           </div>
         </div>
       </div>
@@ -238,11 +278,18 @@ watch(() => hotelStore.hotelId, () => {
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
           <!-- Search Input -->
           <div class="relative flex-1">
-            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <Search
+              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+            />
             <input
               v-model="searchQuery"
               type="text"
-              :placeholder="languageStore.t('search_orders_placeholder', 'Search by order #, room, or guest name...')"
+              :placeholder="
+                languageStore.t(
+                  'search_orders_placeholder',
+                  'Search by order #, room, or guest name...',
+                )
+              "
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />
           </div>
@@ -255,11 +302,15 @@ watch(() => hotelStore.hotelId, () => {
             :class="[
               isFilterOpen
                 ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
-                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{ isFilterOpen ? languageStore.t('hide_filter', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
+            <span>{{
+              isFilterOpen
+                ? languageStore.t('hide_filter', 'Hide Filter')
+                : languageStore.t('filter', 'Filter')
+            }}</span>
           </button>
         </div>
 
@@ -315,7 +366,9 @@ watch(() => hotelStore.hotelId, () => {
                 <option value="assigned">{{ languageStore.t('assigned', 'Assigned') }}</option>
                 <option value="accepted">{{ languageStore.t('accepted', 'Accepted') }}</option>
                 <option value="picked_up">{{ languageStore.t('picked_up', 'Picked Up') }}</option>
-                <option value="on_delivery">{{ languageStore.t('on_delivery', 'On Delivery') }}</option>
+                <option value="on_delivery">
+                  {{ languageStore.t('on_delivery', 'On Delivery') }}
+                </option>
               </select>
             </div>
 
@@ -330,7 +383,9 @@ watch(() => hotelStore.hotelId, () => {
               >
                 <option value="all">{{ languageStore.t('all_types', 'All Types') }}</option>
                 <option value="room">{{ languageStore.t('room_service', 'Room Service') }}</option>
-                <option value="walk_in">{{ languageStore.t('takeout_walkin', 'Takeout / Walk-in') }}</option>
+                <option value="walk_in">
+                  {{ languageStore.t('takeout_walkin', 'Takeout / Walk-in') }}
+                </option>
               </select>
             </div>
 
@@ -350,19 +405,33 @@ watch(() => hotelStore.hotelId, () => {
       </Transition>
 
       <!-- Table Container -->
-      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
+      <div
+        class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
+      >
         <!-- Desktop Table View -->
         <div class="hidden md:block overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
-            <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+            <thead
+              class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
+            >
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-                <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('order_ref', 'Order Ref') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('room_service', 'Room / Service') }}</th>
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">
+                  {{ languageStore.t('order_ref', 'Order Ref') }}
+                </th>
+                <th class="py-3 px-4 whitespace-nowrap">
+                  {{ languageStore.t('room_service', 'Room / Service') }}
+                </th>
                 <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('guest', 'Guest') }}</th>
                 <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('items', 'Items') }}</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('status', 'Status') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('assigned_time', 'Assigned Time') }}</th>
-                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">{{ languageStore.t('actions', 'Actions') }}</th>
+                <th class="py-3 px-4 text-center whitespace-nowrap">
+                  {{ languageStore.t('status', 'Status') }}
+                </th>
+                <th class="py-3 px-4 whitespace-nowrap">
+                  {{ languageStore.t('assigned_time', 'Assigned Time') }}
+                </th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">
+                  {{ languageStore.t('actions', 'Actions') }}
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
@@ -371,7 +440,9 @@ watch(() => hotelStore.hotelId, () => {
                 <td colspan="7" class="px-6 py-16 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
                     <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_assigned_orders', 'Loading assigned orders...') }}</span>
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{
+                      languageStore.t('loading_assigned_orders', 'Loading assigned orders...')
+                    }}</span>
                   </div>
                 </td>
               </tr>
@@ -384,7 +455,9 @@ watch(() => hotelStore.hotelId, () => {
                   class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
                 >
                   <!-- Order Ref -->
-                  <td class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs">
+                  <td
+                    class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs"
+                  >
                     #{{ order.order_number || order.order_id || String(order.id).substring(0, 8) }}
                   </td>
 
@@ -395,14 +468,19 @@ watch(() => hotelStore.hotelId, () => {
                       class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-200 dark:border-emerald-800"
                     >
                       <UtensilsCrossed class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                      {{ languageStore.t('table', 'Table') }} {{ order.table_number || order.table?.table_number }}
+                      {{ languageStore.t('table', 'Table') }}
+                      {{ order.table_number || order.table?.table_number }}
                     </span>
                     <span
-                      v-else-if="(order.room_number || order.room?.room_number) && order.room_number !== 'Room Service'"
+                      v-else-if="
+                        (order.room_number || order.room?.room_number) &&
+                        order.room_number !== 'Room Service'
+                      "
                       class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
                     >
                       <BedDouble class="w-3.5 h-3.5 text-slate-400" />
-                      {{ languageStore.t('room', 'Room') }} {{ order.room_number || order.room?.room_number }}
+                      {{ languageStore.t('room', 'Room') }}
+                      {{ order.room_number || order.room?.room_number }}
                     </span>
                     <span
                       v-else
@@ -414,14 +492,27 @@ watch(() => hotelStore.hotelId, () => {
                   </td>
 
                   <!-- Guest -->
-                  <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white">
-                    {{ order.guest_name || order.guest?.full_name || languageStore.t('guest', 'Guest') }}
+                  <td
+                    class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white"
+                  >
+                    {{
+                      order.guest_name ||
+                      order.guest?.full_name ||
+                      languageStore.t('guest', 'Guest')
+                    }}
                   </td>
 
                   <!-- Items -->
                   <td class="py-3 px-4 whitespace-nowrap">
                     <span class="font-bold text-slate-700 dark:text-slate-300">
-                      {{ typeof order.items === 'number' ? order.items : (Array.isArray(order.items) ? order.items.length : 1) }} {{ languageStore.t('items', 'items') }}
+                      {{
+                        typeof order.items === 'number'
+                          ? order.items
+                          : Array.isArray(order.items)
+                            ? order.items.length
+                            : 1
+                      }}
+                      {{ languageStore.t('items', 'items') }}
                     </span>
                   </td>
 
@@ -431,7 +522,12 @@ watch(() => hotelStore.hotelId, () => {
                       class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
                       :class="getStatusBadge(order.order_status || order.status)"
                     >
-                      {{ languageStore.t(order.order_status || order.status || 'assigned', (order.order_status || order.status || 'assigned').replace('_', ' ')) }}
+                      {{
+                        languageStore.t(
+                          order.order_status || order.status || 'assigned',
+                          (order.order_status || order.status || 'assigned').replace('_', ' '),
+                        )
+                      }}
                     </span>
                   </td>
 
@@ -454,8 +550,16 @@ watch(() => hotelStore.hotelId, () => {
 
                 <!-- Empty State -->
                 <tr v-if="paginatedAssignments.length === 0">
-                  <td colspan="7" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                    {{ languageStore.t('no_assigned_orders', 'No assigned orders match your criteria.') }}
+                  <td
+                    colspan="7"
+                    class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
+                  >
+                    {{
+                      languageStore.t(
+                        'no_assigned_orders',
+                        'No assigned orders match your criteria.',
+                      )
+                    }}
                   </td>
                 </tr>
               </template>
@@ -465,9 +569,14 @@ watch(() => hotelStore.hotelId, () => {
 
         <!-- Mobile Card View -->
         <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-          <div v-if="loading" class="py-12 text-center flex flex-col items-center justify-center gap-3">
+          <div
+            v-if="loading"
+            class="py-12 text-center flex flex-col items-center justify-center gap-3"
+          >
             <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_assigned_orders', 'Loading assigned orders...') }}</span>
+            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{
+              languageStore.t('loading_assigned_orders', 'Loading assigned orders...')
+            }}</span>
           </div>
           <template v-else>
             <div
@@ -483,17 +592,30 @@ watch(() => hotelStore.hotelId, () => {
                   class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
                   :class="getStatusBadge(order.order_status || order.status)"
                 >
-                  {{ languageStore.t(order.order_status || order.status || 'assigned', (order.order_status || order.status || 'assigned').replace('_', ' ')) }}
+                  {{
+                    languageStore.t(
+                      order.order_status || order.status || 'assigned',
+                      (order.order_status || order.status || 'assigned').replace('_', ' '),
+                    )
+                  }}
                 </span>
               </div>
-              <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+              <div
+                class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400"
+              >
                 <span>{{ order.guest_name || languageStore.t('guest', 'Guest') }}</span>
                 <div class="flex items-center gap-2">
-                  <span v-if="order.table_number || order.table?.table_number" class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                  <span
+                    v-if="order.table_number || order.table?.table_number"
+                    class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1"
+                  >
                     <UtensilsCrossed class="w-3 h-3" />
                     Table {{ order.table_number || order.table?.table_number }}
                   </span>
-                  <span v-else-if="order.room_number && order.room_number !== 'Room Service'" class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                  <span
+                    v-else-if="order.room_number && order.room_number !== 'Room Service'"
+                    class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1"
+                  >
                     <BedDouble class="w-3 h-3" />
                     Room {{ order.room_number }}
                   </span>
@@ -506,7 +628,10 @@ watch(() => hotelStore.hotelId, () => {
                 </div>
               </div>
             </div>
-            <div v-if="paginatedAssignments.length === 0" class="p-8 text-center text-slate-500 text-xs font-bold">
+            <div
+              v-if="paginatedAssignments.length === 0"
+              class="p-8 text-center text-slate-500 text-xs font-bold"
+            >
               {{ languageStore.t('no_assigned_orders', 'No assigned orders match your criteria.') }}
             </div>
           </template>
@@ -518,14 +643,20 @@ watch(() => hotelStore.hotelId, () => {
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
           <div class="text-slate-500 dark:text-slate-400 font-medium">
-            {{ languageStore.t('showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> {{ languageStore.t('orders', 'orders') }}
+            {{ languageStore.t('showing', 'Showing') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
+            {{ languageStore.t('to', 'to') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span>
+            {{ languageStore.t('of', 'of') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span>
+            {{ languageStore.t('orders', 'orders') }}
           </div>
 
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="flex items-center gap-1.5">
-              <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page:') }}</span>
+              <span class="text-slate-500 dark:text-slate-400 font-medium">{{
+                languageStore.t('per_page', 'Per page:')
+              }}</span>
               <select
                 v-model.number="itemsPerPage"
                 class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none"
@@ -553,7 +684,7 @@ watch(() => hotelStore.hotelId, () => {
                 :class="[
                   currentPage === page
                     ? 'bg-blue-600 text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
                 ]"
               >
                 {{ page }}
@@ -577,10 +708,19 @@ watch(() => hotelStore.hotelId, () => {
         class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
         @click.self="showDetailModal = false"
       >
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-          <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
-            <h3 class="text-base font-extrabold text-slate-900 dark:text-white">{{ languageStore.t('order_details', 'Order Details') }}</h3>
-            <button @click="showDetailModal = false" class="text-slate-400 hover:text-slate-600 p-1">
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl"
+        >
+          <div
+            class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3"
+          >
+            <h3 class="text-base font-extrabold text-slate-900 dark:text-white">
+              {{ languageStore.t('order_details', 'Order Details') }}
+            </h3>
+            <button
+              @click="showDetailModal = false"
+              class="text-slate-400 hover:text-slate-600 p-1"
+            >
               <X class="w-4 h-4" />
             </button>
           </div>
@@ -588,19 +728,37 @@ watch(() => hotelStore.hotelId, () => {
           <div v-if="selectedOrder" class="space-y-3 text-xs">
             <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
               <span class="text-slate-500">{{ languageStore.t('order_ref', 'Order Ref:') }}</span>
-              <span class="font-bold text-slate-900 dark:text-white">#{{ selectedOrder.order_number || selectedOrder.id }}</span>
+              <span class="font-bold text-slate-900 dark:text-white"
+                >#{{ selectedOrder.order_number || selectedOrder.id }}</span
+              >
             </div>
             <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
               <span class="text-slate-500">{{ languageStore.t('guest', 'Guest:') }}</span>
-              <span class="font-bold text-slate-900 dark:text-white">{{ selectedOrder.guest_name || languageStore.t('guest', 'Guest') }}</span>
+              <span class="font-bold text-slate-900 dark:text-white">{{
+                selectedOrder.guest_name || languageStore.t('guest', 'Guest')
+              }}</span>
             </div>
             <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
-              <span class="text-slate-500">{{ languageStore.t('destination', 'Destination:') }}</span>
-              <span class="font-bold text-slate-900 dark:text-white">{{ languageStore.t('room', 'Room') }} {{ selectedOrder.room_number || 'N/A' }}</span>
+              <span class="text-slate-500">{{
+                languageStore.t('destination', 'Destination:')
+              }}</span>
+              <span class="font-bold text-slate-900 dark:text-white"
+                >{{ languageStore.t('room', 'Room') }}
+                {{ selectedOrder.room_number || 'N/A' }}</span
+              >
             </div>
             <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
               <span class="text-slate-500">{{ languageStore.t('status', 'Status:') }}</span>
-              <span class="font-bold uppercase" :class="getStatusBadge(selectedOrder.order_status || selectedOrder.status)">{{ languageStore.t(selectedOrder.order_status || selectedOrder.status, selectedOrder.order_status || selectedOrder.status) }}</span>
+              <span
+                class="font-bold uppercase"
+                :class="getStatusBadge(selectedOrder.order_status || selectedOrder.status)"
+                >{{
+                  languageStore.t(
+                    selectedOrder.order_status || selectedOrder.status,
+                    selectedOrder.order_status || selectedOrder.status,
+                  )
+                }}</span
+              >
             </div>
           </div>
 

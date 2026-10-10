@@ -47,18 +47,29 @@ onMounted(loadDashboard)
   <DashboardLayout>
     <div class="space-y-6 w-full">
       <!-- Header Banner -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs w-full">
+      <div
+        class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs w-full"
+      >
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <h1
+              class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight"
+            >
               {{ languageStore.t('receptionist_front_desk', 'Receptionist Front Desk') }}
             </h1>
-            <span class="px-2.5 py-0.5 text-xs font-black rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span
+              class="px-2.5 py-0.5 text-xs font-black rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+            >
               {{ languageStore.t('live_system', 'LIVE SYSTEM') }}
             </span>
           </div>
           <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            {{ languageStore.t('receptionist_desc', 'Real-time property occupancy, guest arrivals, and check-in management.') }}
+            {{
+              languageStore.t(
+                'receptionist_desc',
+                'Real-time property occupancy, guest arrivals, and check-in management.',
+              )
+            }}
           </p>
         </div>
 
@@ -93,8 +104,15 @@ onMounted(loadDashboard)
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading && !dashboard" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-        <div v-for="i in 6" :key="i" class="h-24 bg-slate-200 dark:bg-slate-800 rounded-2xl animate-pulse" />
+      <div
+        v-if="loading && !dashboard"
+        class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4"
+      >
+        <div
+          v-for="i in 6"
+          :key="i"
+          class="h-24 bg-slate-200 dark:bg-slate-800 rounded-2xl animate-pulse"
+        />
       </div>
 
       <!-- Error State -->

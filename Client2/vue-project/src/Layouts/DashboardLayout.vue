@@ -69,7 +69,10 @@ const closeMobileSidebar = () => {
         sidebarStore.isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
       ]"
     >
-      <Sidebar :key="hotelStore.hotelId || authStore.currentHotel?.id || 'sidebar-main'" @navigate="closeMobileSidebar" />
+      <Sidebar
+        :key="hotelStore.hotelId || authStore.currentHotel?.id || 'sidebar-main'"
+        @navigate="closeMobileSidebar"
+      />
     </div>
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
       <Navbar />
@@ -80,8 +83,13 @@ const closeMobileSidebar = () => {
       >
         <div class="flex items-center gap-2">
           <ShieldAlert class="w-4 h-4 text-slate-950 flex-shrink-0" />
-          <span>⚠ PLATFORM ADMIN VIEW &mdash; Currently viewing: <strong class="underline">{{ hotelStore.hotelName }}</strong></span>
-          <span class="hidden md:inline text-[11px] font-semibold opacity-90">(Audit logging active for all operations)</span>
+          <span
+            >⚠ PLATFORM ADMIN VIEW &mdash; Currently viewing:
+            <strong class="underline">{{ hotelStore.hotelName }}</strong></span
+          >
+          <span class="hidden md:inline text-[11px] font-semibold opacity-90"
+            >(Audit logging active for all operations)</span
+          >
         </div>
         <button
           @click="exitPlatformView"
@@ -92,7 +100,9 @@ const closeMobileSidebar = () => {
         </button>
       </div>
 
-      <main class="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-slate-950 transition-colors duration-300">
+      <main
+        class="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-slate-950 transition-colors duration-300"
+      >
         <div :key="hotelStore.hotelId" class="w-full px-4 sm:px-6 lg:px-8 py-6">
           <div>
             <slot name="header"></slot>
@@ -102,27 +112,50 @@ const closeMobileSidebar = () => {
         </div>
       </main>
 
-      <footer class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 backdrop-blur-sm px-4 sm:px-6 lg:px-8 py-3 transition-colors flex-shrink-0">
+      <footer
+        class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 backdrop-blur-sm px-4 sm:px-6 lg:px-8 py-3 transition-colors flex-shrink-0"
+      >
         <div
           class="w-full flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400"
         >
-          <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
-            <span class="whitespace-nowrap">&copy; 2024 {{ languageStore.t('hotel_management_system', 'Hotel Management System') }}</span>
+          <div
+            class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left"
+          >
+            <span class="whitespace-nowrap"
+              >&copy; 2024
+              {{ languageStore.t('hotel_management_system', 'Hotel Management System') }}</span
+            >
             <span class="hidden sm:inline text-slate-300 dark:text-slate-600">•</span>
             <span class="flex items-center justify-center gap-1">
               <span class="relative flex h-2 w-2">
                 <span
                   class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 dark:bg-emerald-500 opacity-75"
                 ></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 dark:bg-emerald-400"></span>
+                <span
+                  class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 dark:bg-emerald-400"
+                ></span>
               </span>
-              <span class="whitespace-nowrap">{{ languageStore.t('all_systems_operational', 'All systems operational') }}</span>
+              <span class="whitespace-nowrap">{{
+                languageStore.t('all_systems_operational', 'All systems operational')
+              }}</span>
             </span>
           </div>
           <div class="flex items-center gap-3 md:gap-4 font-bold">
-            <router-link to="/contact" class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap">{{ languageStore.t('privacy', 'Privacy') }}</router-link>
-            <router-link to="/contact" class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap">{{ languageStore.t('terms', 'Terms') }}</router-link>
-            <router-link to="/contact" class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap hidden sm:inline">{{ languageStore.t('support', 'Support') }}</router-link>
+            <router-link
+              to="/contact"
+              class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap"
+              >{{ languageStore.t('privacy', 'Privacy') }}</router-link
+            >
+            <router-link
+              to="/contact"
+              class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap"
+              >{{ languageStore.t('terms', 'Terms') }}</router-link
+            >
+            <router-link
+              to="/contact"
+              class="hover:text-slate-700 dark:hover:text-slate-200 transition-colors whitespace-nowrap hidden sm:inline"
+              >{{ languageStore.t('support', 'Support') }}</router-link
+            >
             <span class="text-slate-300 dark:text-slate-600 hidden sm:inline">|</span>
             <span class="text-slate-400 dark:text-slate-500 whitespace-nowrap">v2.0.0</span>
           </div>

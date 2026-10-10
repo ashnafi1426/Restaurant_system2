@@ -127,7 +127,9 @@ const handleRefund = async () => {
             <ArrowLeft :size="20" class="text-slate-700 dark:text-slate-300" />
           </button>
           <div>
-            <h1 class="text-3xl font-bold text-slate-800 dark:text-white">{{ languageStore.t('payment_details', 'Payment Details') }}</h1>
+            <h1 class="text-3xl font-bold text-slate-800 dark:text-white">
+              {{ languageStore.t('payment_details', 'Payment Details') }}
+            </h1>
             <p class="text-slate-500 dark:text-slate-400 mt-1">
               {{ languageStore.t('payment_details_sub', 'View complete payment information') }}
             </p>
@@ -145,20 +147,30 @@ const handleRefund = async () => {
 
       <!-- Loading State -->
       <div v-if="cashierStore.isLoading && !payment" class="space-y-6">
-        <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6 animate-pulse">
+        <div
+          class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6 animate-pulse"
+        >
           <div class="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-4"></div>
           <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
         </div>
       </div>
 
       <!-- Payment Not Found -->
-      <div v-else-if="!payment && !cashierStore.isLoading" class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-12 text-center">
+      <div
+        v-else-if="!payment && !cashierStore.isLoading"
+        class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-12 text-center"
+      >
         <AlertCircle :size="48" class="mx-auto text-slate-400 mb-4" />
         <h3 class="text-xl font-semibold text-slate-800 dark:text-white mb-2">
           {{ languageStore.t('payment_not_found', 'Payment Not Found') }}
         </h3>
         <p class="text-slate-500 dark:text-slate-400 mb-6">
-          {{ languageStore.t('payment_not_found_sub', "The payment you're looking for doesn't exist or has been removed.") }}
+          {{
+            languageStore.t(
+              'payment_not_found_sub',
+              "The payment you're looking for doesn't exist or has been removed.",
+            )
+          }}
         </p>
         <button
           @click="goBack"
@@ -171,7 +183,9 @@ const handleRefund = async () => {
       <!-- Payment Details -->
       <template v-else-if="payment">
         <!-- Status Card -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6">
+        <div
+          class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6"
+        >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
               <div :class="[getStatusColor(payment.status), 'p-4 rounded-xl']">
@@ -181,7 +195,9 @@ const handleRefund = async () => {
                 <h2 class="text-2xl font-bold text-slate-800 dark:text-white capitalize">
                   {{ languageStore.t(payment.status, payment.status) }}
                 </h2>
-                <p class="text-slate-500 dark:text-slate-400">{{ languageStore.t('payment_status', 'Payment Status') }}</p>
+                <p class="text-slate-500 dark:text-slate-400">
+                  {{ languageStore.t('payment_status', 'Payment Status') }}
+                </p>
               </div>
             </div>
             <div class="text-right">
@@ -196,8 +212,12 @@ const handleRefund = async () => {
         <!-- Transaction Information -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Payment Info -->
-          <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+          <div
+            class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6"
+          >
+            <h3
+              class="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2"
+            >
               <CreditCard :size="20" class="text-blue-600" />
               {{ languageStore.t('payment_info', 'Payment Information') }}
             </h3>
@@ -205,7 +225,9 @@ const handleRefund = async () => {
               <div class="flex items-start gap-3">
                 <Hash :size="20" class="text-slate-400 mt-0.5" />
                 <div class="flex-1">
-                  <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('transaction_ref', 'Transaction Reference') }}</p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    {{ languageStore.t('transaction_ref', 'Transaction Reference') }}
+                  </p>
                   <p class="font-mono text-slate-800 dark:text-white font-medium">
                     {{ payment.tx_ref }}
                   </p>
@@ -214,7 +236,9 @@ const handleRefund = async () => {
               <div v-if="payment.chapa_transaction_id" class="flex items-start gap-3">
                 <Hash :size="20" class="text-slate-400 mt-0.5" />
                 <div class="flex-1">
-                  <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('chapa_transaction_id', 'Chapa Transaction ID') }}</p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    {{ languageStore.t('chapa_transaction_id', 'Chapa Transaction ID') }}
+                  </p>
                   <p class="font-mono text-slate-800 dark:text-white font-medium">
                     {{ payment.chapa_transaction_id }}
                   </p>
@@ -223,16 +247,24 @@ const handleRefund = async () => {
               <div class="flex items-start gap-3">
                 <Building :size="20" class="text-slate-400 mt-0.5" />
                 <div class="flex-1">
-                  <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('payment_provider', 'Payment Provider') }}</p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    {{ languageStore.t('payment_provider', 'Payment Provider') }}
+                  </p>
                   <p class="text-slate-800 dark:text-white font-medium capitalize">
-                    {{ payment.payment_provider ? languageStore.t(payment.payment_provider, payment.payment_provider) : 'N/A' }}
+                    {{
+                      payment.payment_provider
+                        ? languageStore.t(payment.payment_provider, payment.payment_provider)
+                        : 'N/A'
+                    }}
                   </p>
                 </div>
               </div>
               <div v-if="payment.payment_method" class="flex items-start gap-3">
                 <CreditCard :size="20" class="text-slate-400 mt-0.5" />
                 <div class="flex-1">
-                  <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('payment_method', 'Payment Method') }}</p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    {{ languageStore.t('payment_method', 'Payment Method') }}
+                  </p>
                   <p class="text-slate-800 dark:text-white font-medium capitalize">
                     {{ languageStore.t(payment.payment_method, payment.payment_method) }}
                   </p>
@@ -241,7 +273,9 @@ const handleRefund = async () => {
               <div class="flex items-start gap-3">
                 <DollarSign :size="20" class="text-slate-400 mt-0.5" />
                 <div class="flex-1">
-                  <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('amount', 'Amount') }}</p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    {{ languageStore.t('amount', 'Amount') }}
+                  </p>
                   <p class="text-slate-800 dark:text-white font-medium">
                     {{ formatCurrency(payment.amount) }}
                   </p>
@@ -251,8 +285,12 @@ const handleRefund = async () => {
           </div>
 
           <!-- Customer Info -->
-          <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+          <div
+            class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6"
+          >
+            <h3
+              class="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2"
+            >
               <User :size="20" class="text-blue-600" />
               {{ languageStore.t('customer_info', 'Customer Information') }}
             </h3>
@@ -260,30 +298,42 @@ const handleRefund = async () => {
               <div class="flex items-start gap-3">
                 <User :size="20" class="text-slate-400 mt-0.5" />
                 <div class="flex-1">
-                  <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('full_name', 'Full Name') }}</p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    {{ languageStore.t('full_name', 'Full Name') }}
+                  </p>
                   <p class="text-slate-800 dark:text-white font-medium">
-                    {{ payment.customer_name || `${payment.first_name || ''} ${payment.last_name || ''}`.trim() || languageStore.t('guest', 'Guest') }}
+                    {{
+                      payment.customer_name ||
+                      `${payment.first_name || ''} ${payment.last_name || ''}`.trim() ||
+                      languageStore.t('guest', 'Guest')
+                    }}
                   </p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
                 <Mail :size="20" class="text-slate-400 mt-0.5" />
                 <div class="flex-1">
-                  <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('email', 'Email') }}</p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    {{ languageStore.t('email', 'Email') }}
+                  </p>
                   <p class="text-slate-800 dark:text-white font-medium">{{ payment.email }}</p>
                 </div>
               </div>
               <div v-if="payment.phone" class="flex items-start gap-3">
                 <Phone :size="20" class="text-slate-400 mt-0.5" />
                 <div class="flex-1">
-                  <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('phone', 'Phone') }}</p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    {{ languageStore.t('phone', 'Phone') }}
+                  </p>
                   <p class="text-slate-800 dark:text-white font-medium">{{ payment.phone }}</p>
                 </div>
               </div>
               <div v-if="payment.guest" class="flex items-start gap-3">
                 <User :size="20" class="text-slate-400 mt-0.5" />
                 <div class="flex-1">
-                  <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('guest_record', 'Guest Record') }}</p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    {{ languageStore.t('guest_record', 'Guest Record') }}
+                  </p>
                   <p class="text-slate-800 dark:text-white font-medium">
                     {{ payment.guest.name }}
                   </p>
@@ -294,40 +344,55 @@ const handleRefund = async () => {
         </div>
 
         <!-- Booking/Order Details -->
-        <div v-if="payment.reservation || payment.order" class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6">
+        <div
+          v-if="payment.reservation || payment.order"
+          class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6"
+        >
           <!-- Reservation Details -->
           <div v-if="payment.reservation">
-            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+            <h3
+              class="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2"
+            >
               <Home :size="20" class="text-blue-600" />
               {{ languageStore.t('reservation_details', 'Reservation Details') }}
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('check_in_date', 'Check-in Date') }}</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">
+                  {{ languageStore.t('check_in_date', 'Check-in Date') }}
+                </p>
                 <p class="text-slate-800 dark:text-white font-medium">
                   {{ formatDate(payment.reservation.check_in_date) }}
                 </p>
               </div>
               <div>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('check_out_date', 'Check-out Date') }}</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">
+                  {{ languageStore.t('check_out_date', 'Check-out Date') }}
+                </p>
                 <p class="text-slate-800 dark:text-white font-medium">
                   {{ formatDate(payment.reservation.check_out_date) }}
                 </p>
               </div>
               <div>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('number_of_guests', 'Number of Guests') }}</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">
+                  {{ languageStore.t('number_of_guests', 'Number of Guests') }}
+                </p>
                 <p class="text-slate-800 dark:text-white font-medium">
                   {{ payment.reservation.number_of_guests }}
                 </p>
               </div>
               <div v-if="payment.reservation.room">
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('room_number', 'Room Number') }}</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">
+                  {{ languageStore.t('room_number', 'Room Number') }}
+                </p>
                 <p class="text-slate-800 dark:text-white font-medium">
                   {{ payment.reservation.room.room_number }}
                 </p>
               </div>
               <div v-if="payment.reservation.room">
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('floor', 'Floor') }}</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">
+                  {{ languageStore.t('floor', 'Floor') }}
+                </p>
                 <p class="text-slate-800 dark:text-white font-medium">
                   {{ payment.reservation.room.floor }}
                 </p>
@@ -337,23 +402,31 @@ const handleRefund = async () => {
 
           <!-- Order Details -->
           <div v-if="payment.order">
-            <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+            <h3
+              class="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2"
+            >
               <UtensilsCrossed :size="20" class="text-blue-600" />
               {{ languageStore.t('restaurant_order_details', 'Restaurant Order Details') }}
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('order_id', 'Order ID') }}</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">
+                  {{ languageStore.t('order_id', 'Order ID') }}
+                </p>
                 <p class="text-slate-800 dark:text-white font-medium">{{ payment.order.id }}</p>
               </div>
               <div>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('items_count', 'Items Count') }}</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">
+                  {{ languageStore.t('items_count', 'Items Count') }}
+                </p>
                 <p class="text-slate-800 dark:text-white font-medium">
                   {{ payment.order.items_count }}
                 </p>
               </div>
               <div>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('order_status', 'Order Status') }}</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1">
+                  {{ languageStore.t('order_status', 'Order Status') }}
+                </p>
                 <p class="text-slate-800 dark:text-white font-medium capitalize">
                   {{ languageStore.t(payment.order.status, payment.order.status) }}
                 </p>
@@ -363,8 +436,12 @@ const handleRefund = async () => {
         </div>
 
         <!-- Timeline -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6">
-          <h3 class="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+        <div
+          class="bg-white dark:bg-slate-800 rounded-xl border dark:border-slate-700 shadow-sm p-6"
+        >
+          <h3
+            class="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2"
+          >
             <Calendar :size="20" class="text-blue-600" />
             {{ languageStore.t('payment_timeline', 'Payment Timeline') }}
           </h3>
@@ -374,7 +451,9 @@ const handleRefund = async () => {
                 <Calendar :size="20" class="text-blue-600 dark:text-blue-300" />
               </div>
               <div>
-                <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('created', 'Created') }}</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                  {{ languageStore.t('created', 'Created') }}
+                </p>
                 <p class="text-slate-800 dark:text-white font-medium">
                   {{ formatDate(payment.created_at) }}
                 </p>
@@ -385,7 +464,9 @@ const handleRefund = async () => {
                 <CheckCircle :size="20" class="text-green-600 dark:text-green-300" />
               </div>
               <div>
-                <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('paid', 'Paid') }}</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                  {{ languageStore.t('paid', 'Paid') }}
+                </p>
                 <p class="text-slate-800 dark:text-white font-medium">
                   {{ formatDate(payment.paid_at) }}
                 </p>
@@ -396,7 +477,9 @@ const handleRefund = async () => {
                 <CheckCircle :size="20" class="text-green-600 dark:text-green-300" />
               </div>
               <div>
-                <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('verified', 'Verified') }}</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                  {{ languageStore.t('verified', 'Verified') }}
+                </p>
                 <p class="text-slate-800 dark:text-white font-medium">
                   {{ formatDate(payment.verified_at) }}
                 </p>
@@ -407,7 +490,9 @@ const handleRefund = async () => {
                 <Calendar :size="20" class="text-slate-600 dark:text-slate-400" />
               </div>
               <div>
-                <p class="text-sm text-slate-500 dark:text-slate-400">{{ languageStore.t('last_updated', 'Last Updated') }}</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                  {{ languageStore.t('last_updated', 'Last Updated') }}
+                </p>
                 <p class="text-slate-800 dark:text-white font-medium">
                   {{ formatDate(payment.updated_at) }}
                 </p>
@@ -428,10 +513,17 @@ const handleRefund = async () => {
             {{ languageStore.t('confirm_refund', 'Confirm Refund') }}
           </h3>
           <p class="text-slate-600 dark:text-slate-400 mb-6">
-            {{ languageStore.t('confirm_refund_desc', 'Are you sure you want to refund this payment? This action cannot be undone.') }}
+            {{
+              languageStore.t(
+                'confirm_refund_desc',
+                'Are you sure you want to refund this payment? This action cannot be undone.',
+              )
+            }}
           </p>
           <div class="bg-slate-100 dark:bg-slate-700 rounded-lg p-4 mb-6">
-            <p class="text-sm text-slate-600 dark:text-slate-400 mb-1">{{ languageStore.t('refund_amount', 'Refund Amount') }}</p>
+            <p class="text-sm text-slate-600 dark:text-slate-400 mb-1">
+              {{ languageStore.t('refund_amount', 'Refund Amount') }}
+            </p>
             <p class="text-2xl font-bold text-slate-800 dark:text-white">
               {{ payment ? formatCurrency(payment.amount) : '' }}
             </p>
@@ -450,7 +542,11 @@ const handleRefund = async () => {
               class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               <RefreshCw v-if="refundProcessing" :size="18" class="animate-spin" />
-              {{ refundProcessing ? languageStore.t('processing', 'Processing...') : languageStore.t('process_refund', 'Process Refund') }}
+              {{
+                refundProcessing
+                  ? languageStore.t('processing', 'Processing...')
+                  : languageStore.t('process_refund', 'Process Refund')
+              }}
             </button>
           </div>
         </div>

@@ -31,7 +31,12 @@ export async function generateAndDownloadReceipt(data: ReceiptData): Promise<voi
     const contentWidth = pageWidth - 2 * margin
     let yPosition = margin
 
-    const addText = (text: string, size: number, bold: boolean = false, color: [number, number, number] = [0, 0, 0]) => {
+    const addText = (
+      text: string,
+      size: number,
+      bold: boolean = false,
+      color: [number, number, number] = [0, 0, 0],
+    ) => {
       pdf.setFontSize(size)
       pdf.setFont('helvetica', bold ? 'bold' : 'normal')
       pdf.setTextColor(color[0], color[1], color[2])
@@ -84,22 +89,25 @@ export async function generateAndDownloadReceipt(data: ReceiptData): Promise<voi
     yPosition += 5
 
     addSection('BOOKING DETAILS')
-    addText(`Reference: ${data.booking_reference || 'REF-' + (data.tx_ref?.substring(0, 8) || 'N/A').toUpperCase()}`, 9)
+    addText(
+      `Reference: ${data.booking_reference || 'REF-' + (data.tx_ref?.substring(0, 8) || 'N/A').toUpperCase()}`,
+      9,
+    )
 
     const checkInDate = data.check_in_date
       ? new Date(data.check_in_date).toLocaleDateString('en-ET', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })
       : 'N/A'
 
     const checkOutDate = data.check_out_date
       ? new Date(data.check_out_date).toLocaleDateString('en-ET', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })
       : 'N/A'
 
     addText(`Check-in: ${checkInDate}`, 9)
@@ -135,7 +143,7 @@ export async function generateAndDownloadReceipt(data: ReceiptData): Promise<voi
       '• For inquiries or modifications, contact us immediately',
     ]
 
-    terms.forEach(term => {
+    terms.forEach((term) => {
       const lines = pdf.splitTextToSize(term, contentWidth)
       pdf.text(lines, margin + 2, yPosition)
       yPosition += 4

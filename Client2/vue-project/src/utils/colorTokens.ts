@@ -1,4 +1,3 @@
-
 export interface PropertyThemeTokens {
   id: string
   name: string
@@ -31,7 +30,7 @@ export function hexToRgbString(hex: string): string {
   return `${rgb.r}, ${rgb.g}, ${rgb.b}`
 }
 export function getRelativeLuminance(r: number, g: number, b: number): number {
-  const [rs, gs, bs] = [r, g, b].map(val => {
+  const [rs, gs, bs] = [r, g, b].map((val) => {
     const s = val / 255
     return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4)
   })

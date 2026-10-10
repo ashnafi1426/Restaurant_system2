@@ -83,7 +83,9 @@ export const platformService = {
     return response.data.data
   },
 
-  async getHotels(params?: HotelFilterParams): Promise<{ data: Hotel[]; current_page: number; last_page: number; total: number }> {
+  async getHotels(
+    params?: HotelFilterParams,
+  ): Promise<{ data: Hotel[]; current_page: number; last_page: number; total: number }> {
     const response = await api.get('/platform/hotels', { params })
     return response.data.data
   },
@@ -103,7 +105,10 @@ export const platformService = {
     return response.data.data
   },
 
-  async updateHotelStatus(id: string, status: 'active' | 'inactive' | 'suspended' | 'archived'): Promise<Hotel> {
+  async updateHotelStatus(
+    id: string,
+    status: 'active' | 'inactive' | 'suspended' | 'archived',
+  ): Promise<Hotel> {
     const response = await api.patch(`/platform/hotels/${id}/status`, { status })
     return response.data.data
   },
@@ -113,9 +118,12 @@ export const platformService = {
     return response.data.data
   },
 
-  async deleteHotel(id: string, confirmName: string): Promise<{ success: boolean; message: string }> {
+  async deleteHotel(
+    id: string,
+    confirmName: string,
+  ): Promise<{ success: boolean; message: string }> {
     const response = await api.delete(`/platform/hotels/${id}`, {
-      data: { confirm_name: confirmName }
+      data: { confirm_name: confirmName },
     })
     return response.data
   },
@@ -186,5 +194,5 @@ export const platformService = {
   async getAuditLogs(params?: any): Promise<any> {
     const response = await api.get('/platform/audit-logs', { params })
     return response.data.data
-  }
+  },
 }

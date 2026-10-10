@@ -23,7 +23,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
 } from 'lucide-vue-next'
 
 interface AdminItem {
@@ -96,7 +96,7 @@ const itemsPerPageOptions = [5, 10, 20, 50]
 
 // Computed properties for pagination
 const paginationInfo = computed(() => {
-  const start = ((currentPage.value - 1) * itemsPerPage.value) + 1
+  const start = (currentPage.value - 1) * itemsPerPage.value + 1
   const end = Math.min(currentPage.value * itemsPerPage.value, totalItems.value)
   return { start, end }
 })
@@ -104,7 +104,7 @@ const paginationInfo = computed(() => {
 const visiblePages = computed(() => {
   const pages = []
   const maxVisible = 5
-  
+
   if (totalPages.value <= maxVisible) {
     for (let i = 1; i <= totalPages.value; i++) {
       pages.push(i)
@@ -112,12 +112,12 @@ const visiblePages = computed(() => {
   } else {
     const start = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
     const end = Math.min(totalPages.value, start + maxVisible - 1)
-    
+
     for (let i = start; i <= end; i++) {
       pages.push(i)
     }
   }
-  
+
   return pages
 })
 
@@ -256,7 +256,12 @@ const openCreateModal = () => {
 }
 
 const handleCreateAdmin = async () => {
-  if (!adminForm.value.first_name || !adminForm.value.last_name || !adminForm.value.email || !adminForm.value.hotel_id) {
+  if (
+    !adminForm.value.first_name ||
+    !adminForm.value.last_name ||
+    !adminForm.value.email ||
+    !adminForm.value.hotel_id
+  ) {
     notify('error', 'Please fill all required fields.')
     return
   }
@@ -265,13 +270,16 @@ const handleCreateAdmin = async () => {
   errorMessage.value = ''
   try {
     const res = await platformService.createHotelAdmin(adminForm.value)
-    const assignedHotel = hotels.value.find(h => h.id === adminForm.value.hotel_id)
+    const assignedHotel = hotels.value.find((h) => h.id === adminForm.value.hotel_id)
     createSuccessInfo.value = {
       name: `${adminForm.value.first_name} ${adminForm.value.last_name}`,
       email: adminForm.value.email,
       hotel_name: assignedHotel?.name || 'Assigned Property',
     }
-    notify('success', res.message || 'Hotel Admin created and login credentials securely sent via email.')
+    notify(
+      'success',
+      res.message || 'Hotel Admin created and login credentials securely sent via email.',
+    )
     await loadAdmins()
   } catch (err: any) {
     console.error('[HotelAdminManagement] Create admin error:', err)
@@ -286,13 +294,15 @@ const handlePasswordAction = async (admin: AdminItem, action: 'reset' | 'resend'
   selectedAdminUser.value = admin.user
   saving.value = true
   try {
-    const res = action === 'reset'
-      ? await platformService.resetAdminPassword(admin.user.id)
-      : await platformService.resendAdminPassword(admin.user.id)
+    const res =
+      action === 'reset'
+        ? await platformService.resetAdminPassword(admin.user.id)
+        : await platformService.resendAdminPassword(admin.user.id)
     showResetModal.value = true
-    const defaultMsg = action === 'reset'
-      ? `New system temporary password generated and emailed to ${admin.user.email}.`
-      : `Temporary password sent to ${admin.user.email}!`
+    const defaultMsg =
+      action === 'reset'
+        ? `New system temporary password generated and emailed to ${admin.user.email}.`
+        : `Temporary password sent to ${admin.user.email}!`
     notify('success', res.message || defaultMsg)
   } catch (err: any) {
     console.error(`[HotelAdminManagement] ${action} password error:`, err)
@@ -316,17 +326,25 @@ const handleToggleStatus = async (admin: AdminItem) => {
 const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text)
   copied.value = true
-  setTimeout(() => { copied.value = false }, 3000)
+  setTimeout(() => {
+    copied.value = false
+  }, 3000)
 }
 </script>
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans">
+    <div
+      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans"
+    >
       <!-- Header Banner -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+      >
         <div class="flex items-center gap-3">
-          <div class="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+          <div
+            class="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
+          >
             <UserCheck class="w-6 h-6" />
           </div>
           <div>
@@ -334,25 +352,33 @@ const copyToClipboard = (text: string) => {
               <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                 Hotel Admins
               </h1>
-              <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+              <span
+                class="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
+              >
                 {{ totalItems }} Admins
               </span>
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Super Admin directory to provision, oversee, reset credentials, and govern administrators across all hotels.
+              Super Admin directory to provision, oversee, reset credentials, and govern
+              administrators across all hotels.
             </p>
           </div>
         </div>
-
       </div>
 
       <!-- Alerts -->
-      <div v-if="successMessage" class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2">
+      <div
+        v-if="successMessage"
+        class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center gap-2"
+      >
         <CheckCircle2 class="w-4 h-4 flex-shrink-0" />
         <span>{{ successMessage }}</span>
       </div>
 
-      <div v-if="errorMessage" class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center gap-2">
+      <div
+        v-if="errorMessage"
+        class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center gap-2"
+      >
         <AlertCircle class="w-4 h-4 flex-shrink-0" />
         <span>{{ errorMessage }}</span>
       </div>
@@ -365,7 +391,9 @@ const copyToClipboard = (text: string) => {
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
           <!-- Search Input -->
           <div class="relative flex-1">
-            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <Search
+              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+            />
             <input
               v-model="searchQuery"
               type="text"
@@ -382,7 +410,7 @@ const copyToClipboard = (text: string) => {
             :class="[
               isFilterOpen
                 ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
-                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
@@ -452,7 +480,12 @@ const copyToClipboard = (text: string) => {
                 sublabel-key="city"
                 placeholder="All Hotels"
                 search-placeholder="Filter by hotel..."
-                :format-option-label="(opt) => opt.id === 'all' ? 'All Hotels' : `${opt.name}${opt.city ? ` (${opt.city})` : ''}`"
+                :format-option-label="
+                  (opt) =>
+                    opt.id === 'all'
+                      ? 'All Hotels'
+                      : `${opt.name}${opt.city ? ` (${opt.city})` : ''}`
+                "
               />
             </div>
 
@@ -487,10 +520,14 @@ const copyToClipboard = (text: string) => {
       </Transition>
 
       <!-- Table -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden"
+      >
         <div class="overflow-x-auto min-h-[240px]">
           <table class="w-full text-left text-xs border-collapse">
-            <thead class="bg-slate-100/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-700/80">
+            <thead
+              class="bg-slate-100/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-700/80"
+            >
               <tr>
                 <th class="py-4 px-5">Name</th>
                 <th class="py-4 px-4">Email</th>
@@ -501,7 +538,9 @@ const copyToClipboard = (text: string) => {
                 <th class="py-4 px-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium">
+            <tbody
+              class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium"
+            >
               <tr v-if="loading">
                 <td colspan="7" class="p-12 text-center text-xs text-slate-400">
                   <RefreshCw class="w-6 h-6 text-indigo-500 animate-spin mx-auto mb-2" />
@@ -523,14 +562,20 @@ const copyToClipboard = (text: string) => {
                 <!-- Name -->
                 <td class="py-4 px-5">
                   <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-xs">
-                      {{ (adm.user?.first_name || 'A').charAt(0) }}{{ (adm.user?.last_name || 'D').charAt(0) }}
+                    <div
+                      class="w-9 h-9 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-xs"
+                    >
+                      {{ (adm.user?.first_name || 'A').charAt(0)
+                      }}{{ (adm.user?.last_name || 'D').charAt(0) }}
                     </div>
                     <div>
                       <span class="font-bold text-slate-900 dark:text-white block">
                         {{ adm.user?.first_name }} {{ adm.user?.last_name }}
                       </span>
-                      <span v-if="adm.user?.phone" class="text-[11px] text-slate-400 block font-mono">
+                      <span
+                        v-if="adm.user?.phone"
+                        class="text-[11px] text-slate-400 block font-mono"
+                      >
                         {{ adm.user?.phone }}
                       </span>
                     </div>
@@ -544,7 +589,9 @@ const copyToClipboard = (text: string) => {
 
                 <!-- Hotel -->
                 <td class="py-4 px-4">
-                  <div class="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
+                  <div
+                    class="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200"
+                  >
                     <Building2 class="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
                     <span>{{ adm.hotel?.name || 'Unassigned' }}</span>
                   </div>
@@ -555,7 +602,9 @@ const copyToClipboard = (text: string) => {
 
                 <!-- Role -->
                 <td class="py-4 px-4">
-                  <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-black text-[11px]">
+                  <span
+                    class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-black text-[11px]"
+                  >
                     Admin
                   </span>
                 </td>
@@ -565,7 +614,11 @@ const copyToClipboard = (text: string) => {
                   <button
                     @click="handleToggleStatus(adm)"
                     class="px-2.5 py-1 rounded-full text-xs font-black transition cursor-pointer border flex items-center gap-1"
-                    :class="adm.is_active ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-slate-500/10 text-slate-500 border-slate-500/20'"
+                    :class="
+                      adm.is_active
+                        ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                        : 'bg-slate-500/10 text-slate-500 border-slate-500/20'
+                    "
                     :title="adm.is_active ? 'Click to deactivate' : 'Click to activate'"
                   >
                     <Power class="w-3 h-3" />
@@ -585,7 +638,10 @@ const copyToClipboard = (text: string) => {
                       type="button"
                       @click="toggleMenu(String(adm.id), $event)"
                       class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                      :class="{ 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white': activeMenu === String(adm.id) }"
+                      :class="{
+                        'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white':
+                          activeMenu === String(adm.id),
+                      }"
                       title="Actions"
                     >
                       <MoreVertical class="w-4 h-4" />
@@ -605,7 +661,10 @@ const copyToClipboard = (text: string) => {
                       >
                         <button
                           type="button"
-                          @click="handlePasswordAction(adm, 'resend'); activeMenu = null"
+                          @click="
+                            handlePasswordAction(adm, 'resend')
+                            activeMenu = null
+                          "
                           class="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition cursor-pointer"
                         >
                           <Send class="w-3.5 h-3.5" />
@@ -614,7 +673,10 @@ const copyToClipboard = (text: string) => {
 
                         <button
                           type="button"
-                          @click="handlePasswordAction(adm, 'reset'); activeMenu = null"
+                          @click="
+                            handlePasswordAction(adm, 'reset')
+                            activeMenu = null
+                          "
                           class="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                         >
                           <KeyRound class="w-3.5 h-3.5 text-amber-500" />
@@ -623,20 +685,33 @@ const copyToClipboard = (text: string) => {
 
                         <button
                           type="button"
-                          @click="handleToggleStatus(adm); activeMenu = null"
+                          @click="
+                            handleToggleStatus(adm)
+                            activeMenu = null
+                          "
                           class="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
-                          :class="adm.is_active ? 'text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40' : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'"
+                          :class="
+                            adm.is_active
+                              ? 'text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40'
+                              : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
+                          "
                         >
                           <Power class="w-3.5 h-3.5" />
                           <span>{{ adm.is_active ? 'Deactivate Admin' : 'Activate Admin' }}</span>
                         </button>
 
-                        <div v-if="adm.user?.email" class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
+                        <div
+                          v-if="adm.user?.email"
+                          class="border-t border-slate-100 dark:border-slate-800 my-1"
+                        ></div>
 
                         <button
                           v-if="adm.user?.email"
                           type="button"
-                          @click="copyToClipboard(adm.user.email); activeMenu = null"
+                          @click="
+                            copyToClipboard(adm.user.email)
+                            activeMenu = null
+                          "
                           class="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                         >
                           <Copy class="w-3.5 h-3.5 text-slate-400" />
@@ -657,9 +732,10 @@ const copyToClipboard = (text: string) => {
             <!-- Left: Pagination Info & Per Page Selector -->
             <div class="flex flex-col sm:flex-row sm:items-center gap-3">
               <div class="text-xs text-slate-500 dark:text-slate-400">
-                Showing {{ paginationInfo.start }}-{{ paginationInfo.end }} of {{ totalItems }} admins
+                Showing {{ paginationInfo.start }}-{{ paginationInfo.end }} of
+                {{ totalItems }} admins
               </div>
-              
+
               <div class="flex items-center gap-2">
                 <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">
                   Show:
@@ -678,7 +754,11 @@ const copyToClipboard = (text: string) => {
 
             <!-- Center: Page Navigation -->
             <div v-if="totalPages > 1" class="flex items-center justify-center">
-              <nav class="flex items-center gap-1" role="navigation" aria-label="Pagination Navigation">
+              <nav
+                class="flex items-center gap-1"
+                role="navigation"
+                aria-label="Pagination Navigation"
+              >
                 <!-- First Page -->
                 <button
                   type="button"
@@ -712,7 +792,7 @@ const copyToClipboard = (text: string) => {
                     :class="[
                       page === currentPage
                         ? 'bg-blue-600 text-white shadow-sm'
-                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800',
                     ]"
                   >
                     {{ page }}
@@ -745,7 +825,9 @@ const copyToClipboard = (text: string) => {
 
             <!-- Right: Jump to Page -->
             <div v-if="totalPages > 1" class="flex items-center gap-2">
-              <label class="text-xs font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap">
+              <label
+                class="text-xs font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap"
+              >
                 Go to:
               </label>
               <div class="flex items-center gap-1">
@@ -774,64 +856,112 @@ const copyToClipboard = (text: string) => {
 
       <!-- CREATE HOTEL ADMIN MODAL (Security-First Activation Flow) -->
       <Teleport to="body">
-        <div v-if="showCreateModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs" @click="showCreateModal = false"></div>
-          <div class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 text-xs">
-            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+        <div
+          v-if="showCreateModal"
+          class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+        >
+          <div
+            class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs"
+            @click="showCreateModal = false"
+          ></div>
+          <div
+            class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 text-xs"
+          >
+            <div
+              class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4"
+            >
               <div class="flex items-center gap-3">
                 <div class="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-600">
                   <UserCheck class="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 class="text-base font-black text-slate-900 dark:text-white">Create Hotel Admin</h2>
-                  <p class="text-[11px] text-slate-400">Security-First: Generates activation link without manual password entry</p>
+                  <h2 class="text-base font-black text-slate-900 dark:text-white">
+                    Create Hotel Admin
+                  </h2>
+                  <p class="text-[11px] text-slate-400">
+                    Security-First: Generates activation link without manual password entry
+                  </p>
                 </div>
               </div>
-              <button @click="showCreateModal = false" class="p-2 text-slate-400 hover:text-slate-600 rounded-xl cursor-pointer">
+              <button
+                @click="showCreateModal = false"
+                class="p-2 text-slate-400 hover:text-slate-600 rounded-xl cursor-pointer"
+              >
                 <X class="w-5 h-5" />
               </button>
             </div>
 
             <!-- If Hotel Admin successfully created -->
-            <div v-if="createSuccessInfo" class="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-4">
-              <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-black text-sm">
+            <div
+              v-if="createSuccessInfo"
+              class="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-4"
+            >
+              <div
+                class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-black text-sm"
+              >
                 <CheckCircle2 class="w-5 h-5 flex-shrink-0" />
                 <span>Hotel Admin Account Ready!</span>
               </div>
 
               <!-- Information Card -->
-              <div class="p-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-2.5 shadow-xs text-xs">
+              <div
+                class="p-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-2.5 shadow-xs text-xs"
+              >
                 <div class="flex items-center justify-between">
-                  <span class="text-slate-400 font-bold text-[11px] uppercase tracking-wide">Administrator:</span>
-                  <span class="font-bold text-slate-800 dark:text-slate-200">{{ createSuccessInfo.name }}</span>
+                  <span class="text-slate-400 font-bold text-[11px] uppercase tracking-wide"
+                    >Administrator:</span
+                  >
+                  <span class="font-bold text-slate-800 dark:text-slate-200">{{
+                    createSuccessInfo.name
+                  }}</span>
                 </div>
                 <div class="h-px bg-slate-100 dark:bg-slate-800"></div>
                 <div class="flex items-center justify-between">
-                  <span class="text-slate-400 font-bold text-[11px] uppercase tracking-wide">Email:</span>
-                  <span class="font-mono font-bold text-slate-800 dark:text-slate-200 select-all">{{ createSuccessInfo.email }}</span>
+                  <span class="text-slate-400 font-bold text-[11px] uppercase tracking-wide"
+                    >Email:</span
+                  >
+                  <span class="font-mono font-bold text-slate-800 dark:text-slate-200 select-all">{{
+                    createSuccessInfo.email
+                  }}</span>
                 </div>
                 <div class="h-px bg-slate-100 dark:bg-slate-800"></div>
                 <div class="flex items-center justify-between">
-                  <span class="text-slate-400 font-bold text-[11px] uppercase tracking-wide">Hotel:</span>
-                  <span class="font-bold text-indigo-600 dark:text-indigo-400">{{ createSuccessInfo.hotel_name }}</span>
+                  <span class="text-slate-400 font-bold text-[11px] uppercase tracking-wide"
+                    >Hotel:</span
+                  >
+                  <span class="font-bold text-indigo-600 dark:text-indigo-400">{{
+                    createSuccessInfo.hotel_name
+                  }}</span>
                 </div>
                 <div class="h-px bg-slate-100 dark:bg-slate-800"></div>
                 <div class="flex items-center justify-between">
-                  <span class="text-slate-400 font-bold text-[11px] uppercase tracking-wide">Password Status:</span>
-                  <span class="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400 text-[11px]">
+                  <span class="text-slate-400 font-bold text-[11px] uppercase tracking-wide"
+                    >Password Status:</span
+                  >
+                  <span
+                    class="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400 text-[11px]"
+                  >
                     <CheckCircle2 class="w-3.5 h-3.5" />
                     Sent Directly to Admin Email
                   </span>
                 </div>
               </div>
 
-              <div class="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/40 text-[11px] text-indigo-700 dark:text-indigo-300 leading-relaxed">
-                🔒 <strong>Zero-Knowledge Security:</strong> The system generated a secure temporary password and delivered it directly to <strong>{{ createSuccessInfo.email }}</strong>. For privacy and security, platform administrators cannot view this password. The admin logs in with it and updates their password on first login.
+              <div
+                class="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/40 text-[11px] text-indigo-700 dark:text-indigo-300 leading-relaxed"
+              >
+                🔒 <strong>Zero-Knowledge Security:</strong> The system generated a secure temporary
+                password and delivered it directly to <strong>{{ createSuccessInfo.email }}</strong
+                >. For privacy and security, platform administrators cannot view this password. The
+                admin logs in with it and updates their password on first login.
               </div>
 
               <div class="flex items-center justify-end pt-1">
                 <button
-                  @click="showCreateModal = false; createSuccessInfo = null"
+                  @click="
+                    showCreateModal = false
+                    createSuccessInfo = null
+                  "
                   class="px-5 py-2 rounded-xl bg-indigo-600 text-white font-extrabold hover:bg-indigo-500 shadow-md transition cursor-pointer"
                 >
                   Done
@@ -843,7 +973,9 @@ const copyToClipboard = (text: string) => {
             <div v-else class="space-y-3">
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">First Name *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >First Name *</label
+                  >
                   <input
                     v-model="adminForm.first_name"
                     type="text"
@@ -852,7 +984,9 @@ const copyToClipboard = (text: string) => {
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Last Name *</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >Last Name *</label
+                  >
                   <input
                     v-model="adminForm.last_name"
                     type="text"
@@ -863,7 +997,9 @@ const copyToClipboard = (text: string) => {
               </div>
 
               <div>
-                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Email Address *</label>
+                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                  >Email Address *</label
+                >
                 <input
                   v-model="adminForm.email"
                   type="email"
@@ -873,7 +1009,9 @@ const copyToClipboard = (text: string) => {
               </div>
 
               <div>
-                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Phone (Optional)</label>
+                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                  >Phone (Optional)</label
+                >
                 <input
                   v-model="adminForm.phone"
                   type="text"
@@ -883,7 +1021,9 @@ const copyToClipboard = (text: string) => {
               </div>
 
               <div>
-                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Assign to Hotel *</label>
+                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                  >Assign to Hotel *</label
+                >
                 <SearchableSelect
                   v-model="adminForm.hotel_id"
                   :options="hotels"
@@ -896,8 +1036,11 @@ const copyToClipboard = (text: string) => {
                 />
               </div>
 
-              <div class="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/40 text-[11px] text-indigo-700 dark:text-indigo-300 leading-relaxed">
-                🔒 <strong>System-Generated Password:</strong> The system generates a temporary password and securely emails it to the admin. Super Admin cannot see this password.
+              <div
+                class="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/40 text-[11px] text-indigo-700 dark:text-indigo-300 leading-relaxed"
+              >
+                🔒 <strong>System-Generated Password:</strong> The system generates a temporary
+                password and securely emails it to the admin. Super Admin cannot see this password.
               </div>
 
               <div class="flex items-center justify-end gap-2.5 pt-3">
@@ -925,31 +1068,49 @@ const copyToClipboard = (text: string) => {
 
       <!-- RESET / RESEND PASSWORD CONFIRMATION MODAL -->
       <Teleport to="body">
-        <div v-if="showResetModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs" @click="showResetModal = false"></div>
-          <div class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 text-xs">
+        <div
+          v-if="showResetModal"
+          class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+        >
+          <div
+            class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs"
+            @click="showResetModal = false"
+          ></div>
+          <div
+            class="relative z-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 text-xs"
+          >
             <div class="flex items-center gap-3">
               <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600">
                 <Send class="w-6 h-6" />
               </div>
               <div>
-                <h3 class="text-base font-black text-slate-900 dark:text-white">Temporary Password Emailed</h3>
+                <h3 class="text-base font-black text-slate-900 dark:text-white">
+                  Temporary Password Emailed
+                </h3>
                 <p class="text-slate-400">{{ selectedAdminUser?.email }}</p>
               </div>
             </div>
 
             <p class="text-slate-600 dark:text-slate-300 leading-relaxed text-xs">
-              A new <strong>system-generated temporary password</strong> has been created and securely delivered to <strong>{{ selectedAdminUser?.email }}</strong>.
+              A new <strong>system-generated temporary password</strong> has been created and
+              securely delivered to <strong>{{ selectedAdminUser?.email }}</strong
+              >.
             </p>
 
-            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5 text-[11px]">
+            <div
+              class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5 text-[11px]"
+            >
               <div class="flex items-center justify-between">
                 <span class="text-slate-400 font-bold uppercase">Recipient:</span>
-                <span class="font-mono font-bold text-slate-800 dark:text-slate-200">{{ selectedAdminUser?.email }}</span>
+                <span class="font-mono font-bold text-slate-800 dark:text-slate-200">{{
+                  selectedAdminUser?.email
+                }}</span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-slate-400 font-bold uppercase">Delivery:</span>
-                <span class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <span
+                  class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1"
+                >
                   <CheckCircle2 class="w-3.5 h-3.5" /> Sent via Email
                 </span>
               </div>
@@ -959,8 +1120,12 @@ const copyToClipboard = (text: string) => {
               </div>
             </div>
 
-            <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
-              🔒 <strong>Security Policy:</strong> Platform administrators cannot view passwords. When the Hotel Admin signs in with this temporary password, they will be required to choose a new permanent password.
+            <div
+              class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed"
+            >
+              🔒 <strong>Security Policy:</strong> Platform administrators cannot view passwords.
+              When the Hotel Admin signs in with this temporary password, they will be required to
+              choose a new permanent password.
             </div>
 
             <div class="flex items-center justify-end pt-2">

@@ -70,21 +70,17 @@ export default {
     if (params?.page) queryParams.page = params.page
     if (params?.per_page) queryParams.per_page = params.per_page
 
-    return api
-      .get('/check-ins', { params: queryParams })
-      .catch((error) => {
-        console.error('[checkInService] Failed to fetch check-ins:', error)
-        throw error
-      })
+    return api.get('/check-ins', { params: queryParams }).catch((error) => {
+      console.error('[checkInService] Failed to fetch check-ins:', error)
+      throw error
+    })
   },
 
   getStatistics() {
-    return api
-      .get('/check-ins/statistics')
-      .catch((error) => {
-        console.error('[checkInService] Failed to fetch check-in statistics:', error)
-        throw error
-      })
+    return api.get('/check-ins/statistics').catch((error) => {
+      console.error('[checkInService] Failed to fetch check-in statistics:', error)
+      throw error
+    })
   },
 
   getById(id: string) {
@@ -92,22 +88,20 @@ export default {
   },
 
   checkIn(reservation_id: string) {
-    return api
-      .post('/check-ins', { reservation_id })
-      .catch((error) => {
-        console.error('[checkInService] Check-in failed:', error)
-        let errorMsg = error.response?.data?.message || error.message || 'Check-in failed'
+    return api.post('/check-ins', { reservation_id }).catch((error) => {
+      console.error('[checkInService] Check-in failed:', error)
+      let errorMsg = error.response?.data?.message || error.message || 'Check-in failed'
 
-        if (error.response?.data?.errors) {
-          const errors = error.response.data.errors
-          const errorList = Object.entries(errors)
-            .map(([key, msgs]) => `${key}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
-            .join(' | ')
-          errorMsg = `${errorMsg}. Validation errors: ${errorList}`
-        }
+      if (error.response?.data?.errors) {
+        const errors = error.response.data.errors
+        const errorList = Object.entries(errors)
+          .map(([key, msgs]) => `${key}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
+          .join(' | ')
+        errorMsg = `${errorMsg}. Validation errors: ${errorList}`
+      }
 
-        throw new Error(errorMsg)
-      })
+      throw new Error(errorMsg)
+    })
   },
 
   checkOut(id: string) {

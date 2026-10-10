@@ -1,6 +1,18 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { CookingPot, Search, Clock, ChefHat, Check, CheckCheck, Loader, Eye, UtensilsCrossed, Inbox, BedDouble } from 'lucide-vue-next'
+import {
+  CookingPot,
+  Search,
+  Clock,
+  ChefHat,
+  Check,
+  CheckCheck,
+  Loader,
+  Eye,
+  UtensilsCrossed,
+  Inbox,
+  BedDouble,
+} from 'lucide-vue-next'
 import { useLanguageStore } from '@/stores/language'
 import type { KitchenOrder } from '@/types/kitchen'
 
@@ -191,10 +203,14 @@ function getStatusIcon(status: string) {
 
 function getStatusColor(status: string): string {
   const colors: Record<string, string> = {
-    pending: 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20',
-    preparing: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 border border-blue-500/20',
-    ready: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20',
-    served: 'bg-slate-500/10 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-500/20',
+    pending:
+      'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20',
+    preparing:
+      'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 border border-blue-500/20',
+    ready:
+      'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20',
+    served:
+      'bg-slate-500/10 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-500/20',
   }
   return colors[status] || 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
 }
@@ -214,12 +230,16 @@ function getStatusBgRow(status: string): string {
   <div class="space-y-4 sm:space-y-5 md:space-y-6">
     <div class="space-y-4">
       <div class="min-w-0">
-        <h2 class="text-lg sm:text-xl md:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+        <h2
+          class="text-lg sm:text-xl md:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2"
+        >
           <CookingPot class="w-6 h-6 text-amber-500" />
           <span>{{ languageStore.t('your_kitchen_orders', 'Your Kitchen Orders') }}</span>
           <span class="text-xs sm:text-sm text-amber-500 font-bold">●</span>
         </h2>
-        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">{{ languageStore.t('only_assigned_to_you', 'Only showing orders assigned to you') }}</p>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
+          {{ languageStore.t('only_assigned_to_you', 'Only showing orders assigned to you') }}
+        </p>
       </div>
 
       <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -227,7 +247,9 @@ function getStatusBgRow(status: string): string {
           <input
             v-model="searchQuery"
             type="text"
-            :placeholder="languageStore.t('search_room_dish', 'Search by room number or dish name...')"
+            :placeholder="
+              languageStore.t('search_room_dish', 'Search by room number or dish name...')
+            "
             class="w-full px-3 sm:px-4 py-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
           />
         </div>
@@ -256,16 +278,44 @@ function getStatusBgRow(status: string): string {
       </div>
     </div>
 
-    <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden overflow-x-auto">
+    <div
+      class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden overflow-x-auto"
+    >
       <table class="w-full text-sm">
         <thead>
-          <tr class="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800">
-            <th class="px-3 sm:px-4 py-3 text-left font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider">{{ languageStore.t('location', 'Location') }}</th>
-            <th class="px-3 sm:px-4 py-3 text-left font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider">{{ languageStore.t('guest', 'Guest') }}</th>
-            <th class="px-3 sm:px-4 py-3 text-left font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider">{{ languageStore.t('items', 'Items') }}</th>
-            <th class="px-3 sm:px-4 py-3 text-left font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider">{{ languageStore.t('time', 'Time') }}</th>
-            <th class="px-3 sm:px-4 py-3 text-center font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider">{{ languageStore.t('action', 'Action') }}</th>
-            <th class="px-3 sm:px-4 py-3 text-center font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider">{{ languageStore.t('status', 'Status') }}</th>
+          <tr
+            class="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800"
+          >
+            <th
+              class="px-3 sm:px-4 py-3 text-left font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider"
+            >
+              {{ languageStore.t('location', 'Location') }}
+            </th>
+            <th
+              class="px-3 sm:px-4 py-3 text-left font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider"
+            >
+              {{ languageStore.t('guest', 'Guest') }}
+            </th>
+            <th
+              class="px-3 sm:px-4 py-3 text-left font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider"
+            >
+              {{ languageStore.t('items', 'Items') }}
+            </th>
+            <th
+              class="px-3 sm:px-4 py-3 text-left font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider"
+            >
+              {{ languageStore.t('time', 'Time') }}
+            </th>
+            <th
+              class="px-3 sm:px-4 py-3 text-center font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider"
+            >
+              {{ languageStore.t('action', 'Action') }}
+            </th>
+            <th
+              class="px-3 sm:px-4 py-3 text-center font-black text-slate-700 dark:text-slate-200 uppercase text-xs tracking-wider"
+            >
+              {{ languageStore.t('status', 'Status') }}
+            </th>
           </tr>
         </thead>
 
@@ -286,7 +336,10 @@ function getStatusBgRow(status: string): string {
                   class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-200 dark:border-emerald-800"
                 >
                   <UtensilsCrossed class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                  {{ order.table?.table_name || `${languageStore.t('table', 'Table')} ${order.table?.table_number || ''}` }}
+                  {{
+                    order.table?.table_name ||
+                    `${languageStore.t('table', 'Table')} ${order.table?.table_number || ''}`
+                  }}
                 </span>
                 <span
                   v-else-if="order.room?.room_number"
@@ -297,12 +350,19 @@ function getStatusBgRow(status: string): string {
                 </span>
                 <span v-else class="text-slate-400">—</span>
               </div>
-              <div v-if="order.notes" class="text-xs text-rose-500 font-black mt-0.5">{{ languageStore.t('priority', 'PRIORITY') }}</div>
+              <div v-if="order.notes" class="text-xs text-rose-500 font-black mt-0.5">
+                {{ languageStore.t('priority', 'PRIORITY') }}
+              </div>
             </td>
 
             <td class="px-3 sm:px-4 py-3">
               <div class="text-slate-700 dark:text-slate-300 font-medium">
-                {{ order.guest?.full_name || (order.table ? languageStore.t('walk_in_guest', 'Walk-in Guest') : languageStore.t('qr_guest', 'QR Guest')) }}
+                {{
+                  order.guest?.full_name ||
+                  (order.table
+                    ? languageStore.t('walk_in_guest', 'Walk-in Guest')
+                    : languageStore.t('qr_guest', 'QR Guest'))
+                }}
               </div>
             </td>
 
@@ -322,7 +382,8 @@ function getStatusBgRow(status: string): string {
                   v-if="(order.items || []).length > 2"
                   class="text-xs text-slate-500 dark:text-slate-400 font-bold"
                 >
-                  +{{ (order.items || []).length - 2 }} {{ languageStore.t('more_items', 'more items') }}
+                  +{{ (order.items || []).length - 2 }}
+                  {{ languageStore.t('more_items', 'more items') }}
                 </div>
               </div>
             </td>
@@ -393,14 +454,23 @@ function getStatusBgRow(status: string): string {
 
       <div v-if="props.loading" class="text-center py-16 bg-white dark:bg-slate-900">
         <Loader class="w-8 h-8 mx-auto text-amber-500 animate-spin mb-3" />
-        <p class="text-sm font-bold text-slate-700 dark:text-slate-300">{{ languageStore.t('loading_food_orders', 'Loading kitchen orders...') }}</p>
+        <p class="text-sm font-bold text-slate-700 dark:text-slate-300">
+          {{ languageStore.t('loading_food_orders', 'Loading kitchen orders...') }}
+        </p>
       </div>
 
-      <div v-else-if="filteredOrders.length === 0" class="text-center py-16 px-4 bg-white dark:bg-slate-900">
-        <div class="w-14 h-14 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+      <div
+        v-else-if="filteredOrders.length === 0"
+        class="text-center py-16 px-4 bg-white dark:bg-slate-900"
+      >
+        <div
+          class="w-14 h-14 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4"
+        >
           <Inbox class="w-7 h-7" />
         </div>
-        <h3 class="text-base font-black text-slate-900 dark:text-white">{{ languageStore.t('no_food_orders_found', 'No Kitchen Orders Found') }}</h3>
+        <h3 class="text-base font-black text-slate-900 dark:text-white">
+          {{ languageStore.t('no_food_orders_found', 'No Kitchen Orders Found') }}
+        </h3>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto font-medium">
           {{
             searchQuery
@@ -411,10 +481,15 @@ function getStatusBgRow(status: string): string {
       </div>
     </div>
 
-    <div v-if="filteredOrders.length > 0" class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md p-4 sm:p-5">
+    <div
+      v-if="filteredOrders.length > 0"
+      class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md p-4 sm:p-5"
+    >
       <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3 text-slate-600 dark:text-slate-400 text-xs">
-          <label for="itemsPerPage" class="text-sm font-semibold text-slate-700 dark:text-slate-300"
+          <label
+            for="itemsPerPage"
+            class="text-sm font-semibold text-slate-700 dark:text-slate-300"
             >{{ languageStore.t('per_page', 'Items per page:') }}</label
           >
           <select
@@ -469,7 +544,9 @@ function getStatusBgRow(status: string): string {
               {{ page }}
             </button>
 
-            <span v-if="currentPage < totalPages - 2" class="px-1 text-slate-400 font-bold">...</span>
+            <span v-if="currentPage < totalPages - 2" class="px-1 text-slate-400 font-bold"
+              >...</span
+            >
 
             <button
               v-if="totalPages > 1"
@@ -495,7 +572,9 @@ function getStatusBgRow(status: string): string {
         </div>
 
         <div class="text-xs font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap">
-          {{ languageStore.t('showing', 'Showing') }} <span class="text-amber-500 font-black">{{ startItem }}-{{ endItem }}</span> {{ languageStore.t('of', 'of') }}
+          {{ languageStore.t('showing', 'Showing') }}
+          <span class="text-amber-500 font-black">{{ startItem }}-{{ endItem }}</span>
+          {{ languageStore.t('of', 'of') }}
           <span class="text-amber-500 font-black">{{ filteredOrders.length }}</span>
         </div>
       </div>

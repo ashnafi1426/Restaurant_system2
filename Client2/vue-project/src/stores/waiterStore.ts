@@ -218,7 +218,7 @@ export const useWaiterStore = defineStore('waiter', () => {
   }
 
   const acceptAssignment = async (id: string) => {
-    const assignment = assignments.value.find(a => a.id === id)
+    const assignment = assignments.value.find((a) => a.id === id)
     if (!assignment) {
       error.value = 'Assignment not found'
       return false
@@ -244,7 +244,7 @@ export const useWaiterStore = defineStore('waiter', () => {
   }
 
   const rejectAssignment = async (id: string, reason?: string) => {
-    const assignment = assignments.value.find(a => a.id === id)
+    const assignment = assignments.value.find((a) => a.id === id)
     if (!assignment) {
       error.value = 'Assignment not found'
       return false
@@ -269,7 +269,10 @@ export const useWaiterStore = defineStore('waiter', () => {
     }
   }
 
-  const executeOrderAction = async (action: () => Promise<WaiterAssignment>, errorMsg: string): Promise<boolean> => {
+  const executeOrderAction = async (
+    action: () => Promise<WaiterAssignment>,
+    errorMsg: string,
+  ): Promise<boolean> => {
     isLoading.value = true
     error.value = null
     try {
@@ -295,7 +298,10 @@ export const useWaiterStore = defineStore('waiter', () => {
     executeOrderAction(() => waiterService.deliverOrder(id, remarks), 'Failed to deliver order')
 
   const failDelivery = (id: string, reason: string, remarks?: string) =>
-    executeOrderAction(() => waiterService.failDelivery(id, reason, remarks), 'Failed to mark delivery as failed')
+    executeOrderAction(
+      () => waiterService.failDelivery(id, reason, remarks),
+      'Failed to mark delivery as failed',
+    )
 
   const updateProfile = async (data: any) => {
     isLoading.value = true

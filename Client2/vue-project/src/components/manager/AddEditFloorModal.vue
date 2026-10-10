@@ -1,14 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import {
-  X,
-  Plus,
-  Save,
-  Hotel,
-  AlertCircle,
-  Loader2,
-  CheckCircle2,
-} from 'lucide-vue-next'
+import { X, Plus, Save, Hotel, AlertCircle, Loader2, CheckCircle2 } from 'lucide-vue-next'
 import floorManagementService, { type Floor } from '@/services/manager/floorManagementService'
 import { useLanguageStore } from '@/stores/language'
 
@@ -63,7 +55,7 @@ watch(
       }
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 const handleSubmit = async () => {
@@ -124,17 +116,30 @@ const handleSubmit = async () => {
       @click.stop
     >
       <!-- Header -->
-      <div class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/40 flex items-center justify-between">
+      <div
+        class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/40 flex items-center justify-between"
+      >
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-black">
+          <div
+            class="w-10 h-10 rounded-2xl bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-black"
+          >
             <Hotel class="w-5 h-5" />
           </div>
           <div>
             <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white">
-              {{ isEditing ? languageStore.t('edit_floor', 'Edit Floor Level') : languageStore.t('add_new_floor', 'Add New Floor') }}
+              {{
+                isEditing
+                  ? languageStore.t('edit_floor', 'Edit Floor Level')
+                  : languageStore.t('add_new_floor', 'Add New Floor')
+              }}
             </h3>
             <p class="text-xs text-slate-500 dark:text-slate-400">
-              {{ languageStore.t('floor_modal_desc', 'Define building levels and guest service zone settings.') }}
+              {{
+                languageStore.t(
+                  'floor_modal_desc',
+                  'Define building levels and guest service zone settings.',
+                )
+              }}
             </p>
           </div>
         </div>
@@ -184,7 +189,9 @@ const handleSubmit = async () => {
               type="text"
               required
               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-xs sm:text-sm font-bold focus:ring-2 focus:ring-blue-500/40 outline-none transition"
-              :placeholder="languageStore.t('floor_name_placeholder', 'e.g. Ground Floor - Lobby & Bistro')"
+              :placeholder="
+                languageStore.t('floor_name_placeholder', 'e.g. Ground Floor - Lobby & Bistro')
+              "
             />
           </div>
         </div>
@@ -198,7 +205,12 @@ const handleSubmit = async () => {
             v-model="description"
             rows="2"
             class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 outline-none transition resize-none"
-            :placeholder="languageStore.t('description_placeholder', 'Brief notes on this floor or department...')"
+            :placeholder="
+              languageStore.t(
+                'description_placeholder',
+                'Brief notes on this floor or department...',
+              )
+            "
           ></textarea>
         </div>
 
@@ -229,13 +241,17 @@ const handleSubmit = async () => {
               </span>
             </label>
             <p class="text-[11px] text-slate-400 dark:text-slate-500 pl-7 mt-0.5">
-              {{ languageStore.t('active_status_hint', 'Allow service tasks and waiter allocation') }}
+              {{
+                languageStore.t('active_status_hint', 'Allow service tasks and waiter allocation')
+              }}
             </p>
           </div>
         </div>
 
         <!-- Submit Footer -->
-        <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
+        <div
+          class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5"
+        >
           <button
             type="button"
             @click="emit('close')"
@@ -251,7 +267,11 @@ const handleSubmit = async () => {
           >
             <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
             <component :is="isEditing ? Save : Plus" v-else class="w-4 h-4 stroke-[2.5]" />
-            <span>{{ isEditing ? languageStore.t('save_changes', 'Save Changes') : languageStore.t('create_floor', 'Create Floor') }}</span>
+            <span>{{
+              isEditing
+                ? languageStore.t('save_changes', 'Save Changes')
+                : languageStore.t('create_floor', 'Create Floor')
+            }}</span>
           </button>
         </div>
       </form>

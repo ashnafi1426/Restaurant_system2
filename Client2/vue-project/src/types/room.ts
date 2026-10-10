@@ -27,9 +27,8 @@ export interface Room {
   qr_image_path?: string
   qr_code_url?: string
   qr_generated_at?: string
-  images?: string[] | Array<{url: string, alt?: string}>
-  amenities?: string[] | Array<{id: string | number, name: string}>
+  images?: string[] | Array<{ url: string; alt?: string }>
+  amenities?: string[] | Array<{ id: string | number; name: string }>
   created_at?: string
   updated_at?: string
 }
-

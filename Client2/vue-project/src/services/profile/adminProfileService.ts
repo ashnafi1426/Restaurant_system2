@@ -61,7 +61,7 @@ export const adminProfileService = {
     const formData = new FormData()
     formData.append('photo', file)
     const response = await axios.post('/admin/profile/photo', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
     })
     return response.data.data
   },
@@ -73,5 +73,5 @@ export const adminProfileService = {
   async getStats(): Promise<AdminStats> {
     const response = await axios.get('/admin/profile/stats')
     return response.data.data
-  }
+  },
 }

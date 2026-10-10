@@ -6,14 +6,14 @@ declare module '@/types/guest' {
     name?: string
     [key: string]: any
   }
-  
+
   interface MenuItem {
     total_price?: number
     tax_rate?: number
     tax_included?: boolean
     [key: string]: any
   }
-  
+
   interface CartItem {
     total_price?: number
     [key: string]: any
@@ -22,8 +22,8 @@ declare module '@/types/guest' {
 
 declare module '@/types/room' {
   interface Room {
-    images?: string[] | Array<{url: string, alt?: string}>
-    amenities?: string[] | Array<{id: string, name: string}>
+    images?: string[] | Array<{ url: string; alt?: string }>
+    amenities?: string[] | Array<{ id: string; name: string }>
     [key: string]: any
   }
 }

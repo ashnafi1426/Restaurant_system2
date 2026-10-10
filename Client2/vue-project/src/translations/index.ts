@@ -27,7 +27,8 @@ export const translations = {
     hero_badge: 'Grand Horizon Hotel & Resort',
     hero_title_part1: 'Timeless Luxury &',
     hero_title_part2: 'Unmatched Comfort',
-    hero_desc: 'Experience 5-star Ethiopian hospitality, elegant master suites, fine dining, and personalized concierge service in the heart of Addis Ababa.',
+    hero_desc:
+      'Experience 5-star Ethiopian hospitality, elegant master suites, fine dining, and personalized concierge service in the heart of Addis Ababa.',
     book_your_stay: 'Book Your Stay',
     explore_rooms: 'Explore Rooms & Suites',
     check_in: 'Check-In',
@@ -50,7 +51,8 @@ export const translations = {
     categories: 'Categories',
     recommended_for_you: 'Recommended for You',
     fresh_ingredients: 'Fresh ingredients, expertly prepared',
-    fresh_ingredients_desc: 'Fresh ingredients, expertly prepared. Delivered directly to your room.',
+    fresh_ingredients_desc:
+      'Fresh ingredients, expertly prepared. Delivered directly to your room.',
     price: 'Price',
     add_to_cart: 'Add to Cart',
     write_review: 'Write Review',
@@ -180,7 +182,8 @@ export const translations = {
     'Super Admin': 'Super Admin',
     hotel_admin: 'Hotel Admin',
     'Hotel Admin': 'Hotel Admin',
-    dashboard_overview_desc: 'Real-time overview of hotel rooms, occupancy, revenue, staff operations, and guests.',
+    dashboard_overview_desc:
+      'Real-time overview of hotel rooms, occupancy, revenue, staff operations, and guests.',
     refresh: 'Refresh',
     Refresh: 'Refresh',
     refreshing: 'Refreshing...',
@@ -251,7 +254,8 @@ export const translations = {
     role_chef: 'Chef',
     role_waiter: 'Waiter',
     manager_dashboard: 'Manager Executive Dashboard',
-    manager_dashboard_desc: 'Tenant-scoped operational analytics, live revenue, staff management & insights',
+    manager_dashboard_desc:
+      'Tenant-scoped operational analytics, live revenue, staff management & insights',
     active_bookings: 'Active hotel bookings',
     room_occupancy: 'Rooms Occupancy',
     room_occupancy_desc: 'Live ratio of occupied vs available rooms',
@@ -264,7 +268,8 @@ export const translations = {
     recent_operations_desc: 'Real-time system events, check-ins and order dispatches',
     no_recent_activity_logs: 'No recent activity logs recorded',
     cashier_dashboard: 'Cashier Dashboard',
-    cashier_dashboard_desc: 'Multi-property payment collection, live transaction auditing, and financial settlements.',
+    cashier_dashboard_desc:
+      'Multi-property payment collection, live transaction auditing, and financial settlements.',
     pending_payments: 'Pending Payments',
     completed_payments: 'Completed Payments',
     refund_requests: 'Refund Requests',
@@ -272,7 +277,8 @@ export const translations = {
     view_payments: 'View Payments',
     paid_payments: 'Paid Payments',
     financial_reports: 'Financial Reports',
-    kitchen_dashboard_desc: 'Real-time culinary order pipeline, prep queue, and line efficiency monitor.',
+    kitchen_dashboard_desc:
+      'Real-time culinary order pipeline, prep queue, and line efficiency monitor.',
     live_queue: 'Live Queue (10s sync)',
     live: 'Live',
     retry: 'Retry',
@@ -381,7 +387,8 @@ export const translations = {
     add_items_from_menu: 'Add items from the menu to get started',
     continue_shopping: 'Continue Shopping',
     order_placed_success: 'Order Placed Successfully!',
-    order_placed_desc: 'Your delicious meal is being prepared and will be delivered to your room shortly.',
+    order_placed_desc:
+      'Your delicious meal is being prepared and will be delivered to your room shortly.',
     order_number: 'Order Number',
     estimated_time: 'Estimated Time',
     track_order: 'Track Order',
@@ -419,12 +426,14 @@ export const translations = {
     book_suite: 'Book Suite',
     curated_comfort: 'Curated Comfort',
     world_class_facilities: 'World-Class Hotel Facilities',
-    facilities_desc: 'Every facility has been thoughtfully designed to provide comfort, relaxation, and unforgettable luxury experiences.',
+    facilities_desc:
+      'Every facility has been thoughtfully designed to provide comfort, relaxation, and unforgettable luxury experiences.',
 
     // Dining Section
     signature_dining: 'Signature Dining',
     culinary_experience: 'A Culinary Experience',
-    culinary_experience_desc: 'Indulge in authentic Ethiopian culinary traditions and international fine dining crafted by award-winning chefs.',
+    culinary_experience_desc:
+      'Indulge in authentic Ethiopian culinary traditions and international fine dining crafted by award-winning chefs.',
     explore_full_menu: 'Explore Full Menu',
     reserve_table: 'Reserve a Table',
     order_food_online: 'Order Food Online',
@@ -432,11 +441,13 @@ export const translations = {
     // Testimonials
     guest_reviews: 'Guest Reviews',
     what_guests_say: 'What Our Guests Say',
-    what_guests_say_desc: 'Read real reviews from international travelers who experienced the luxury of Grand Horizon Hotel.',
+    what_guests_say_desc:
+      'Read real reviews from international travelers who experienced the luxury of Grand Horizon Hotel.',
 
     // Room Hero & Amenities
     discover_luxury_rooms: 'Discover Our Luxurious Rooms',
-    discover_rooms_desc: 'Experience unparalleled comfort and elegance in our exquisitely designed rooms. Each accommodation is crafted with premium amenities, modern furnishings, and stunning views.',
+    discover_rooms_desc:
+      'Experience unparalleled comfort and elegance in our exquisitely designed rooms. Each accommodation is crafted with premium amenities, modern furnishings, and stunning views.',
     luxury_beds: 'Luxury Beds',
     modern_bath: 'Modern Bath',
     smart_tv: 'Smart HD TV',
@@ -565,7 +576,7 @@ export const translations = {
     assigned_waiter: 'Assigned Waiter',
     'Assigned Waiter': 'Assigned Waiter',
     unassigned: 'Unassigned',
-    'Unassigned': 'Unassigned',
+    Unassigned: 'Unassigned',
 
     // Front Desk & Reception
     check_in_guest: 'Check In Guest',
@@ -635,7 +646,8 @@ export const translations = {
     Unpaid: 'Unpaid',
     partial: 'Partial',
     Partial: 'Partial',
-    financial_reports_sub: 'Comprehensive financial analytics, revenue breakdowns, and transaction insights.',
+    financial_reports_sub:
+      'Comprehensive financial analytics, revenue breakdowns, and transaction insights.',
     quick_date_filters: 'Quick Date Filters',
     'Quick Date Filters': 'Quick Date Filters',
     today: 'Today',
@@ -730,7 +742,8 @@ export const translations = {
     'Payment Timeline': 'Payment Timeline',
     confirm_refund: 'Confirm Refund',
     'Confirm Refund': 'Confirm Refund',
-    confirm_refund_desc: 'Are you sure you want to refund this payment? This action cannot be undone.',
+    confirm_refund_desc:
+      'Are you sure you want to refund this payment? This action cannot be undone.',
     refund_amount: 'Refund Amount',
     'Refund Amount': 'Refund Amount',
     created: 'Created',
@@ -843,7 +856,8 @@ export const translations = {
     guest_checkin_mgmt: 'Guest Check-In Management',
     guest_checkout_mgmt: 'Guest Check-Out Management',
     track_guest_arrivals: 'Track guest arrivals, manage check-ins, and monitor room occupancy.',
-    manage_guest_departures: 'Manage guest departures, room release, and real-time occupancy records.',
+    manage_guest_departures:
+      'Manage guest departures, room release, and real-time occupancy records.',
     total_checkins: 'Total Check-Ins',
     in_house_guests: 'In-House Guests',
     active_in_house_guests: 'Active In-House Guests',
@@ -907,8 +921,8 @@ export const translations = {
     'View Details': 'View Details',
     'Edit Reservation': 'Edit Reservation',
     'Delete Reservation': 'Delete Reservation',
-    'Adults': 'Adults',
-    'Kids': 'Kids',
+    Adults: 'Adults',
+    Kids: 'Kids',
     'In House': 'In House',
 
     // Cashier, Waiter, Kitchen, Manager, Admin Extra Keys
@@ -995,7 +1009,8 @@ export const translations = {
     takeout_walk_in: 'Takeout / Walk-in',
 
     // Manager Views
-    table_assignments_desc: 'Assign waiters to dining tables, designate shifts, and monitor priority coverage.',
+    table_assignments_desc:
+      'Assign waiters to dining tables, designate shifts, and monitor priority coverage.',
     total_assignments: 'Total Assignments',
     tables_covered: 'Tables Covered',
     waiters_on_duty: 'Waiters on Duty',
@@ -1032,7 +1047,8 @@ export const translations = {
     priority: 'Priority',
     toggle_fullscreen: 'Toggle Fullscreen',
     room_service_deliveries: 'Room Service Deliveries',
-    room_service_deliveries_desc: 'Track and manage all active, in-transit, and completed room service deliveries.',
+    room_service_deliveries_desc:
+      'Track and manage all active, in-transit, and completed room service deliveries.',
     generate_report: 'Generate Report',
     failed_issues: 'Failed / Issues',
     search_deliveries_placeholder: 'Search deliveries by room, order ID, or waiter...',
@@ -1051,7 +1067,8 @@ export const translations = {
     floor_assignments: 'Floor Assignments',
     floor_assignments_desc: 'Assign and monitor service staff across hotel floors and zones.',
     floor_staff_assignments: 'Floor Staff Assignments',
-    floor_staff_assignments_desc: 'Allocate service staff and floor coverage across building zones.',
+    floor_staff_assignments_desc:
+      'Allocate service staff and floor coverage across building zones.',
     save_assignments: 'Save Assignments',
     total_floors: 'Total Floors',
     staff_assigned: 'Staff Assigned',
@@ -1092,7 +1109,8 @@ export const translations = {
     delete_type: 'Delete Type',
     no_room_types_found: 'No room types match your current search or filter criteria.',
     delete_room_type: 'Delete Room Type',
-    delete_room_type_confirm: 'Are you sure you want to delete this room type? This action cannot be undone.',
+    delete_room_type_confirm:
+      'Are you sure you want to delete this room type? This action cannot be undone.',
     found: 'Found',
     matching_room_types: 'matching room type(s)',
     role_management_desc: 'Configure staff roles, access levels, and granular permissions.',
@@ -1133,7 +1151,8 @@ export const translations = {
     // Hotels & Properties
     hotels_management: 'Hotels Management',
     hotels_count: 'Hotels',
-    hotels_governance_desc: 'Centralized platform governance to onboard, configure, suspend, and supervise multi-tenant hotel properties.',
+    hotels_governance_desc:
+      'Centralized platform governance to onboard, configure, suspend, and supervise multi-tenant hotel properties.',
     search_hotel_placeholder: 'Search hotel by name, city, email, code...',
     create_hotel: 'Create Hotel',
     hotel_status: 'Hotel Status',
@@ -1249,13 +1268,17 @@ export const translations = {
     browse_menu_write_review: 'Browse Menu & Write a Review',
     view_analytics: 'View Analytics',
     share_your_experience: 'Share Your Experience',
-    share_experience_card_desc: 'Write honest reviews and rate dishes to help other guests make informed choices.',
+    share_experience_card_desc:
+      'Write honest reviews and rate dishes to help other guests make informed choices.',
     earn_recognition: 'Earn Recognition',
-    earn_recognition_desc: 'Your reviews may be featured and your contributions help our restaurant improve service.',
+    earn_recognition_desc:
+      'Your reviews may be featured and your contributions help our restaurant improve service.',
     make_an_impact: 'Make an Impact',
-    make_an_impact_desc: 'Your feedback directly influences menu changes and service improvements at our restaurant.',
+    make_an_impact_desc:
+      'Your feedback directly influences menu changes and service improvements at our restaurant.',
     no_reviews_written_yet: "You haven't written any reviews yet.",
-    start_exploring_menu_desc: 'Start by exploring our menu and sharing your dining experience with other guests. Your feedback helps us improve our service!',
+    start_exploring_menu_desc:
+      'Start by exploring our menu and sharing your dining experience with other guests. Your feedback helps us improve our service!',
     back_to_items: 'Back to Items',
     no_pending_reviews: 'No pending reviews to moderate!',
     all_reviews_processed: 'All reviews have been processed successfully.',
@@ -1270,7 +1293,8 @@ export const translations = {
     no_rooms_found: 'No rooms found',
     adjust_search_criteria: 'Try adjusting your search or filter criteria',
     ready_to_book: 'Ready to book?',
-    ready_to_book_desc: 'Choose your perfect room and secure your stay with our hassle-free booking process',
+    ready_to_book_desc:
+      'Choose your perfect room and secure your stay with our hassle-free booking process',
     browse_rooms: 'Browse Rooms',
     size: 'Size',
     bed: 'Bed',
@@ -1326,7 +1350,8 @@ export const translations = {
     create_new_password_desc: 'Please enter your new password below',
     confirm_new_password: 'Confirm New Password',
     password_reset_success: 'Password Reset Successfully!',
-    password_reset_success_desc: 'Your password has been updated. You can now log in with your new password.',
+    password_reset_success_desc:
+      'Your password has been updated. You can now log in with your new password.',
     continue_to_login: 'Continue to Login',
     reset_password_btn: 'Reset Password',
     resetting_password: 'Resetting Password...',
@@ -1339,7 +1364,8 @@ export const translations = {
     password_strength: 'Password Strength',
     access_denied_403: '403 Access Denied',
     unauthorized_access: 'Unauthorized Access',
-    unauthorized_desc: 'You do not possess the required permission or scope to access this page or perform this action. Contact system administrator for authorization.',
+    unauthorized_desc:
+      'You do not possess the required permission or scope to access this page or perform this action. Contact system administrator for authorization.',
     go_back: 'Return to Previous Page',
     go_to_dashboard: 'Go to Dashboard',
     browse_menu: 'Browse Menu',
@@ -1375,7 +1401,8 @@ export const translations = {
     breakfast: 'Breakfast',
     free: 'Free',
     special_requests_optional: 'Special Requests (Optional)',
-    referral_code_notice: "Your booking will generate a referral code. You'll receive a confirmation email shortly.",
+    referral_code_notice:
+      "Your booking will generate a referral code. You'll receive a confirmation email shortly.",
     processing_payment: 'Processing Payment...',
     proceed_to_payment_btn: 'Proceed to Payment',
     payment_confirmation: 'Payment Confirmation',
@@ -1541,7 +1568,8 @@ export const translations = {
     receptionist_profile: 'Receptionist Profile',
     front_desk_reports: 'Front Desk Reports',
     action_required_temp_password: 'Action Required: Change Your Temporary Password',
-    temp_password_warning: 'You are using a temporary password set by the administrator. Please change it now to secure your account.',
+    temp_password_warning:
+      'You are using a temporary password set by the administrator. Please change it now to secure your account.',
     active_receptionist: 'Active Receptionist',
     front_desk: 'Front Desk',
     click_avatar_upload: 'Click avatar to upload a profile photo',
@@ -1551,7 +1579,8 @@ export const translations = {
     email_cant_change: 'Email cannot be changed. Contact admin to update.',
     change_temp_password: 'Change Temporary Password',
     change_password_desc: 'For your security, use a strong unique password.',
-    change_temp_password_desc: 'Your account was created with a temporary password. Enter it below, then set a new secure password.',
+    change_temp_password_desc:
+      'Your account was created with a temporary password. Enter it below, then set a new secure password.',
     temp_password_label: 'Temporary Password (from admin email)',
     enter_temp_password: 'Enter the temporary password sent to your email',
     enter_current_password: 'Enter your current password',
@@ -1639,7 +1668,8 @@ export const translations = {
     security_and_password: 'Security & Password',
     security_password_desc: 'Change your account password securely.',
     temp_password_active: 'Temporary Password Active',
-    temp_password_notice: 'Your account was initialized with a system-generated password. Enter your current temporary password below to set your personal permanent password.',
+    temp_password_notice:
+      'Your account was initialized with a system-generated password. Enter your current temporary password below to set your personal permanent password.',
     upload_profile_photo: 'Upload Profile Photo',
     toggle_password_visibility: 'Toggle Password Visibility',
     system_admin: 'System Admin',
@@ -1714,7 +1744,8 @@ export const translations = {
     explore_every: 'Explore Every',
     corner: 'Corner',
     of_our_hotel: 'of Our Hotel',
-    gallery_hero_desc: 'Discover our luxurious rooms, elegant suites, modern interiors, breathtaking exteriors, fine dining restaurant, swimming pool, conference halls, and premium guest facilities before your stay.',
+    gallery_hero_desc:
+      'Discover our luxurious rooms, elegant suites, modern interiors, breathtaking exteriors, fine dining restaurant, swimming pool, conference halls, and premium guest facilities before your stay.',
     view_rooms: 'View Rooms',
     luxury_rooms: 'Luxury Rooms',
     hotel_rating: 'Hotel Rating',
@@ -1734,7 +1765,8 @@ export const translations = {
     luxury_hotel_gallery: 'Luxury Hotel Gallery',
     luxury_hotel_gallery_collection: 'Luxury Hotel Gallery Collection',
     close_gallery: 'Close Gallery',
-    hotel_gallery_desc: 'Take a glimpse into our luxurious rooms, world-class amenities, and exquisite dining spaces.',
+    hotel_gallery_desc:
+      'Take a glimpse into our luxurious rooms, world-class amenities, and exquisite dining spaces.',
     'Luxury Suite Room': 'Luxury Suite Room',
     'Deluxe Double Room': 'Deluxe Double Room',
     'Executive Master Suite': 'Executive Master Suite',
@@ -1756,7 +1788,8 @@ export const translations = {
     // Contact Page
     get_in_touch: 'Get In Touch',
     connect_with_us: 'Connect With Us',
-    contact_desc: 'Have questions or special requests? Our concierge and reservation teams are available 24/7 to ensure your experience at Grand Horizon is extraordinary.',
+    contact_desc:
+      'Have questions or special requests? Our concierge and reservation teams are available 24/7 to ensure your experience at Grand Horizon is extraordinary.',
     hotel_location: 'Hotel Location',
     hotel_location_val: 'Grand Horizon Hotel & Resort',
     hotel_address_val: 'Bolé Road, Next to Business Center, Addis Ababa, Ethiopia',
@@ -1767,7 +1800,8 @@ export const translations = {
     front_desk_hours: 'Front Desk: Open 24/7 / 365 Days',
     dining_hours: 'Dining & Kitchen: 06:00 AM – 11:00 PM Daily',
     send_us_a_message: 'Send Us a Message',
-    send_message_desc: 'Fill in the details below and our guest relations manager will respond within 2 hours.',
+    send_message_desc:
+      'Fill in the details below and our guest relations manager will respond within 2 hours.',
     your_name: 'Your Name',
     inquiry_subject: 'Inquiry Subject',
     subj_reservation: 'Room Reservation & Availability',
@@ -1778,29 +1812,38 @@ export const translations = {
     message_placeholder: 'How can we assist you with your upcoming stay or event?',
     send_message: 'SEND MESSAGE',
     sending_message: 'Sending Message...',
-    message_sent_success: 'Thank you! Your message has been received. Our concierge team will contact you shortly.',
+    message_sent_success:
+      'Thank you! Your message has been received. Our concierge team will contact you shortly.',
     faq_title: 'Frequently Asked Questions',
     faq_desc: 'Quick answers to common questions about Grand Horizon.',
     faq_q1: 'What are Check-In & Check-Out times?',
-    faq_a1: 'Standard Check-In is at 02:00 PM and Check-Out is at 12:00 PM. Early check-in or late check-out can be requested based on availability.',
+    faq_a1:
+      'Standard Check-In is at 02:00 PM and Check-Out is at 12:00 PM. Early check-in or late check-out can be requested based on availability.',
     faq_q2: 'Is Airport Shuttle Service Available?',
-    faq_a2: 'Yes, complimentary luxury airport pickup and drop-off are provided for all suite guests upon request at least 24 hours prior.',
+    faq_a2:
+      'Yes, complimentary luxury airport pickup and drop-off are provided for all suite guests upon request at least 24 hours prior.',
     faq_q3: 'Are Dining & Room Service 24 Hours?',
-    faq_a3: 'Room service food ordering is available 24/7 directly through your room QR code menu or by calling front desk reception.',
+    faq_a3:
+      'Room service food ordering is available 24/7 directly through your room QR code menu or by calling front desk reception.',
 
     // About Page
     our_philosophy: 'Our Philosophy',
     mission_vision_values: 'Mission, Vision & Values',
-    about_hero_desc: 'Everything we do is guided by a commitment to excellence, genuine hospitality, and creating unforgettable experiences for every guest who stays with us.',
+    about_hero_desc:
+      'Everything we do is guided by a commitment to excellence, genuine hospitality, and creating unforgettable experiences for every guest who stays with us.',
     our_mission: 'Our Mission',
-    our_mission_desc: 'To provide exceptional hospitality through luxurious accommodation, personalized service, and memorable experiences for every guest.',
+    our_mission_desc:
+      'To provide exceptional hospitality through luxurious accommodation, personalized service, and memorable experiences for every guest.',
     our_vision: 'Our Vision',
-    our_vision_desc: 'To become one of the leading luxury hotels in Africa, recognized for excellence, innovation, and sustainable hospitality.',
+    our_vision_desc:
+      'To become one of the leading luxury hotels in Africa, recognized for excellence, innovation, and sustainable hospitality.',
     core_values: 'Core Values',
-    core_values_desc: 'Integrity, Excellence, Respect, Innovation, Teamwork, and Customer Satisfaction guide everything we do every day.',
+    core_values_desc:
+      'Integrity, Excellence, Respect, Innovation, Teamwork, and Customer Satisfaction guide everything we do every day.',
     our_standard: 'Our Standard',
     uncompromising_quality: 'Uncompromising Quality in Every Detail',
-    uncompromising_quality_desc: 'We pledge to deliver unparalleled standards across all hotel facilities, dining experiences, and personal concierge services.',
+    uncompromising_quality_desc:
+      'We pledge to deliver unparalleled standards across all hotel facilities, dining experiences, and personal concierge services.',
     'Luxury Accommodation': 'Luxury Accommodation',
     '24/7 Professional Service': '24/7 Professional Service',
     'Guest Satisfaction Guaranteed': 'Guest Satisfaction Guaranteed',
@@ -1811,15 +1854,20 @@ export const translations = {
     // Hotel History & Milestones
     our_journey: 'Our Journey',
     hotel_history_milestones: 'Hotel History & Milestones',
-    hotel_history_desc: 'From our humble beginnings to becoming a leading luxury destination, discover the story of our growth and commitment to excellence.',
+    hotel_history_desc:
+      'From our humble beginnings to becoming a leading luxury destination, discover the story of our growth and commitment to excellence.',
     'Grand Foundation': 'Grand Foundation',
-    grand_foundation_desc: 'Our journey began with a vision to build a world-class luxury hotel in the heart of Africa.',
+    grand_foundation_desc:
+      'Our journey began with a vision to build a world-class luxury hotel in the heart of Africa.',
     'International Expansion': 'International Expansion',
-    intl_expansion_desc: 'Added 50 executive suites and upgraded all fine dining, spa, and conference facilities.',
+    intl_expansion_desc:
+      'Added 50 executive suites and upgraded all fine dining, spa, and conference facilities.',
     'Continental Recognition': 'Continental Recognition',
-    cont_recognition_desc: 'Awarded Best Luxury Hotel in East Africa for exceptional guest satisfaction and service innovation.',
+    cont_recognition_desc:
+      'Awarded Best Luxury Hotel in East Africa for exceptional guest satisfaction and service innovation.',
     'The Modern Era': 'The Modern Era',
-    modern_era_desc: 'Completely renovated with smart room technology while preserving classic architectural elegance.',
+    modern_era_desc:
+      'Completely renovated with smart room technology while preserving classic architectural elegance.',
 
     // Hotel Statistics
     luxury_suites_rooms: 'Luxury Suites & Rooms',
@@ -1830,24 +1878,32 @@ export const translations = {
     // Meet Our Team
     our_team: 'Our Team',
     meet_our_team: 'Meet Our Executive Leadership',
-    meet_our_team_desc: 'Our dedicated team of hospitality experts is committed to delivering exceptional service and creating unforgettable stays.',
+    meet_our_team_desc:
+      'Our dedicated team of hospitality experts is committed to delivering exceptional service and creating unforgettable stays.',
     'General Manager': 'General Manager',
-    gm_bio: 'With 20+ years in luxury hospitality, John leads our team with vision, passion, and operational excellence.',
+    gm_bio:
+      'With 20+ years in luxury hospitality, John leads our team with vision, passion, and operational excellence.',
     'Executive Chef': 'Executive Chef',
-    chef_bio: 'Award-winning international chef specializing in gourmet fine dining and culinary innovation.',
+    chef_bio:
+      'Award-winning international chef specializing in gourmet fine dining and culinary innovation.',
     'Front Desk Manager': 'Front Desk Manager',
-    fd_manager_bio: 'Dedicated to providing 24/7 seamless check-ins, guest relations, and personalized concierge care.',
+    fd_manager_bio:
+      'Dedicated to providing 24/7 seamless check-ins, guest relations, and personalized concierge care.',
     'Guest Relations Director': 'Guest Relations Director',
-    gr_director_bio: 'Ensures every guest stay is memorable, tailored to perfection, and exceeds international luxury standards.',
+    gr_director_bio:
+      'Ensures every guest stay is memorable, tailored to perfection, and exceeds international luxury standards.',
 
     // Awards Section
     recognition_excellence: 'Recognition & Excellence',
     awards_accolades: 'Awards & Accolades',
-    awards_desc: 'Our commitment to excellence has been recognized by prestigious global hospitality organizations.',
+    awards_desc:
+      'Our commitment to excellence has been recognized by prestigious global hospitality organizations.',
     'Best Luxury Hotel': 'Best Luxury Hotel',
-    award_best_luxury_desc: 'Awarded for exceptional service, suite luxury, and guest satisfaction.',
+    award_best_luxury_desc:
+      'Awarded for exceptional service, suite luxury, and guest satisfaction.',
     'Excellence in Hospitality': 'Excellence in Hospitality',
-    award_excellence_desc: 'Continental recognition for outstanding front-desk service and staff care.',
+    award_excellence_desc:
+      'Continental recognition for outstanding front-desk service and staff care.',
     'Sustainable Tourism Award': 'Sustainable Tourism Award',
     award_sustainable_desc: 'Award for eco-friendly resort practices and energy conservation.',
     'Best Fine Dining Venue': 'Best Fine Dining Venue',
@@ -1860,19 +1916,26 @@ export const translations = {
     // Why Choose Us
     why_choose_us: 'Why Choose Us',
     what_sets_us_apart: 'What Sets Us Apart',
-    why_choose_us_desc: 'Discover why thousands of guests choose Grand Horizon for their luxury hospitality experience year after year.',
+    why_choose_us_desc:
+      'Discover why thousands of guests choose Grand Horizon for their luxury hospitality experience year after year.',
     'Luxury & Comfort': 'Luxury & Comfort',
-    reason_luxury_desc: 'Experience unmatched comfort in our master suites with premium linen and city views.',
+    reason_luxury_desc:
+      'Experience unmatched comfort in our master suites with premium linen and city views.',
     'Personalized Concierge': 'Personalized Concierge',
-    reason_concierge_desc: 'Our 24/7 dedicated staff ensures personalized attention for every guest request.',
+    reason_concierge_desc:
+      'Our 24/7 dedicated staff ensures personalized attention for every guest request.',
     'World-Class Dining': 'World-Class Dining',
-    reason_dining_desc: 'Savor gourmet Ethiopian and international cuisine prepared by award-winning chefs.',
+    reason_dining_desc:
+      'Savor gourmet Ethiopian and international cuisine prepared by award-winning chefs.',
     'Premium Wellness Facilities': 'Premium Wellness Facilities',
-    reason_wellness_desc: 'Enjoy state-of-the-art facilities including luxury spa, pool, gym, and conference centers.',
+    reason_wellness_desc:
+      'Enjoy state-of-the-art facilities including luxury spa, pool, gym, and conference centers.',
     'Prime City Location': 'Prime City Location',
-    reason_location_desc: 'Strategically located near major business districts, cultural landmarks, and the airport.',
+    reason_location_desc:
+      'Strategically located near major business districts, cultural landmarks, and the airport.',
     'Best Value Guarantee': 'Best Value Guarantee',
-    reason_value_desc: 'Competitive rates and exclusive booking perks without compromising on luxury service.',
+    reason_value_desc:
+      'Competitive rates and exclusive booking perks without compromising on luxury service.',
   },
   am: {
     // Front Navigation & Hotel
@@ -2438,7 +2501,7 @@ export const translations = {
     assigned_waiter: 'የተመደበ አስተናጋጅ',
     'Assigned Waiter': 'የተመደበ አስተናጋጅ',
     unassigned: 'ያልተመደበ',
-    'Unassigned': 'ያልተመደበ',
+    Unassigned: 'ያልተመደበ',
 
     // Front Desk & Reception
     check_in_guest: 'እንግዳ አስገባ (ቼክ-ኢን)',
@@ -2530,7 +2593,7 @@ export const translations = {
     date_to: 'እስከ ቀን',
     'Date To': 'እስከ ቀን',
     period: 'የጊዜ ርዝመት',
-    'Period': 'የጊዜ ርዝመት',
+    Period: 'የጊዜ ርዝመት',
     daily: 'በየቀኑ',
     Daily: 'በየቀኑ',
     weekly: 'በየሳምንቱ',
@@ -2780,8 +2843,8 @@ export const translations = {
     'View Details': 'ዝርዝሩን እይ',
     'Edit Reservation': 'ማስያዣ አስተካክል',
     'Delete Reservation': 'ማስያዣ ሰርዝ',
-    'Adults': 'አዋቂዎች',
-    'Kids': 'ልጆች',
+    Adults: 'አዋቂዎች',
+    Kids: 'ልጆች',
     'In House': 'በሆቴሉ ያለ',
 
     // Cashier, Waiter, Kitchen, Manager, Admin Extra Keys
@@ -2905,7 +2968,8 @@ export const translations = {
     priority: 'ቅድሚያ',
     toggle_fullscreen: 'ሙሉ ማያ ገጽ ቀይር',
     room_service_deliveries: 'የክፍል አገልግሎት ማድረሻዎች',
-    room_service_deliveries_desc: 'ሁሉንም ንቁ፣ በመንገድ ላይ ያሉ እና የተጠናቀቁ የክፍል አገልግሎት ማድረሻዎችን ይከታተሉ እና ያስተዳድሩ።',
+    room_service_deliveries_desc:
+      'ሁሉንም ንቁ፣ በመንገድ ላይ ያሉ እና የተጠናቀቁ የክፍል አገልግሎት ማድረሻዎችን ይከታተሉ እና ያስተዳድሩ።',
     generate_report: 'ሪፖርት አውጣ',
     failed_issues: 'ያልተሳኩ / ችግሮች',
     search_deliveries_placeholder: 'ማድረሻዎችን በክፍል፣ በትዕዛዝ ቁጥር ወይም አስተናጋጅ ይፈልጉ...',
@@ -3128,7 +3192,8 @@ export const translations = {
     make_an_impact: 'ተፅዕኖ ይፍጠሩ',
     make_an_impact_desc: 'የእርስዎ አስተያየት በምግብ ዝግጅት እና በአገልግሎት ለውጦች ላይ ቀጥተኛ ተፅዕኖ አለው።',
     no_reviews_written_yet: 'እስካሁን ምንም አስተያየት አልጻፉም።',
-    start_exploring_menu_desc: 'ሜኑአችንን በመጎብኘት እና የመመገብ ልምድዎን ለሌሎች በማካፈል ይጀምሩ። አስተያየትዎ አገልግሎታችንን እንድናሻሽል ይረዳናል!',
+    start_exploring_menu_desc:
+      'ሜኑአችንን በመጎብኘት እና የመመገብ ልምድዎን ለሌሎች በማካፈል ይጀምሩ። አስተያየትዎ አገልግሎታችንን እንድናሻሽል ይረዳናል!',
     back_to_items: 'ወደ ምግቦች ተመለስ',
     no_pending_reviews: 'ምንም የሚጠብቅ አስተያየት የለም!',
     all_reviews_processed: 'ሁሉም አስተያየቶች በተሳካ ሁኔታ ተስተናግደዋል።',
@@ -3212,7 +3277,8 @@ export const translations = {
     password_strength: 'የይለፍ ቃል ጥንካሬ',
     access_denied_403: '403 ፈቃድ የለም',
     unauthorized_access: 'ያልተፈቀደ መዳረሻ',
-    unauthorized_desc: 'ይህን ገጽ ለማየት ወይም ይህን ተግባር ለመፈጸም የሚያስችል ፈቃድ የለዎትም። እባክዎ ለፈቃድ የሲስተም አስተዳዳሪውን ያነጋግሩ።',
+    unauthorized_desc:
+      'ይህን ገጽ ለማየት ወይም ይህን ተግባር ለመፈጸም የሚያስችል ፈቃድ የለዎትም። እባክዎ ለፈቃድ የሲስተም አስተዳዳሪውን ያነጋግሩ።',
     go_back: 'ወደ ቀዳሚው ገጽ ተመለስ',
     go_to_dashboard: 'ወደ ዳሽቦርድ ሂድ',
     browse_menu: 'ሜኑ ጎብኝ',
@@ -3414,7 +3480,8 @@ export const translations = {
     receptionist_profile: 'የሪሴፕሽኒስት ፕሮፋይል',
     front_desk_reports: 'የፊት ዴስክ ሪፖርቶች',
     action_required_temp_password: 'እርምጃ ያስፈልጋል፡ ጊዜያዊ የይለፍ ቃልዎን ይቀይሩ',
-    temp_password_warning: 'በአስተዳዳሪው የተሰጠዎትን ጊዜያዊ የይለፍ ቃል እየተጠቀሙ ነው። እባክዎ መለያዎን ደህንነቱ የተጠበቀ ለማድረግ አሁን ይቀይሩት።',
+    temp_password_warning:
+      'በአስተዳዳሪው የተሰጠዎትን ጊዜያዊ የይለፍ ቃል እየተጠቀሙ ነው። እባክዎ መለያዎን ደህንነቱ የተጠበቀ ለማድረግ አሁን ይቀይሩት።',
     active_receptionist: 'ንቁ ሪሴፕሽኒስት',
     front_desk: 'የፊት ዴስክ',
     click_avatar_upload: 'የመገለጫ ፎቶ ለመስቀል አቫታሩን ይጫኑ',
@@ -3512,7 +3579,8 @@ export const translations = {
     security_and_password: 'ደህንነት እና የይለፍ ቃል',
     security_password_desc: 'የመለያዎን የይለፍ ቃል በደህንነት ይቀይሩ።',
     temp_password_active: 'ጊዜያዊ የይለፍ ቃል ነቅቷል',
-    temp_password_notice: 'መለያዎ በስርዓቱ በተፈጠረ ጊዜያዊ የይለፍ ቃል የተጀመረ ነው። የግል ቋሚ የይለፍ ቃልዎን ለማዘጋጀት እባክዎ አሁን ያለዎትን ጊዜያዊ የይለፍ ቃል ከታች ያስገቡ።',
+    temp_password_notice:
+      'መለያዎ በስርዓቱ በተፈጠረ ጊዜያዊ የይለፍ ቃል የተጀመረ ነው። የግል ቋሚ የይለፍ ቃልዎን ለማዘጋጀት እባክዎ አሁን ያለዎትን ጊዜያዊ የይለፍ ቃል ከታች ያስገቡ።',
     upload_profile_photo: 'የመገለጫ ፎቶ ይስቀሉ',
     toggle_password_visibility: 'የይለፍ ቃል እይታን ቀይር',
     system_admin: 'የስርዓት አስተዳዳሪ',
@@ -3587,7 +3655,8 @@ export const translations = {
     explore_every: 'ሁሉንም ያስሱ',
     corner: 'ማዕዘን',
     of_our_hotel: 'የሆቴላችን',
-    gallery_hero_desc: 'ከቆይታዎ በፊት ውብ ክፍሎቻችንን፣ የቅንጦት ሱዊቶችን፣ ዘመናዊ የውስጥ ገጽታዎችን፣ አስደናቂ የውጪ ውበቶችን፣ ምርጥ ምግብ ቤታችንን፣ የመዋኛ ገንዳን፣ የስብሰባ አዳራሾችን እና ልዩ የእንግዳ አገልግሎቶችን ያስሱ።',
+    gallery_hero_desc:
+      'ከቆይታዎ በፊት ውብ ክፍሎቻችንን፣ የቅንጦት ሱዊቶችን፣ ዘመናዊ የውስጥ ገጽታዎችን፣ አስደናቂ የውጪ ውበቶችን፣ ምርጥ ምግብ ቤታችንን፣ የመዋኛ ገንዳን፣ የስብሰባ አዳራሾችን እና ልዩ የእንግዳ አገልግሎቶችን ያስሱ።',
     view_rooms: 'ክፍሎችን ይመልከቱ',
     luxury_rooms: 'የቅንጦት ክፍሎች',
     hotel_rating: 'የሆቴል ደረጃ',
@@ -3629,7 +3698,8 @@ export const translations = {
     // Contact Page
     get_in_touch: 'ያግኙን',
     connect_with_us: 'ከእኛ ጋር ይገናኙ',
-    contact_desc: 'ጥያቄዎች ወይም ልዩ ፍላጎቶች አሉዎት? የእኛ የመስተንግዶ እና የቦታ ማስያዣ ቡድኖች በግራንድ ሆራይዘን ያለዎት ቆይታ አስደናቂ እንዲሆን 24/7 ዝግጁ ናቸው።',
+    contact_desc:
+      'ጥያቄዎች ወይም ልዩ ፍላጎቶች አሉዎት? የእኛ የመስተንግዶ እና የቦታ ማስያዣ ቡድኖች በግራንድ ሆራይዘን ያለዎት ቆይታ አስደናቂ እንዲሆን 24/7 ዝግጁ ናቸው።',
     hotel_location: 'የሆቴሉ አድራሻ',
     hotel_location_val: 'ግራንድ ሆራይዘን ሆቴል እና ሪዞርት',
     hotel_address_val: 'ቦሌ መንገድ፣ ከቢዝነስ ሴንተር አጠገብ፣ አዲስ አበባ፣ ኢትዮጵያ',
@@ -3655,7 +3725,8 @@ export const translations = {
     faq_title: 'ተደጋግመው የሚጠየቁ ጥያቄዎች',
     faq_desc: 'ስለ ግራንድ ሆራይዘን ለሚነሱ የተለመዱ ጥያቄዎች ፈጣን ምላሾች።',
     faq_q1: 'የመግቢያ (Check-In) እና የመውጫ (Check-Out) ሰዓቶች ስንት ናቸው?',
-    faq_a1: 'መደበኛ የመግቢያ ሰዓት 08:00 (2:00 PM) ሲሆን የመውጫ ሰዓት 06:00 (12:00 PM) ነው። ቀድሞ መግባት ወይም ዘግይቶ መውጣት በክፍሎች ክፍትነት ላይ ተመስርቶ መጠየቅ ይቻላል።',
+    faq_a1:
+      'መደበኛ የመግቢያ ሰዓት 08:00 (2:00 PM) ሲሆን የመውጫ ሰዓት 06:00 (12:00 PM) ነው። ቀድሞ መግባት ወይም ዘግይቶ መውጣት በክፍሎች ክፍትነት ላይ ተመስርቶ መጠየቅ ይቻላል።',
     faq_q2: 'የአውሮፕላን ማረፊያ ማመላለሻ አገልግሎት አለ?',
     faq_a2: 'አዎ፣ ቢያንስ ከ24 ሰዓታት በፊት ጥያቄ ከቀረበ ለሁሉም የሱዊት እንግዶች ነፃ የቅንጦት አውሮፕላን ማረፊያ ትራንስፖርት ይሰጣል።',
     faq_q3: 'የምግብ እና የክፍል አገልግሎት 24 ሰዓት ነው?',
@@ -3664,7 +3735,8 @@ export const translations = {
     // About Page
     our_philosophy: 'የእኛ ፍልስፍና',
     mission_vision_values: 'ተልዕኮ፣ ራዕይ እና እሴቶች',
-    about_hero_desc: 'የምናከናውነው እያንዳንዱ ተግባር በልህቀት ቁርጠኝነት፣ በእውነተኛ መስተንግዶ እና አብረውን ለሚቆዩ እንግዶች ሁሉ የማይረሱ ልምዶችን በመፍጠር ይመራል።',
+    about_hero_desc:
+      'የምናከናውነው እያንዳንዱ ተግባር በልህቀት ቁርጠኝነት፣ በእውነተኛ መስተንግዶ እና አብረውን ለሚቆዩ እንግዶች ሁሉ የማይረሱ ልምዶችን በመፍጠር ይመራል።',
     our_mission: 'የእኛ ተልዕኮ',
     our_mission_desc: 'በቅንጦት ማረፊያ፣ ግላዊ አገልግሎት እና የማይረሱ ልምዶች አማካኝነት ለእያንዳንዱ እንግዳ ልዩ መስተንግዶ መስጠት።',
     our_vision: 'የእኛ ራዕይ',
@@ -3673,7 +3745,8 @@ export const translations = {
     core_values_desc: 'ታማኝነት፣ ልህቀት፣ አክብሮት፣ ፈጠራ፣ የቡድን ሥራ እና የደንበኞች እርካታ በየቀኑ የምንሰራውን ሁሉ ይመራሉ።',
     our_standard: 'የእኛ ደረጃ',
     uncompromising_quality: 'በእያንዳንዱ ዝርዝር ውስጥ የማይደራደር ጥራት',
-    uncompromising_quality_desc: 'በሁሉም የሆቴል አገልግሎቶች፣ የምግብ ተሞክሮዎች እና የግል መስተንግዶዎች ወደር የለሽ ደረጃዎችን ለማቅረብ ቃል እንገባለን።',
+    uncompromising_quality_desc:
+      'በሁሉም የሆቴል አገልግሎቶች፣ የምግብ ተሞክሮዎች እና የግል መስተንግዶዎች ወደር የለሽ ደረጃዎችን ለማቅረብ ቃል እንገባለን።',
     'Luxury Accommodation': 'የቅንጦት ማረፊያ',
     '24/7 Professional Service': 'የ24/7 ሙያዊ አገልግሎት',
     'Guest Satisfaction Guaranteed': 'የተረጋገጠ የእንግዳ እርካታ',
@@ -3684,7 +3757,8 @@ export const translations = {
     // Hotel History & Milestones
     our_journey: 'የእኛ ጉዞ',
     hotel_history_milestones: 'የሆቴሉ ታሪክ እና ዋና ዋና ምዕራፎች',
-    hotel_history_desc: 'ከትሁት ጅምራችን ጀምሮ እስከ ግንባር ቀደም የቅንጦት መዳረሻነት ድረስ ያለውን የእድገታችን እና የልህቀት ቁርጠኝነታችንን ታሪክ ያስሱ።',
+    hotel_history_desc:
+      'ከትሁት ጅምራችን ጀምሮ እስከ ግንባር ቀደም የቅንጦት መዳረሻነት ድረስ ያለውን የእድገታችን እና የልህቀት ቁርጠኝነታችንን ታሪክ ያስሱ።',
     'Grand Foundation': 'ታላቁ መሠረት',
     grand_foundation_desc: 'ጉዟችን በአፍሪካ እምብርት ውስጥ ዓለም አቀፍ ደረጃውን የጠበቀ የቅንጦት ሆቴል የመገንባት ራዕይ ይዞ ተጀመረ።',
     'International Expansion': 'ዓለም አቀፍ መስፋፋት',
@@ -3746,5 +3820,5 @@ export const translations = {
     reason_location_desc: 'ከዋና ዋና የንግድ ማዕከላት፣ ከባህላዊ ቅርሶች እና ከአውሮፕላን ማረፊያ አቅራቢያ የሚገኝ።',
     'Best Value Guarantee': 'ምርጥ ዋጋ ዋስትና',
     reason_value_desc: 'በቅንጦት አገልግሎት ላይ ሳይደራደሩ ተወዳዳሪ ዋጋዎች እና ልዩ የቦታ ማስያዣ ጥቅሞች።',
-  }
+  },
 }

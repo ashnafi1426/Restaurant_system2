@@ -15,7 +15,7 @@ const languageStore = useLanguageStore()
 
 const activeAlerts = computed<MaintenanceAlert[]>(() => {
   const raw = props.alerts
-  const list = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? Object.values(raw) : [])
+  const list = Array.isArray(raw) ? raw : raw && typeof raw === 'object' ? Object.values(raw) : []
   return list
     .filter((a: any) => a && typeof a === 'object' && (a.title || a.description))
     .map((a: any) => ({
@@ -24,12 +24,15 @@ const activeAlerts = computed<MaintenanceAlert[]>(() => {
     }))
 })
 
-const severityThemes: Record<string, {
-  card: string
-  badge: string
-  iconBg: string
-  button: string
-}> = {
+const severityThemes: Record<
+  string,
+  {
+    card: string
+    badge: string
+    iconBg: string
+    button: string
+  }
+> = {
   high: {
     card: 'bg-red-50 border-red-200 hover:bg-red-100/50',
     badge: 'text-red-700 bg-red-100',
@@ -67,7 +70,9 @@ const formatSeverity = (severity: string) => {
         <h3 class="text-xl sm:text-2xl font-bold text-slate-900 uppercase tracking-wide">
           {{ languageStore.t('maintenance_alerts', 'Maintenance Alerts') }}
         </h3>
-        <p class="text-sm text-slate-600 mt-1">{{ languageStore.t('maintenance_alerts_desc', 'System status and maintenance tasks') }}</p>
+        <p class="text-sm text-slate-600 mt-1">
+          {{ languageStore.t('maintenance_alerts_desc', 'System status and maintenance tasks') }}
+        </p>
       </div>
       <button
         class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
@@ -90,8 +95,12 @@ const formatSeverity = (severity: string) => {
           />
         </svg>
       </div>
-      <p class="text-slate-600 font-semibold text-lg">{{ languageStore.t('all_systems_operational', 'All systems operational') }}</p>
-      <p class="text-sm text-slate-500 mt-1">{{ languageStore.t('no_active_alerts', 'No active alerts at the moment') }}</p>
+      <p class="text-slate-600 font-semibold text-lg">
+        {{ languageStore.t('all_systems_operational', 'All systems operational') }}
+      </p>
+      <p class="text-sm text-slate-500 mt-1">
+        {{ languageStore.t('no_active_alerts', 'No active alerts at the moment') }}
+      </p>
     </div>
 
     <!-- Alert List -->
@@ -109,10 +118,16 @@ const formatSeverity = (severity: string) => {
             <div
               :class="[
                 getTheme(alert.severity).iconBg,
-                'w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0'
+                'w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0',
               ]"
             >
-              <svg v-if="alert.severity === 'high' || alert.severity === 'medium'" class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                v-if="alert.severity === 'high' || alert.severity === 'medium'"
+                class="w-4 h-4 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -120,7 +135,13 @@ const formatSeverity = (severity: string) => {
                   d="M12 9v2m0 4v2"
                 />
               </svg>
-              <svg v-else class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                v-else
+                class="w-4 h-4 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -155,7 +176,7 @@ const formatSeverity = (severity: string) => {
               <button
                 :class="[
                   getTheme(alert.severity).button,
-                  'text-xs font-semibold px-3 py-1.5 rounded-lg transition-all cursor-pointer'
+                  'text-xs font-semibold px-3 py-1.5 rounded-lg transition-all cursor-pointer',
                 ]"
               >
                 {{ languageStore.t('acknowledge', '✓ Acknowledge') }}

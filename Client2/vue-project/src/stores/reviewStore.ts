@@ -72,7 +72,13 @@ export const useReviewStore = defineStore('review', () => {
   })
 
   // Actions - Guest Reviews
-  async function submitReview(guestId: string, orderId: string, menuItemId: string, rating: number, reviewText?: string) {
+  async function submitReview(
+    guestId: string,
+    orderId: string,
+    menuItemId: string,
+    rating: number,
+    reviewText?: string,
+  ) {
     guestReviewsLoading.value = true
     try {
       const review = await reviewService.createReview({
@@ -131,7 +137,11 @@ export const useReviewStore = defineStore('review', () => {
   }
 
   // Actions - Public Reviews
-  async function fetchPublicReviews(menuItemId: string, page: number = 1, sort: 'recent' | 'helpful' = 'recent') {
+  async function fetchPublicReviews(
+    menuItemId: string,
+    page: number = 1,
+    sort: 'recent' | 'helpful' = 'recent',
+  ) {
     publicReviewsLoading.value = true
     try {
       const data = await reviewService.getPublicReviews(menuItemId, page, 10, sort)
@@ -147,7 +157,7 @@ export const useReviewStore = defineStore('review', () => {
     reviewId: string,
     action: (id: string, payload: any) => Promise<any>,
     guestId?: string,
-    ipAddress?: string
+    ipAddress?: string,
   ) {
     try {
       const result = await action(reviewId, { guest_id: guestId, ip_address: ipAddress })
@@ -174,7 +184,10 @@ export const useReviewStore = defineStore('review', () => {
   }
 
   // Actions - Moderation
-  async function fetchModeratorReviews(status?: 'pending' | 'approved' | 'rejected', page: number = 1) {
+  async function fetchModeratorReviews(
+    status?: 'pending' | 'approved' | 'rejected',
+    page: number = 1,
+  ) {
     moderationLoading.value = true
     try {
       const data = await reviewService.listReviewsForModeration(status, page, 15)
@@ -192,7 +205,7 @@ export const useReviewStore = defineStore('review', () => {
   async function moderateReview(
     reviewId: string,
     action: (id: string) => Promise<Review>,
-    targetList: typeof approvedReviews
+    targetList: typeof approvedReviews,
   ) {
     moderationLoading.value = true
     try {

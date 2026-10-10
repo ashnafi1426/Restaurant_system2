@@ -33,7 +33,12 @@
       </div>
       <h3 class="empty-title">{{ languageStore.t('no_items_found', 'No items found') }}</h3>
       <p class="empty-message">
-        {{ languageStore.t('adjust_filters', "Try adjusting your filters or search query to find what you're looking for") }}
+        {{
+          languageStore.t(
+            'adjust_filters',
+            "Try adjusting your filters or search query to find what you're looking for",
+          )
+        }}
       </p>
       <button @click="clearFilters" class="empty-button">
         <svg class="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,7 +122,11 @@
 
     <!-- Results Info -->
     <div v-if="!isLoading && items.length > 0" class="results-info">
-      {{ languageStore.currentLanguage === 'am' ? `ከ ${items.length} ዕቃዎች ${startItem}-${endItem} በማሳየት ላይ` : `Showing ${startItem}-${endItem} of ${items.length} items` }}
+      {{
+        languageStore.currentLanguage === 'am'
+          ? `ከ ${items.length} ዕቃዎች ${startItem}-${endItem} በማሳየት ላይ`
+          : `Showing ${startItem}-${endItem} of ${items.length} items`
+      }}
     </div>
   </div>
 </template>

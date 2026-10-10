@@ -762,7 +762,19 @@ onMounted(() => {
                   >
                     <option value="">Select a menu item</option>
                     <option v-for="item in menuStore.menuItems" :key="item.id" :value="item.id">
-                      {{ item.name }} - ${{ ((item.total_price !== undefined && item.total_price !== null) ? Number(item.total_price) : Number(item.price)).toFixed(2) }} {{ item.tax_rate && Number(item.tax_rate.rate) > 0 ? (item.tax_included ? `(incl. ${item.tax_rate.rate}% ${item.tax_rate.name || 'tax'})` : `(+${item.tax_rate.rate}% tax)`) : '' }}
+                      {{ item.name }} - ${{
+                        (item.total_price !== undefined && item.total_price !== null
+                          ? Number(item.total_price)
+                          : Number(item.price)
+                        ).toFixed(2)
+                      }}
+                      {{
+                        item.tax_rate && Number(item.tax_rate.rate) > 0
+                          ? item.tax_included
+                            ? `(incl. ${item.tax_rate.rate}% ${item.tax_rate.name || 'tax'})`
+                            : `(+${item.tax_rate.rate}% tax)`
+                          : ''
+                      }}
                     </option>
                   </select>
                 </div>

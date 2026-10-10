@@ -1,6 +1,6 @@
 export function getErrorMessage(
   error: unknown,
-  fallbackMessage = 'An unexpected error occurred. Please try again.'
+  fallbackMessage = 'An unexpected error occurred. Please try again.',
 ): string {
   if (!error) return fallbackMessage
 
@@ -8,10 +8,16 @@ export function getErrorMessage(
 
   if (typeof error === 'object' && error !== null) {
     const err = error as Record<string, any>
-  if (typeof err.response?.data?.message === 'string' && err.response.data.message.trim().length > 0) {
+    if (
+      typeof err.response?.data?.message === 'string' &&
+      err.response.data.message.trim().length > 0
+    ) {
       return err.response.data.message
     }
-   if (typeof err.response?.data?.error === 'string' && err.response.data.error.trim().length > 0) {
+    if (
+      typeof err.response?.data?.error === 'string' &&
+      err.response.data.error.trim().length > 0
+    ) {
       return err.response.data.error
     }
 

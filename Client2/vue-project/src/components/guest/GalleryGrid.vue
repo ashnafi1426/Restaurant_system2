@@ -41,8 +41,17 @@ function closeImage() {
       <!-- Empty State -->
       <div v-if="filteredItems.length === 0" class="py-24 text-center">
         <div class="text-7xl">📷</div>
-        <h3 class="mt-6 text-3xl font-bold text-slate-900 dark:text-white">{{ languageStore.t('no_images_found', 'No Images Found') }}</h3>
-        <p class="mt-3 text-slate-500 dark:text-slate-400">{{ languageStore.t('no_images_category_desc', 'There are currently no images in this category.') }}</p>
+        <h3 class="mt-6 text-3xl font-bold text-slate-900 dark:text-white">
+          {{ languageStore.t('no_images_found', 'No Images Found') }}
+        </h3>
+        <p class="mt-3 text-slate-500 dark:text-slate-400">
+          {{
+            languageStore.t(
+              'no_images_category_desc',
+              'There are currently no images in this category.',
+            )
+          }}
+        </p>
       </div>
 
       <!-- Gallery Grid -->
@@ -60,4 +69,3 @@ function closeImage() {
     <GalleryLightbox v-if="selectedImage" :image="selectedImage" @close="closeImage" />
   </section>
 </template>
-

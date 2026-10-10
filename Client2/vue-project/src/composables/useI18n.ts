@@ -14,6 +14,6 @@ export function useI18n() {
     options: languageStore.options,
     currentOption: computed(() => languageStore.currentOption),
     setLanguage: languageStore.setLanguage,
-    toggleLanguage: languageStore.toggleLanguage
+    toggleLanguage: languageStore.toggleLanguage,
   }
 }

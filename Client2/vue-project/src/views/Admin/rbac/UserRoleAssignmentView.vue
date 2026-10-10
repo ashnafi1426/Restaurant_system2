@@ -29,7 +29,7 @@ import {
   Minimize2,
   Maximize2,
   RotateCcw,
-  X
+  X,
 } from 'lucide-vue-next'
 
 const userSummaries = ref<RbacUserSummary[]>([])
@@ -90,7 +90,7 @@ const fetchData = async () => {
   try {
     const [usersData, rolesData] = await Promise.all([
       rbacService.getUserRoleSummaries(),
-      rbacService.getRoles()
+      rbacService.getRoles(),
     ])
     userSummaries.value = usersData
     roles.value = rolesData
@@ -109,26 +109,31 @@ onMounted(() => {
 })
 
 // Re-fetch users whenever the selected hotel in the Navbar changes
-watch(() => hotelStore.hotelId, () => {
-  fetchData()
-})
+watch(
+  () => hotelStore.hotelId,
+  () => {
+    fetchData()
+  },
+)
 
 const filteredUsers = computed(() => {
   let list = userSummaries.value
 
   if (roleFilter.value !== 'all') {
-    list = list.filter(u =>
-      (u.primary_role_slug || '').toLowerCase() === roleFilter.value.toLowerCase() ||
-      (u.legacy_role || '').toLowerCase() === roleFilter.value.toLowerCase()
+    list = list.filter(
+      (u) =>
+        (u.primary_role_slug || '').toLowerCase() === roleFilter.value.toLowerCase() ||
+        (u.legacy_role || '').toLowerCase() === roleFilter.value.toLowerCase(),
     )
   }
 
   if (!searchFilter.value) return list
   const q = searchFilter.value.toLowerCase()
-  return list.filter(u =>
-    u.full_name.toLowerCase().includes(q) ||
-    u.email.toLowerCase().includes(q) ||
-    (u.primary_role_name && u.primary_role_name.toLowerCase().includes(q))
+  return list.filter(
+    (u) =>
+      u.full_name.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      (u.primary_role_name && u.primary_role_name.toLowerCase().includes(q)),
   )
 })
 
@@ -192,8 +197,8 @@ const nextPage = () => {
 // Role Assignment Modal logic
 const openAssignModal = (user: RbacUserSummary) => {
   selectedUserForRoles.value = user
-  selectedRoleIds.value = user.roles.map(r => r.id)
-  const primary = user.roles.find(r => r.is_primary) || user.roles[0]
+  selectedRoleIds.value = user.roles.map((r) => r.id)
+  const primary = user.roles.find((r) => r.is_primary) || user.roles[0]
   primaryRoleId.value = primary ? primary.id : null
   showAssignModal.value = true
 }
@@ -221,12 +226,14 @@ const saveUserRoles = async () => {
     await rbacService.assignUserRoles(
       selectedUserForRoles.value.id,
       selectedRoleIds.value,
-      primaryRoleId.value || selectedRoleIds.value[0]
+      primaryRoleId.value || selectedRoleIds.value[0],
     )
     successMessage.value = `Roles updated successfully for ${selectedUserForRoles.value.full_name}`
     showAssignModal.value = false
     await fetchData()
-    setTimeout(() => { successMessage.value = '' }, 3500)
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 3500)
   } catch (err: any) {
     console.error('[UserRoleAssignment] Save roles error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to assign user roles.'
@@ -278,7 +285,7 @@ const toggleDirectPermission = (permissionId: number, slug: string) => {
 }
 
 const selectAllInModule = (permissions: any[]) => {
-  permissions.forEach(p => {
+  permissions.forEach((p) => {
     if (!isPermissionInherited(p.slug) && !selectedDirectPermissionIds.value.includes(p.id)) {
       selectedDirectPermissionIds.value.push(p.id)
     }
@@ -286,8 +293,10 @@ const selectAllInModule = (permissions: any[]) => {
 }
 
 const clearModulePermissions = (permissions: any[]) => {
-  const idsToRemove = new Set(permissions.map(p => p.id))
-  selectedDirectPermissionIds.value = selectedDirectPermissionIds.value.filter(id => !idsToRemove.has(id))
+  const idsToRemove = new Set(permissions.map((p) => p.id))
+  selectedDirectPermissionIds.value = selectedDirectPermissionIds.value.filter(
+    (id) => !idsToRemove.has(id),
+  )
 }
 
 const moduleDisplayNames: Record<string, { title: string; color: string }> = {
@@ -311,7 +320,9 @@ const moduleDisplayNames: Record<string, { title: string; color: string }> = {
 }
 
 const getModuleInfo = (key: string) => {
-  const norm = String(key || '').toLowerCase().trim()
+  const norm = String(key || '')
+    .toLowerCase()
+    .trim()
   if (moduleDisplayNames[norm]) {
     return moduleDisplayNames[norm]
   }
@@ -324,22 +335,50 @@ const applyPresetPackage = (packageName: string) => {
   if (!accessData.value) return
 
   const allPerms: any[] = []
-  accessData.value.system_permissions_grouped.forEach(g => {
+  accessData.value.system_permissions_grouped.forEach((g) => {
     allPerms.push(...g.permissions)
   })
 
   let targetSlugs: string[] = []
   if (packageName === 'waiter') {
-    targetSlugs = ['orders.view', 'orders.accept', 'orders.deliver', 'delivery.view', 'delivery.accept', 'delivery.deliver', 'tables.view', 'menu.view']
+    targetSlugs = [
+      'orders.view',
+      'orders.accept',
+      'orders.deliver',
+      'delivery.view',
+      'delivery.accept',
+      'delivery.deliver',
+      'tables.view',
+      'menu.view',
+    ]
   } else if (packageName === 'kitchen') {
-    targetSlugs = ['kitchen.view', 'kitchen.accept', 'kitchen.prepare', 'kitchen.mark_ready', 'orders.view', 'orders.update_status', 'menu.view']
+    targetSlugs = [
+      'kitchen.view',
+      'kitchen.accept',
+      'kitchen.prepare',
+      'kitchen.mark_ready',
+      'orders.view',
+      'orders.update_status',
+      'menu.view',
+    ]
   } else if (packageName === 'cashier') {
-    targetSlugs = ['payments.view', 'payments.create', 'payments.refund', 'orders.view', 'invoices.view', 'invoices.create']
+    targetSlugs = [
+      'payments.view',
+      'payments.create',
+      'payments.refund',
+      'orders.view',
+      'invoices.view',
+      'invoices.create',
+    ]
   }
 
-  targetSlugs.forEach(slug => {
-    const perm = allPerms.find(p => p.slug.toLowerCase() === slug.toLowerCase())
-    if (perm && !isPermissionInherited(perm.slug) && !selectedDirectPermissionIds.value.includes(perm.id)) {
+  targetSlugs.forEach((slug) => {
+    const perm = allPerms.find((p) => p.slug.toLowerCase() === slug.toLowerCase())
+    if (
+      perm &&
+      !isPermissionInherited(perm.slug) &&
+      !selectedDirectPermissionIds.value.includes(perm.id)
+    ) {
       selectedDirectPermissionIds.value.push(perm.id)
     }
   })
@@ -350,17 +389,20 @@ const filteredGroupedPermissions = computed(() => {
   if (!modalPermissionSearch.value) return accessData.value.system_permissions_grouped
 
   const q = modalPermissionSearch.value.toLowerCase()
-  return accessData.value.system_permissions_grouped.map(group => {
-    const matchingPerms = group.permissions.filter((p: any) =>
-      p.name.toLowerCase().includes(q) ||
-      p.slug.toLowerCase().includes(q) ||
-      (p.description && p.description.toLowerCase().includes(q))
-    )
-    return {
-      ...group,
-      permissions: matchingPerms
-    }
-  }).filter(group => group.permissions.length > 0)
+  return accessData.value.system_permissions_grouped
+    .map((group) => {
+      const matchingPerms = group.permissions.filter(
+        (p: any) =>
+          p.name.toLowerCase().includes(q) ||
+          p.slug.toLowerCase().includes(q) ||
+          (p.description && p.description.toLowerCase().includes(q)),
+      )
+      return {
+        ...group,
+        permissions: matchingPerms,
+      }
+    })
+    .filter((group) => group.permissions.length > 0)
 })
 
 const saveAccessPermissions = async () => {
@@ -374,7 +416,7 @@ const saveAccessPermissions = async () => {
       {
         starts_at: startsAt.value || null,
         expires_at: expiresAt.value || null,
-      }
+      },
     )
 
     successMessage.value = `Permissions successfully saved for ${selectedUserForAccess.value.full_name}. Primary role remains ${selectedUserForAccess.value.primary_role_name || 'unchanged'}.`
@@ -383,7 +425,9 @@ const saveAccessPermissions = async () => {
     await authStore.fetchCurrentUser()
     window.dispatchEvent(new CustomEvent('permissions-updated'))
     await fetchData()
-    setTimeout(() => { successMessage.value = '' }, 4000)
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 4000)
   } catch (err: any) {
     console.error('[UserRoleAssignment] Save permissions error:', err)
     errorMessage.value = err?.response?.data?.message || 'Failed to save direct permissions.'
@@ -396,18 +440,23 @@ const saveAccessPermissions = async () => {
 <template>
   <DashboardLayout>
     <template #header>
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 border-b border-slate-200 dark:border-slate-800">
+      <div
+        class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 border-b border-slate-200 dark:border-slate-800"
+      >
         <div class="space-y-1">
           <div class="flex items-center gap-2">
             <span class="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
               <ShieldCheck class="w-5 h-5" />
             </span>
-            <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+            <h1
+              class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white"
+            >
               Staff Access & Permissions Management
             </h1>
           </div>
           <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
-            Manage primary staff roles and assign direct additional permissions without changing their job responsibilities.
+            Manage primary staff roles and assign direct additional permissions without changing
+            their job responsibilities.
           </p>
         </div>
 
@@ -425,12 +474,18 @@ const saveAccessPermissions = async () => {
 
     <div class="py-6 space-y-6">
       <!-- Banners -->
-      <div v-if="successMessage" class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2">
+      <div
+        v-if="successMessage"
+        class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2"
+      >
         <CheckCircle2 class="w-4 h-4 text-emerald-500 flex-shrink-0" />
         <span>{{ successMessage }}</span>
       </div>
 
-      <div v-if="errorMessage" class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center gap-2">
+      <div
+        v-if="errorMessage"
+        class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center gap-2"
+      >
         <AlertCircle class="w-4 h-4 text-rose-500 flex-shrink-0" />
         <span>{{ errorMessage }}</span>
       </div>
@@ -443,7 +498,9 @@ const saveAccessPermissions = async () => {
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
           <!-- Search Input -->
           <div class="relative flex-1">
-            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <Search
+              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+            />
             <input
               v-model="searchFilter"
               type="text"
@@ -460,7 +517,7 @@ const saveAccessPermissions = async () => {
             :class="[
               isFilterOpen
                 ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
-                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
@@ -539,11 +596,15 @@ const saveAccessPermissions = async () => {
       </Transition>
 
       <!-- Staff Table -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs"
+      >
         <div class="overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
             <thead>
-              <tr class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
+              <tr
+                class="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider"
+              >
                 <th class="px-3 py-2.5 whitespace-nowrap">Staff Member</th>
                 <th class="px-3 py-2.5 whitespace-nowrap">Primary Role</th>
                 <th class="px-3 py-2.5 whitespace-nowrap">Direct Permissions</th>
@@ -558,8 +619,14 @@ const saveAccessPermissions = async () => {
                   <div class="flex flex-col items-center justify-center gap-3">
                     <Loader2 class="w-8 h-8 text-amber-600 dark:text-amber-400 animate-spin" />
                     <div class="space-y-0.5">
-                      <p class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200">Loading Staff Roles...</p>
-                      <p class="text-[11px] text-slate-500 dark:text-slate-400">Fetching permissions and access configurations</p>
+                      <p
+                        class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200"
+                      >
+                        Loading Staff Roles...
+                      </p>
+                      <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                        Fetching permissions and access configurations
+                      </p>
                     </div>
                   </div>
                 </td>
@@ -567,11 +634,17 @@ const saveAccessPermissions = async () => {
 
               <!-- Data Rows -->
               <template v-else>
-                <tr v-for="user in paginatedUsers" :key="user.id" class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+                <tr
+                  v-for="user in paginatedUsers"
+                  :key="user.id"
+                  class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition"
+                >
                   <!-- Staff Member -->
                   <td class="px-3 py-2.5 whitespace-nowrap">
                     <div class="flex items-center gap-2 max-w-[180px]">
-                      <div class="w-6 h-6 rounded-full bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20 font-black text-[10px] flex items-center justify-center flex-shrink-0">
+                      <div
+                        class="w-6 h-6 rounded-full bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20 font-black text-[10px] flex items-center justify-center flex-shrink-0"
+                      >
                         {{ (user.full_name?.[0] || 'S').toUpperCase() }}
                       </div>
                       <div class="min-w-0 flex-1">
@@ -587,7 +660,9 @@ const saveAccessPermissions = async () => {
 
                   <!-- Primary Role Badge -->
                   <td class="px-3 py-2.5 whitespace-nowrap">
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 uppercase tracking-wider">
+                    <span
+                      class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 uppercase tracking-wider"
+                    >
                       <Users class="w-3 h-3 text-amber-500" />
                       {{ user.primary_role_name || user.legacy_role || 'Staff' }}
                     </span>
@@ -595,7 +670,10 @@ const saveAccessPermissions = async () => {
 
                   <!-- Direct Permissions Badge -->
                   <td class="px-3 py-2.5 whitespace-nowrap">
-                    <div v-if="user.direct_permissions_count && user.direct_permissions_count > 0" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-blue-300 font-extrabold text-[10px]">
+                    <div
+                      v-if="user.direct_permissions_count && user.direct_permissions_count > 0"
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-blue-300 font-extrabold text-[10px]"
+                    >
                       <Sparkles class="w-3 h-3 text-blue-500" />
                       <span>+{{ user.direct_permissions_count }} direct</span>
                     </div>
@@ -603,8 +681,12 @@ const saveAccessPermissions = async () => {
                   </td>
 
                   <!-- Effective Permissions Count -->
-                  <td class="px-3 py-2.5 text-center whitespace-nowrap font-bold text-emerald-600 dark:text-emerald-400">
-                    <span class="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-extrabold">
+                  <td
+                    class="px-3 py-2.5 text-center whitespace-nowrap font-bold text-emerald-600 dark:text-emerald-400"
+                  >
+                    <span
+                      class="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-extrabold"
+                    >
                       {{ user.effective_permissions_count }} permissions
                     </span>
                   </td>
@@ -635,7 +717,10 @@ const saveAccessPermissions = async () => {
 
                 <!-- Empty State -->
                 <tr v-if="filteredUsers.length === 0">
-                  <td colspan="5" class="p-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+                  <td
+                    colspan="5"
+                    class="p-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
+                  >
                     No staff members match your search query or role filter.
                   </td>
                 </tr>
@@ -666,9 +751,12 @@ const saveAccessPermissions = async () => {
             </div>
 
             <div class="text-xs font-medium">
-              Showing <span class="font-extrabold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
+              Showing
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ showingFrom }}</span>
+              to
               <span class="font-extrabold text-slate-900 dark:text-white">{{ showingTo }}</span> of
-              <span class="font-extrabold text-slate-900 dark:text-white">{{ total }}</span> staff members
+              <span class="font-extrabold text-slate-900 dark:text-white">{{ total }}</span> staff
+              members
             </div>
           </div>
 
@@ -693,7 +781,7 @@ const saveAccessPermissions = async () => {
                   'w-8 h-8 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center border',
                   currentPage === p
                     ? 'bg-amber-500 border-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20'
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800',
                 ]"
               >
                 {{ p }}
@@ -716,11 +804,17 @@ const saveAccessPermissions = async () => {
       <!-- ========================================================================= -->
       <!-- MANAGE ACCESS (DIRECT PERMISSIONS) MODAL -->
       <!-- ========================================================================= -->
-      <div v-if="showAccessModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
-          
+      <div
+        v-if="showAccessModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs"
+      >
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden"
+        >
           <!-- Modal Header -->
-          <div class="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
+          <div
+            class="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50"
+          >
             <div class="space-y-1">
               <div class="flex items-center gap-2">
                 <span class="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
@@ -732,14 +826,21 @@ const saveAccessPermissions = async () => {
               </div>
               <div class="flex items-center gap-2 text-xs font-semibold text-slate-500">
                 <span>Primary Role:</span>
-                <span class="px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300 font-black uppercase">
+                <span
+                  class="px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300 font-black uppercase"
+                >
                   {{ selectedUserForAccess?.primary_role_name || 'Staff' }}
                 </span>
-                <span class="text-slate-400">• Employee main job responsibility remains unchanged</span>
+                <span class="text-slate-400"
+                  >• Employee main job responsibility remains unchanged</span
+                >
               </div>
             </div>
 
-            <button @click="showAccessModal = false" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+            <button
+              @click="showAccessModal = false"
+              class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+            >
               <XCircle class="w-6 h-6" />
             </button>
           </div>
@@ -752,15 +853,21 @@ const saveAccessPermissions = async () => {
 
           <!-- Modal Body -->
           <div v-else class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
-            
             <!-- Information Banner -->
-            <div class="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-blue-800 dark:text-blue-300 text-xs space-y-1">
+            <div
+              class="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-blue-800 dark:text-blue-300 text-xs space-y-1"
+            >
               <div class="font-extrabold flex items-center gap-2">
                 <Zap class="w-4 h-4 text-blue-500" />
                 <span>Effective Permission Principle</span>
               </div>
               <p class="font-medium text-slate-600 dark:text-slate-300">
-                Permissions checked in green are inherited from {{ selectedUserForAccess?.full_name }}'s primary role (<strong>{{ selectedUserForAccess?.primary_role_name }}</strong>). Select additional permissions below to extend responsibilities (e.g. allowing a Receptionist to deliver food orders).
+                Permissions checked in green are inherited from
+                {{ selectedUserForAccess?.full_name }}'s primary role (<strong>{{
+                  selectedUserForAccess?.primary_role_name
+                }}</strong
+                >). Select additional permissions below to extend responsibilities (e.g. allowing a
+                Receptionist to deliver food orders).
               </p>
             </div>
 
@@ -778,7 +885,9 @@ const saveAccessPermissions = async () => {
 
               <!-- Package Presets -->
               <div class="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Quick Presets:</span>
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider"
+                  >Quick Presets:</span
+                >
                 <button
                   @click="applyPresetPackage('waiter')"
                   class="px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-black transition cursor-pointer"
@@ -808,13 +917,21 @@ const saveAccessPermissions = async () => {
                 class="bg-slate-50/60 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 space-y-3 shadow-2xs"
               >
                 <!-- Group Header -->
-                <div class="flex items-center justify-between pb-2.5 border-b border-slate-200 dark:border-slate-800">
+                <div
+                  class="flex items-center justify-between pb-2.5 border-b border-slate-200 dark:border-slate-800"
+                >
                   <div class="flex items-center gap-2.5">
-                    <span :class="['w-3 h-3 rounded-full', getModuleInfo(group.module_key).color]"></span>
-                    <h3 class="font-black text-xs sm:text-sm text-slate-900 dark:text-white uppercase tracking-wider">
+                    <span
+                      :class="['w-3 h-3 rounded-full', getModuleInfo(group.module_key).color]"
+                    ></span>
+                    <h3
+                      class="font-black text-xs sm:text-sm text-slate-900 dark:text-white uppercase tracking-wider"
+                    >
                       {{ getModuleInfo(group.module_key).title }}
                     </h3>
-                    <span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold text-[10px]">
+                    <span
+                      class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold text-[10px]"
+                    >
                       {{ group.permissions.length }} permissions
                     </span>
                   </div>
@@ -848,7 +965,7 @@ const saveAccessPermissions = async () => {
                         ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 cursor-not-allowed opacity-90'
                         : selectedDirectPermissionIds.includes(perm.id)
                           ? 'bg-blue-500/10 border-blue-500/40 text-blue-800 dark:text-blue-300 cursor-pointer shadow-xs'
-                          : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-blue-400 cursor-pointer'
+                          : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-blue-400 cursor-pointer',
                     ]"
                   >
                     <div class="flex items-start gap-2">
@@ -890,7 +1007,9 @@ const saveAccessPermissions = async () => {
           </div>
 
           <!-- Modal Footer -->
-          <div class="flex items-center justify-between p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
+          <div
+            class="flex items-center justify-between p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50"
+          >
             <div class="text-xs font-extrabold text-slate-600 dark:text-slate-300">
               Selected Direct Permissions:
               <span class="text-blue-600 dark:text-blue-400 font-black text-sm ml-1">
@@ -921,16 +1040,28 @@ const saveAccessPermissions = async () => {
       <!-- ========================================================================= -->
       <!-- ASSIGN ROLES MODAL -->
       <!-- ========================================================================= -->
-      <div v-if="showAssignModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl">
-          <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+      <div
+        v-if="showAssignModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+      >
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl"
+        >
+          <div
+            class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800"
+          >
             <div class="space-y-0.5">
               <h2 class="text-lg font-black text-slate-900 dark:text-white">
                 Assign Roles: {{ selectedUserForRoles?.full_name }}
               </h2>
-              <p class="text-xs text-slate-500 dark:text-slate-400">Select one primary role and optional secondary roles.</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                Select one primary role and optional secondary roles.
+              </p>
             </div>
-            <button @click="showAssignModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+            <button
+              @click="showAssignModal = false"
+              class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+            >
               <XCircle class="w-5 h-5" />
             </button>
           </div>
@@ -944,7 +1075,7 @@ const saveAccessPermissions = async () => {
                 'flex items-center justify-between p-3 rounded-2xl border text-xs font-bold cursor-pointer transition',
                 selectedRoleIds.includes(role.id)
                   ? 'bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-300'
-                  : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
+                  : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300',
               ]"
             >
               <div class="flex items-center gap-3">
@@ -960,7 +1091,11 @@ const saveAccessPermissions = async () => {
               </div>
 
               <!-- Primary radio selection -->
-              <div v-if="selectedRoleIds.includes(role.id)" @click.stop="primaryRoleId = role.id" class="flex items-center gap-1 bg-amber-500/20 px-2 py-1 rounded-lg">
+              <div
+                v-if="selectedRoleIds.includes(role.id)"
+                @click.stop="primaryRoleId = role.id"
+                class="flex items-center gap-1 bg-amber-500/20 px-2 py-1 rounded-lg"
+              >
                 <input
                   type="radio"
                   :name="'primary_role'"
@@ -972,7 +1107,9 @@ const saveAccessPermissions = async () => {
             </div>
           </div>
 
-          <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+          <div
+            class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800"
+          >
             <button
               @click="showAssignModal = false"
               class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition"

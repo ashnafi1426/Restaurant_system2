@@ -1,8 +1,17 @@
 <template>
   <div class="eligible-items-list">
     <div class="header mb-6">
-      <h2 class="text-2xl font-bold">{{ languageStore.t('items_you_can_review', 'Items You Can Review') }}</h2>
-      <p class="text-gray-600 text-sm mt-1">{{ languageStore.t('review_past_orders_desc', 'You can review menu items from your past orders') }}</p>
+      <h2 class="text-2xl font-bold">
+        {{ languageStore.t('items_you_can_review', 'Items You Can Review') }}
+      </h2>
+      <p class="text-gray-600 text-sm mt-1">
+        {{
+          languageStore.t(
+            'review_past_orders_desc',
+            'You can review menu items from your past orders',
+          )
+        }}
+      </p>
     </div>
 
     <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -10,13 +19,22 @@
     </div>
 
     <div v-else-if="items.length === 0" class="text-center py-12 bg-gray-50 rounded-lg">
-      <p class="text-gray-600 text-lg">{{ languageStore.t('no_items_for_review', 'No items available for review yet.') }}</p>
-      <p class="text-gray-500 text-sm mt-2">{{ languageStore.t('no_items_for_review_sub', "Once you complete an order, you'll be able to review the items.") }}</p>
+      <p class="text-gray-600 text-lg">
+        {{ languageStore.t('no_items_for_review', 'No items available for review yet.') }}
+      </p>
+      <p class="text-gray-500 text-sm mt-2">
+        {{
+          languageStore.t(
+            'no_items_for_review_sub',
+            "Once you complete an order, you'll be able to review the items.",
+          )
+        }}
+      </p>
     </div>
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div 
-        v-for="item in items" 
+      <div
+        v-for="item in items"
         :key="item.id"
         class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
       >
@@ -30,8 +48,10 @@
           <div v-else class="w-full h-full flex items-center justify-center">
             <span class="text-4xl"></span>
           </div>
-          
-          <div class="absolute top-2 right-2 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+
+          <div
+            class="absolute top-2 right-2 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold"
+          >
             {{ languageStore.t('order_num', 'Order #') }}{{ item.order_number }}
           </div>
         </div>
@@ -39,10 +59,12 @@
         <div class="p-4">
           <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ item.name }}</h3>
           <p class="text-sm text-gray-600 mb-3">{{ truncateText(item.description, 80) }}</p>
-          
+
           <div class="flex items-center justify-between mb-4">
             <span class="text-lg font-bold text-green-600">{{ formatPrice(item.price) }}</span>
-            <span class="text-sm text-gray-500">{{ languageStore.t('order_date', 'Order Date') }}</span>
+            <span class="text-sm text-gray-500">{{
+              languageStore.t('order_date', 'Order Date')
+            }}</span>
           </div>
 
           <button
@@ -63,9 +85,10 @@
       >
         {{ languageStore.t('previous', 'Previous') }}
       </button>
-      
+
       <span class="text-sm text-gray-600">
-        {{ languageStore.t('page', 'Page') }} {{ currentPage }} {{ languageStore.t('of', 'of') }} {{ totalPages }}
+        {{ languageStore.t('page', 'Page') }} {{ currentPage }} {{ languageStore.t('of', 'of') }}
+        {{ totalPages }}
       </span>
 
       <button
@@ -125,11 +148,15 @@ const loadItems = async () => {
   }
 }
 
-watch(() => props.guestId, () => {
-  if (props.guestId) {
-    loadItems()
-  }
-}, { immediate: true })
+watch(
+  () => props.guestId,
+  () => {
+    if (props.guestId) {
+      loadItems()
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(() => {
   if (props.guestId) {

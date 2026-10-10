@@ -121,7 +121,7 @@ async function loadGallery() {
 
     if (hotelRoomImages.length > 0) {
       // Merge active hotel room photos with facilities, restaurant, outdoor
-      const otherCategories = defaultGalleryItems.filter(item => item.category !== 'Rooms')
+      const otherCategories = defaultGalleryItems.filter((item) => item.category !== 'Rooms')
       galleryItems.value = [...hotelRoomImages, ...otherCategories]
     } else {
       galleryItems.value = defaultGalleryItems
@@ -138,11 +138,13 @@ onMounted(() => {
   loadGallery()
 })
 
-watch(() => guestHotelStore.hotelId, () => {
-  loadGallery()
-})
+watch(
+  () => guestHotelStore.hotelId,
+  () => {
+    loadGallery()
+  },
+)
 </script>
-
 
 <template>
   <GuestLayout>

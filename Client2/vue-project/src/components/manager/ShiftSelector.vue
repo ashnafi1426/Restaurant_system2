@@ -9,11 +9,7 @@
         class="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
       >
         <option value="">{{ placeholder }}</option>
-        <option
-          v-for="shift in shifts"
-          :key="shift.id"
-          :value="shift.id"
-        >
+        <option v-for="shift in shifts" :key="shift.id" :value="shift.id">
           {{ shift.name }} ({{ shift.start_time }} - {{ shift.end_time }})
         </option>
       </select>
@@ -21,12 +17,13 @@
 
     <div v-if="selectedShiftDetails" class="mt-2 rounded-md bg-blue-50 p-2 text-sm text-gray-600">
       <p><strong>Shift:</strong> {{ selectedShiftDetails.name }}</p>
-      <p><strong>Duration:</strong> {{ selectedShiftDetails.start_time }} - {{ selectedShiftDetails.end_time }}</p>
+      <p>
+        <strong>Duration:</strong> {{ selectedShiftDetails.start_time }} -
+        {{ selectedShiftDetails.end_time }}
+      </p>
     </div>
 
-    <div v-if="loading" class="mt-1 text-xs text-gray-500">
-      Loading shifts...
-    </div>
+    <div v-if="loading" class="mt-1 text-xs text-gray-500">Loading shifts...</div>
     <div v-if="error" class="mt-1 text-xs text-red-500">
       {{ error }}
     </div>
@@ -72,7 +69,7 @@ const selectedShift = computed({
 })
 
 const selectedShiftDetails = computed(() => {
-  return shifts.value.find(s => s.id === Number(props.modelValue))
+  return shifts.value.find((s) => s.id === Number(props.modelValue))
 })
 
 onMounted(async () => {

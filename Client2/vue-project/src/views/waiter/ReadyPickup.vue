@@ -58,17 +58,22 @@ const selectedType = ref('all')
 const getOrderTableNumber = (order: ReadyOrder) => order.table_number || order.table?.table_number
 const getOrderRoomNumber = (order: ReadyOrder) => {
   if (order.room_number && order.room_number !== 'Room Service') return order.room_number
-  if (order.room?.room_number && order.room.room_number !== 'Room Service') return order.room.room_number
+  if (order.room?.room_number && order.room.room_number !== 'Room Service')
+    return order.room.room_number
   return null
 }
 const isTableOrder = (order: ReadyOrder) => {
-  return Boolean(getOrderTableNumber(order)) || 
-    Boolean(order.is_table_order) || 
-    order.order_type === 'dine_in' || 
+  return (
+    Boolean(getOrderTableNumber(order)) ||
+    Boolean(order.is_table_order) ||
+    order.order_type === 'dine_in' ||
     order.order_type === 'walk_in'
+  )
 }
-const getOrderGuestName = (order: ReadyOrder) => order.guest_name || order.guest?.full_name || languageStore.t('guest', 'Guest')
-const getOrderReference = (order: ReadyOrder) => order.order_number || order.order_id || String(order.id).substring(0, 8)
+const getOrderGuestName = (order: ReadyOrder) =>
+  order.guest_name || order.guest?.full_name || languageStore.t('guest', 'Guest')
+const getOrderReference = (order: ReadyOrder) =>
+  order.order_number || order.order_id || String(order.id).substring(0, 8)
 const getOrderItemsCount = (order: ReadyOrder) => {
   if (typeof order.items === 'number') return order.items
   if (Array.isArray(order.items)) return order.items.length
@@ -96,7 +101,13 @@ const filteredOrders = computed(() => {
       const guestName = String(getOrderGuestName(order)).toLowerCase()
       const dest = String(order.destination || '').toLowerCase()
 
-      if (!orderRef.includes(query) && !roomNum.includes(query) && !tableNum.includes(query) && !guestName.includes(query) && !dest.includes(query)) {
+      if (
+        !orderRef.includes(query) &&
+        !roomNum.includes(query) &&
+        !tableNum.includes(query) &&
+        !guestName.includes(query) &&
+        !dest.includes(query)
+      ) {
         return false
       }
     }
@@ -113,7 +124,9 @@ const paginatedOrders = computed(() => {
   return filteredOrders.value.slice(start, start + itemsPerPage.value)
 })
 
-const showingFrom = computed(() => (total.value === 0 ? 0 : (currentPage.value - 1) * itemsPerPage.value + 1))
+const showingFrom = computed(() =>
+  total.value === 0 ? 0 : (currentPage.value - 1) * itemsPerPage.value + 1,
+)
 const showingTo = computed(() => Math.min(currentPage.value * itemsPerPage.value, total.value))
 
 const paginationPages = computed(() => {
@@ -200,26 +213,45 @@ watch(() => hotelStore.hotelId, loadOrders)
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+      >
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md flex-shrink-0 text-white">
+          <div
+            class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md flex-shrink-0 text-white"
+          >
             <Clock class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{{ languageStore.t('ready_for_pickup', 'Ready for Pickup') }}</h1>
-              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                {{ languageStore.t('ready_for_pickup', 'Ready for Pickup') }}
+              </h1>
+              <span
+                v-if="hotelStore.hotelName"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
+              >
                 <Building2 class="w-3 h-3" />
                 {{ hotelStore.hotelName }}
               </span>
             </div>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('ready_pickup_sub', 'Orders cooked and prepared by kitchen, ready to be collected.') }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {{
+                languageStore.t(
+                  'ready_pickup_sub',
+                  'Orders cooked and prepared by kitchen, ready to be collected.',
+                )
+              }}
+            </p>
           </div>
         </div>
 
         <div class="flex items-center gap-2">
-          <div class="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-extrabold text-xs sm:text-sm">
-            {{ languageStore.t('ready_for_pickup', 'Ready') }}: {{ orders.length }} {{ languageStore.t('orders', 'Orders') }}
+          <div
+            class="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-extrabold text-xs sm:text-sm"
+          >
+            {{ languageStore.t('ready_for_pickup', 'Ready') }}: {{ orders.length }}
+            {{ languageStore.t('orders', 'Orders') }}
           </div>
         </div>
       </div>
@@ -229,11 +261,18 @@ watch(() => hotelStore.hotelId, loadOrders)
       >
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
           <div class="relative flex-1">
-            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <Search
+              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+            />
             <input
               v-model="searchQuery"
               type="text"
-              :placeholder="languageStore.t('search_ready_orders_placeholder', 'Search ready orders by #, room, or guest...')"
+              :placeholder="
+                languageStore.t(
+                  'search_ready_orders_placeholder',
+                  'Search ready orders by #, room, or guest...',
+                )
+              "
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 dark:focus:border-amber-400 transition outline-none"
             />
           </div>
@@ -245,12 +284,16 @@ watch(() => hotelStore.hotelId, loadOrders)
             :class="[
               isFilterOpen
                 ? 'bg-amber-600/10 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-500/40'
-                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
             <X v-if="isFilterOpen" class="w-4 h-4" />
             <Filter v-else class="w-4 h-4" />
-            <span>{{ isFilterOpen ? languageStore.t('hide_filter', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
+            <span>{{
+              isFilterOpen
+                ? languageStore.t('hide_filter', 'Hide Filter')
+                : languageStore.t('filter', 'Filter')
+            }}</span>
           </button>
         </div>
 
@@ -298,9 +341,13 @@ watch(() => hotelStore.hotelId, loadOrders)
                 v-model="selectedType"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 dark:focus:border-amber-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="all">{{ languageStore.t('all_pickup_orders', 'All Pickup Orders') }}</option>
+                <option value="all">
+                  {{ languageStore.t('all_pickup_orders', 'All Pickup Orders') }}
+                </option>
                 <option value="room">{{ languageStore.t('room_service', 'Room Service') }}</option>
-                <option value="walk_in">{{ languageStore.t('takeout_table', 'Takeout / Table') }}</option>
+                <option value="walk_in">
+                  {{ languageStore.t('takeout_table', 'Takeout / Table') }}
+                </option>
               </select>
             </div>
 
@@ -318,17 +365,31 @@ watch(() => hotelStore.hotelId, loadOrders)
         </div>
       </Transition>
 
-      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
+      <div
+        class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
+      >
         <div class="hidden md:block overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
-            <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+            <thead
+              class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
+            >
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-                <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('order_ref', 'Order Ref') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('guest_name', 'Guest Name') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('destination', 'Room / Destination') }}</th>
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">
+                  {{ languageStore.t('order_ref', 'Order Ref') }}
+                </th>
+                <th class="py-3 px-4 whitespace-nowrap">
+                  {{ languageStore.t('guest_name', 'Guest Name') }}
+                </th>
+                <th class="py-3 px-4 whitespace-nowrap">
+                  {{ languageStore.t('destination', 'Room / Destination') }}
+                </th>
                 <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('items', 'Items') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('special_requests', 'Special Requests') }}</th>
-                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">{{ languageStore.t('actions', 'Action') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">
+                  {{ languageStore.t('special_requests', 'Special Requests') }}
+                </th>
+                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">
+                  {{ languageStore.t('actions', 'Action') }}
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
@@ -336,7 +397,9 @@ watch(() => hotelStore.hotelId, loadOrders)
                 <td colspan="6" class="px-6 py-16 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
                     <Loader2 class="w-8 h-8 text-emerald-600 dark:text-emerald-400 animate-spin" />
-                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_pickup_orders', 'Loading orders ready for pickup...') }}</span>
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{
+                      languageStore.t('loading_pickup_orders', 'Loading orders ready for pickup...')
+                    }}</span>
                   </div>
                 </td>
               </tr>
@@ -347,11 +410,15 @@ watch(() => hotelStore.hotelId, loadOrders)
                   :key="order.id"
                   class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
                 >
-                  <td class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs">
+                  <td
+                    class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs"
+                  >
                     #{{ getOrderReference(order) }}
                   </td>
 
-                  <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white">
+                  <td
+                    class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white"
+                  >
                     {{ getOrderGuestName(order) }}
                   </td>
 
@@ -362,7 +429,9 @@ watch(() => hotelStore.hotelId, loadOrders)
                     >
                       <UtensilsCrossed class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                       {{ languageStore.t('table', 'Table') }} {{ getOrderTableNumber(order) }}
-                      <span v-if="order.table_section" class="text-[10px] font-normal opacity-80">({{ order.table_section }})</span>
+                      <span v-if="order.table_section" class="text-[10px] font-normal opacity-80"
+                        >({{ order.table_section }})</span
+                      >
                     </span>
                     <span
                       v-else-if="getOrderRoomNumber(order)"
@@ -403,7 +472,10 @@ watch(() => hotelStore.hotelId, loadOrders)
                 </tr>
 
                 <tr v-if="paginatedOrders.length === 0">
-                  <td colspan="6" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
+                  <td
+                    colspan="6"
+                    class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
+                  >
                     {{ languageStore.t('no_pickup_orders', 'No orders ready for pickup.') }}
                   </td>
                 </tr>
@@ -413,9 +485,14 @@ watch(() => hotelStore.hotelId, loadOrders)
         </div>
 
         <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-          <div v-if="loading" class="py-12 text-center flex flex-col items-center justify-center gap-3">
+          <div
+            v-if="loading"
+            class="py-12 text-center flex flex-col items-center justify-center gap-3"
+          >
             <Loader2 class="w-8 h-8 text-emerald-600 dark:text-emerald-400 animate-spin" />
-            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_pickup_orders', 'Loading orders ready for pickup...') }}</span>
+            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{
+              languageStore.t('loading_pickup_orders', 'Loading orders ready for pickup...')
+            }}</span>
           </div>
           <template v-else>
             <div
@@ -435,13 +512,21 @@ watch(() => hotelStore.hotelId, loadOrders)
                   {{ languageStore.t('pickup', 'Pickup') }}
                 </button>
               </div>
-              <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+              <div
+                class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400"
+              >
                 <span>{{ getOrderGuestName(order) }}</span>
-                <span v-if="getOrderTableNumber(order)" class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <span
+                  v-if="getOrderTableNumber(order)"
+                  class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1"
+                >
                   <UtensilsCrossed class="w-3 h-3" />
                   {{ languageStore.t('table', 'Table') }} {{ getOrderTableNumber(order) }}
                 </span>
-                <span v-else-if="getOrderRoomNumber(order)" class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                <span
+                  v-else-if="getOrderRoomNumber(order)"
+                  class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1"
+                >
                   <BedDouble class="w-3 h-3" />
                   {{ languageStore.t('room', 'Room') }} {{ getOrderRoomNumber(order) }}
                 </span>
@@ -450,7 +535,10 @@ watch(() => hotelStore.hotelId, loadOrders)
                 </span>
               </div>
             </div>
-            <div v-if="paginatedOrders.length === 0" class="p-8 text-center text-slate-500 text-xs font-bold">
+            <div
+              v-if="paginatedOrders.length === 0"
+              class="p-8 text-center text-slate-500 text-xs font-bold"
+            >
               {{ languageStore.t('no_pickup_orders', 'No orders ready for pickup.') }}
             </div>
           </template>
@@ -461,14 +549,20 @@ watch(() => hotelStore.hotelId, loadOrders)
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
           <div class="text-slate-500 dark:text-slate-400 font-medium">
-            {{ languageStore.t('showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> {{ languageStore.t('orders', 'orders') }}
+            {{ languageStore.t('showing', 'Showing') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
+            {{ languageStore.t('to', 'to') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span>
+            {{ languageStore.t('of', 'of') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span>
+            {{ languageStore.t('orders', 'orders') }}
           </div>
 
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="flex items-center gap-1.5">
-              <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page:') }}</span>
+              <span class="text-slate-500 dark:text-slate-400 font-medium">{{
+                languageStore.t('per_page', 'Per page:')
+              }}</span>
               <select
                 v-model.number="itemsPerPage"
                 class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none"
@@ -496,7 +590,7 @@ watch(() => hotelStore.hotelId, loadOrders)
                 :class="[
                   currentPage === page
                     ? 'bg-amber-600 text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
                 ]"
               >
                 {{ page }}

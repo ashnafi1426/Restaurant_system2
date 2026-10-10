@@ -58,7 +58,7 @@ export const waiterProfileService = {
     const formData = new FormData()
     formData.append('photo', file)
     const response = await axios.post('/waiter/profile/photo', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
     })
     return response.data.data
   },
@@ -70,5 +70,5 @@ export const waiterProfileService = {
   async getStats(): Promise<WaiterStats> {
     const response = await axios.get('/waiter/profile/stats')
     return response.data.data
-  }
+  },
 }

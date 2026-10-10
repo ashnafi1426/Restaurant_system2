@@ -160,7 +160,7 @@ watch(
       checkOutDate.value = nextDay.toISOString().split('T')[0]
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 </script>
 
@@ -195,9 +195,14 @@ watch(
             type="date"
             :min="setMinimumDate(1)"
             class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
-            :class="checkInDate && checkOutDate && !isValidDateRange ? 'border-red-300 bg-red-50' : ''"
+            :class="
+              checkInDate && checkOutDate && !isValidDateRange ? 'border-red-300 bg-red-50' : ''
+            "
           />
-          <p v-if="checkInDate && checkOutDate && !isValidDateRange" class="text-xs text-red-600 flex items-center gap-1">
+          <p
+            v-if="checkInDate && checkOutDate && !isValidDateRange"
+            class="text-xs text-red-600 flex items-center gap-1"
+          >
             <AlertCircle class="w-3 h-3" />
             Must be after check-in
           </p>
@@ -262,13 +267,19 @@ watch(
         </button>
       </div>
 
-      <div v-if="!canSearch && (checkInDate || checkOutDate || numberOfGuests)" class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+      <div
+        v-if="!canSearch && (checkInDate || checkOutDate || numberOfGuests)"
+        class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800"
+      >
         Please fill in all fields with valid dates to search for available rooms.
       </div>
     </div>
 
     <div v-if="hasSearched" class="space-y-4">
-      <div v-if="availabilityError" class="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+      <div
+        v-if="availabilityError"
+        class="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3"
+      >
         <AlertCircle class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
         <div>
           <p class="font-semibold text-red-900">No Availability</p>
@@ -286,7 +297,11 @@ watch(
             v-for="room in availableRooms"
             :key="room.id"
             class="bg-white border-2 rounded-xl p-5 hover:border-amber-500 hover:shadow-lg transition-all cursor-pointer"
-            :class="selectedRoomId === room.id ? 'border-amber-500 bg-amber-50 shadow-lg' : 'border-slate-200'"
+            :class="
+              selectedRoomId === room.id
+                ? 'border-amber-500 bg-amber-50 shadow-lg'
+                : 'border-slate-200'
+            "
             @click="selectRoom(room)"
           >
             <div class="flex items-start justify-between mb-4">
@@ -294,7 +309,9 @@ watch(
                 <h4 class="font-bold text-slate-900 text-lg">
                   {{ room.room_type?.name || 'Standard Room' }}
                 </h4>
-                <p class="text-sm text-slate-500">Room #{{ room.room_number }} • Floor {{ room.floor }}</p>
+                <p class="text-sm text-slate-500">
+                  Room #{{ room.room_number }} • Floor {{ room.floor }}
+                </p>
               </div>
               <div class="text-right">
                 <p class="text-2xl font-bold text-amber-600">
@@ -312,18 +329,26 @@ watch(
 
               <div class="bg-amber-50 rounded-lg p-3 space-y-1">
                 <div class="flex justify-between text-sm">
-                  <span class="text-slate-600">{{ numberOfNights }} night{{ numberOfNights !== 1 ? 's' : '' }}:</span>
+                  <span class="text-slate-600"
+                    >{{ numberOfNights }} night{{ numberOfNights !== 1 ? 's' : '' }}:</span
+                  >
                   <span class="font-semibold text-slate-900">
                     ETB {{ (room.room_type?.base_price_per_night || 0) * numberOfNights }}
                   </span>
                 </div>
                 <div class="flex justify-between text-xs text-slate-500">
-                  <span>(ETB {{ room.room_type?.base_price_per_night || 0 }} × {{ numberOfNights }})</span>
+                  <span
+                    >(ETB {{ room.room_type?.base_price_per_night || 0 }} ×
+                    {{ numberOfNights }})</span
+                  >
                 </div>
               </div>
             </div>
 
-            <div v-if="room.room_type?.amenities && room.room_type.amenities.length > 0" class="mb-4">
+            <div
+              v-if="room.room_type?.amenities && room.room_type.amenities.length > 0"
+              class="mb-4"
+            >
               <p class="text-xs font-semibold text-slate-700 mb-2">Amenities:</p>
               <div class="flex flex-wrap gap-1.5">
                 <span
@@ -334,10 +359,7 @@ watch(
                   <CheckCircle class="w-3 h-3 text-emerald-500" />
                   {{ amenity }}
                 </span>
-                <span
-                  v-if="room.room_type.amenities.length > 3"
-                  class="text-xs text-slate-400"
-                >
+                <span v-if="room.room_type.amenities.length > 3" class="text-xs text-slate-400">
                   +{{ room.room_type.amenities.length - 3 }}
                 </span>
               </div>
@@ -358,7 +380,10 @@ watch(
       </div>
     </div>
 
-    <div v-if="!hasSearched && props.qrToken" class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+    <div
+      v-if="!hasSearched && props.qrToken"
+      class="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3"
+    >
       <AlertCircle class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
       <div class="text-sm text-blue-800">
         <p class="font-semibold">Select your dates and number of guests to check availability</p>

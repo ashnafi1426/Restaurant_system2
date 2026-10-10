@@ -11,7 +11,7 @@ import {
   AlertCircle,
   ToggleLeft,
   ToggleRight,
-  UserCheck
+  UserCheck,
 } from 'lucide-vue-next'
 import api from '@/api/auth'
 import { useHotelStore } from '@/stores/hotelStore'
@@ -65,18 +65,20 @@ const getWaiterName = (w: any): string => {
 
 // Computed
 const currentFloor = computed(() => {
-  return availableFloors.value.find(f => String(f.id) === String(selectedFloorId.value)) || {
-    id: props.floorId,
-    name: props.floorName || 'Selected Floor',
-    floor_number: ''
-  }
+  return (
+    availableFloors.value.find((f) => String(f.id) === String(selectedFloorId.value)) || {
+      id: props.floorId,
+      name: props.floorName || 'Selected Floor',
+      floor_number: '',
+    }
+  )
 })
 
 const filteredWaiters = computed(() => {
   let list = waiters.value
   if (waiterSearch.value.trim()) {
     const q = waiterSearch.value.toLowerCase().trim()
-    list = list.filter(w => {
+    list = list.filter((w) => {
       const name = getWaiterName(w).toLowerCase()
       const email = (w.user?.email || w.email || '').toLowerCase()
       const section = (w.section || '').toLowerCase()
@@ -88,7 +90,7 @@ const filteredWaiters = computed(() => {
 })
 
 const selectedWaitersList = computed(() => {
-  return waiters.value.filter(w => selectedWaiterIds.value.includes(w.id))
+  return waiters.value.filter((w) => selectedWaiterIds.value.includes(w.id))
 })
 
 const isFormValid = computed(() => {
@@ -110,7 +112,7 @@ const loadFloors = async () => {
     console.warn('[AddStaffToFloorModal] Fallback to props floors:', err?.message)
   }
 
-  if (props.floorId && !availableFloors.value.some(f => String(f.id) === String(props.floorId))) {
+  if (props.floorId && !availableFloors.value.some((f) => String(f.id) === String(props.floorId))) {
     availableFloors.value.unshift({
       id: props.floorId,
       name: props.floorName || 'Selected Floor',
@@ -121,9 +123,10 @@ const loadFloors = async () => {
 
 const loadWaiters = async () => {
   try {
-    const targetHotelId = props.hotelId || hotelStore.hotelId || localStorage.getItem('hotel_id') || ''
+    const targetHotelId =
+      props.hotelId || hotelStore.hotelId || localStorage.getItem('hotel_id') || ''
     const response = await api.get('/manager/waiters', {
-      params: targetHotelId ? { hotel_id: targetHotelId } : {}
+      params: targetHotelId ? { hotel_id: targetHotelId } : {},
     })
     const data = response.data?.data || response.data
     const all = Array.isArray(data) ? data : []
@@ -145,11 +148,11 @@ const toggleWaiter = (waiterId: string | number) => {
 }
 
 const removeWaiter = (waiterId: string | number) => {
-  selectedWaiterIds.value = selectedWaiterIds.value.filter(id => id !== waiterId)
+  selectedWaiterIds.value = selectedWaiterIds.value.filter((id) => id !== waiterId)
 }
 
 const selectAllWaiters = () => {
-  selectedWaiterIds.value = filteredWaiters.value.map(w => w.id)
+  selectedWaiterIds.value = filteredWaiters.value.map((w) => w.id)
 }
 
 const clearAllWaiters = () => {
@@ -171,7 +174,7 @@ const handleAssign = async () => {
     const targetStatus = isActive.value ? 'active' : 'inactive'
 
     // Build assignment array for all selected waiters
-    const assignmentsPayload = selectedWaiterIds.value.map(waiterId => ({
+    const assignmentsPayload = selectedWaiterIds.value.map((waiterId) => ({
       waiter_id: Number(waiterId),
       floor_id: targetFloorId,
       shift_id: null,
@@ -190,7 +193,8 @@ const handleAssign = async () => {
       return
     }
 
-    const floorDisplayName = currentFloor.value.name || `Floor #${currentFloor.value.floor_number || ''}`
+    const floorDisplayName =
+      currentFloor.value.name || `Floor #${currentFloor.value.floor_number || ''}`
     const count = selectedWaiterIds.value.length
     successMessage.value = `${count} waiter${count > 1 ? 's' : ''} assigned to ${floorDisplayName} successfully!`
 
@@ -223,17 +227,24 @@ const handleClose = () => {
 }
 
 // Watchers
-watch(() => props.floorId, (newFloorId) => {
-  if (newFloorId) {
-    selectedFloorId.value = newFloorId
-  }
-})
+watch(
+  () => props.floorId,
+  (newFloorId) => {
+    if (newFloorId) {
+      selectedFloorId.value = newFloorId
+    }
+  },
+)
 
-watch(() => props.floors, (newFloors) => {
-  if (newFloors && newFloors.length > 0) {
-    availableFloors.value = newFloors
-  }
-}, { immediate: true })
+watch(
+  () => props.floors,
+  (newFloors) => {
+    if (newFloors && newFloors.length > 0) {
+      availableFloors.value = newFloors
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(async () => {
   isLoading.value = true
@@ -253,9 +264,13 @@ onMounted(async () => {
       class="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col border border-slate-200 dark:border-slate-800 overflow-hidden font-sans"
     >
       <!-- Modal Header -->
-      <div class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0 bg-white dark:bg-slate-900">
+      <div
+        class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-shrink-0 bg-white dark:bg-slate-900"
+      >
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center font-bold flex-shrink-0">
+          <div
+            class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center font-bold flex-shrink-0"
+          >
             <Building2 class="w-5 h-5" />
           </div>
           <div>
@@ -300,13 +315,17 @@ onMounted(async () => {
         <!-- Loading Spinner -->
         <div v-if="isLoading" class="flex flex-col items-center justify-center py-12 gap-3">
           <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-          <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Loading floors & staff...</p>
+          <p class="text-xs font-bold text-slate-500 dark:text-slate-400">
+            Loading floors & staff...
+          </p>
         </div>
 
         <div v-else class="space-y-5">
           <!-- 1. FLOOR REQUIRED -->
           <div>
-            <label class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+            <label
+              class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5"
+            >
               Floor <span class="text-rose-500">*</span>
             </label>
             <div class="relative">
@@ -315,15 +334,15 @@ onMounted(async () => {
                 class="w-full appearance-none px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-xs sm:text-sm font-bold focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer pr-10"
               >
                 <option value="" disabled>-- Select Floor --</option>
-                <option
-                  v-for="floor in availableFloors"
-                  :key="floor.id"
-                  :value="floor.id"
-                >
-                  {{ floor.name || `Floor ${floor.floor_number}` }} (Floor #{{ floor.floor_number }})
+                <option v-for="floor in availableFloors" :key="floor.id" :value="floor.id">
+                  {{ floor.name || `Floor ${floor.floor_number}` }} (Floor #{{
+                    floor.floor_number
+                  }})
                 </option>
               </select>
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+              <div
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400"
+              >
                 <span class="text-xs font-bold">▼</span>
               </div>
             </div>
@@ -335,7 +354,9 @@ onMounted(async () => {
           <!-- 2. WAITERS REQUIRED -->
           <div>
             <div class="flex items-center justify-between mb-1.5">
-              <label class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+              <label
+                class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400"
+              >
                 Waiters <span class="text-rose-500">*</span>
               </label>
               <div class="flex items-center gap-2 text-[10px]">
@@ -380,9 +401,15 @@ onMounted(async () => {
             </div>
 
             <!-- Waiter Search & Selection Box -->
-            <div class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-slate-950">
-              <div class="relative border-b border-slate-100 dark:border-slate-800 px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50">
-                <Search class="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <div
+              class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-slate-950"
+            >
+              <div
+                class="relative border-b border-slate-100 dark:border-slate-800 px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50"
+              >
+                <Search
+                  class="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                />
                 <input
                   v-model="waiterSearch"
                   type="text"
@@ -392,8 +419,13 @@ onMounted(async () => {
               </div>
 
               <!-- Scrollable Waiter Checkbox List -->
-              <div class="max-h-48 overflow-y-auto p-1.5 divide-y divide-slate-100 dark:divide-slate-850">
-                <div v-if="filteredWaiters.length === 0" class="py-6 text-center text-xs text-slate-400 italic">
+              <div
+                class="max-h-48 overflow-y-auto p-1.5 divide-y divide-slate-100 dark:divide-slate-850"
+              >
+                <div
+                  v-if="filteredWaiters.length === 0"
+                  class="py-6 text-center text-xs text-slate-400 italic"
+                >
                   No waiters found
                 </div>
 
@@ -402,7 +434,9 @@ onMounted(async () => {
                   :key="waiter.id"
                   @click="toggleWaiter(waiter.id)"
                   class="flex items-center justify-between p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-900 cursor-pointer transition select-none"
-                  :class="{ 'bg-blue-50/50 dark:bg-blue-950/20': selectedWaiterIds.includes(waiter.id) }"
+                  :class="{
+                    'bg-blue-50/50 dark:bg-blue-950/20': selectedWaiterIds.includes(waiter.id),
+                  }"
                 >
                   <div class="flex items-center gap-2.5 min-w-0">
                     <!-- Checkbox -->
@@ -411,14 +445,19 @@ onMounted(async () => {
                       :class="[
                         selectedWaiterIds.includes(waiter.id)
                           ? 'bg-blue-600 border-blue-600 text-white'
-                          : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900'
+                          : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900',
                       ]"
                     >
-                      <Check v-if="selectedWaiterIds.includes(waiter.id)" class="w-3 h-3 stroke-[3]" />
+                      <Check
+                        v-if="selectedWaiterIds.includes(waiter.id)"
+                        class="w-3 h-3 stroke-[3]"
+                      />
                     </div>
 
                     <!-- Waiter Avatar & Details -->
-                    <div class="w-6 h-6 rounded-full bg-blue-500/10 text-blue-600 font-bold text-[10px] flex items-center justify-center flex-shrink-0">
+                    <div
+                      class="w-6 h-6 rounded-full bg-blue-500/10 text-blue-600 font-bold text-[10px] flex items-center justify-center flex-shrink-0"
+                    >
                       {{ (getWaiterName(waiter) || 'W').charAt(0).toUpperCase() }}
                     </div>
 
@@ -428,7 +467,10 @@ onMounted(async () => {
                       </div>
                       <div class="text-[10px] text-slate-400 truncate">
                         {{ waiter.user?.email || waiter.email || 'Staff' }}
-                        <span v-if="waiter.section && waiter.section !== 'All Sections'" class="ml-1 text-slate-500">
+                        <span
+                          v-if="waiter.section && waiter.section !== 'All Sections'"
+                          class="ml-1 text-slate-500"
+                        >
                           • {{ waiter.section }}
                         </span>
                       </div>
@@ -441,7 +483,7 @@ onMounted(async () => {
                       :class="[
                         (waiter.status || 'active').toLowerCase() === 'active'
                           ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                          : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                          : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
                       ]"
                     >
                       {{ waiter.status || 'Active' }}
@@ -451,18 +493,27 @@ onMounted(async () => {
               </div>
             </div>
             <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
-              Select multiple waiters. Workload balancing will auto-select the lowest workload waiter.
+              Select multiple waiters. Workload balancing will auto-select the lowest workload
+              waiter.
             </p>
           </div>
 
           <!-- 3. ACTIVE REQUIRED -->
-          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div
+            class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          >
             <div>
-              <div class="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+              <div
+                class="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5"
+              >
                 <span>Active Status</span>
                 <span
                   class="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                  :class="isActive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400'"
+                  :class="
+                    isActive
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                      : 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                  "
                 >
                   {{ isActive ? 'ON' : 'OFF' }}
                 </span>
@@ -489,7 +540,9 @@ onMounted(async () => {
       </div>
 
       <!-- Modal Footer -->
-      <div class="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 flex-shrink-0 flex items-center justify-end gap-3">
+      <div
+        class="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 flex-shrink-0 flex items-center justify-end gap-3"
+      >
         <button
           type="button"
           @click="handleClose"
@@ -506,7 +559,13 @@ onMounted(async () => {
           <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
           <UserCheck v-else class="w-4 h-4" />
           <span>
-            {{ isSubmitting ? 'Assigning...' : (selectedWaiterIds.length > 1 ? `Assign ${selectedWaiterIds.length} Waiters` : 'Assign Waiter') }}
+            {{
+              isSubmitting
+                ? 'Assigning...'
+                : selectedWaiterIds.length > 1
+                  ? `Assign ${selectedWaiterIds.length} Waiters`
+                  : 'Assign Waiter'
+            }}
           </span>
         </button>
       </div>

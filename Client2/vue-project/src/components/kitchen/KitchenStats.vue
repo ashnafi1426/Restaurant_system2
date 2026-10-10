@@ -8,7 +8,9 @@
         stat.color,
       ]"
     >
-      <p class="text-[11px] font-black uppercase tracking-wider opacity-80">{{ languageStore.t(stat.labelKey, stat.label) }}</p>
+      <p class="text-[11px] font-black uppercase tracking-wider opacity-80">
+        {{ languageStore.t(stat.labelKey, stat.label) }}
+      </p>
       <div class="mt-2 flex items-end justify-between">
         <p class="text-2xl sm:text-3xl font-black">
           {{ getStatValue(stat.key) }}
@@ -35,7 +37,8 @@ const stats = [
     label: 'PENDING',
     labelKey: 'pending',
     key: 'pending_orders',
-    color: 'border-amber-500 bg-amber-500/10 text-amber-900 dark:text-amber-300 border-amber-500/30',
+    color:
+      'border-amber-500 bg-amber-500/10 text-amber-900 dark:text-amber-300 border-amber-500/30',
     icon: Clock,
     iconColor: 'text-amber-500',
   },
@@ -51,7 +54,8 @@ const stats = [
     label: 'READY',
     labelKey: 'ready',
     key: 'ready_orders',
-    color: 'border-emerald-500 bg-emerald-500/10 text-emerald-900 dark:text-emerald-300 border-emerald-500/30',
+    color:
+      'border-emerald-500 bg-emerald-500/10 text-emerald-900 dark:text-emerald-300 border-emerald-500/30',
     icon: CheckCircle,
     iconColor: 'text-emerald-500',
   },
@@ -59,7 +63,8 @@ const stats = [
     label: 'SERVED',
     labelKey: 'served',
     key: 'served_orders',
-    color: 'border-slate-400 bg-slate-500/10 text-slate-900 dark:text-slate-300 border-slate-500/30',
+    color:
+      'border-slate-400 bg-slate-500/10 text-slate-900 dark:text-slate-300 border-slate-500/30',
     icon: UtensilsCrossed,
     iconColor: 'text-slate-400',
   },

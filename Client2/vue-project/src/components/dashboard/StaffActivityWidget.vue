@@ -55,7 +55,9 @@ const formatTime = (timestamp: string) => {
         <h3 class="text-xl sm:text-2xl font-bold text-slate-900 uppercase tracking-wide">
           {{ languageStore.t('staff_activity', 'Staff Activity') }}
         </h3>
-        <p class="text-sm text-slate-600 mt-1">{{ languageStore.t('staff_activity_desc', 'Recent staff actions and updates') }}</p>
+        <p class="text-sm text-slate-600 mt-1">
+          {{ languageStore.t('staff_activity_desc', 'Recent staff actions and updates') }}
+        </p>
       </div>
       <router-link
         to="/admin/activity"
@@ -97,8 +99,12 @@ const formatTime = (timestamp: string) => {
             />
           </svg>
         </div>
-        <p class="text-slate-600 font-medium">{{ languageStore.t('no_recent_activity', 'No recent activity') }}</p>
-        <p class="text-sm text-slate-500 mt-1">{{ languageStore.t('activity_appear_here', 'Activity will appear here') }}</p>
+        <p class="text-slate-600 font-medium">
+          {{ languageStore.t('no_recent_activity', 'No recent activity') }}
+        </p>
+        <p class="text-sm text-slate-500 mt-1">
+          {{ languageStore.t('activity_appear_here', 'Activity will appear here') }}
+        </p>
       </div>
     </div>
 

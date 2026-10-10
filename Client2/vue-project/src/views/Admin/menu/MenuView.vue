@@ -43,12 +43,16 @@ function filterByCategory(category: string | null) {
 }
 
 function navigateToCreate() {
-  const isMenuMgmt = route.path.startsWith('/menu-management') || (!authStore.isPlatformAdmin && !authStore.hasRole('admin'))
+  const isMenuMgmt =
+    route.path.startsWith('/menu-management') ||
+    (!authStore.isPlatformAdmin && !authStore.hasRole('admin'))
   router.push(isMenuMgmt ? '/menu-management/add' : '/admin/menu/add')
 }
 
 function editMenu(item: MenuItem) {
-  const isMenuMgmt = route.path.startsWith('/menu-management') || (!authStore.isPlatformAdmin && !authStore.hasRole('admin'))
+  const isMenuMgmt =
+    route.path.startsWith('/menu-management') ||
+    (!authStore.isPlatformAdmin && !authStore.hasRole('admin'))
   const base = isMenuMgmt ? '/menu-management/add' : '/admin/menu/add'
   router.push(`${base}?id=${item.id}`)
 }
@@ -127,7 +131,7 @@ const filteredMenuItems = computed(() => {
     const q = searchQuery.value.toLowerCase().trim()
     list = list.filter((i) => {
       const cat: any = i.category
-      const catName = typeof cat === 'object' ? (cat?.name || '') : String(cat || '')
+      const catName = typeof cat === 'object' ? cat?.name || '' : String(cat || '')
       return (
         (i.name || '').toLowerCase().includes(q) ||
         (i.description || '').toLowerCase().includes(q) ||
@@ -189,14 +193,22 @@ onMounted(async () => {
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
       <!-- Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs">
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
+      >
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-md flex-shrink-0 text-white">
+          <div
+            class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-md flex-shrink-0 text-white"
+          >
             <UtensilsCrossed class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Menu Management</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manage dishes, categories, pricing, and stock availability.</p>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+              Menu Management
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Manage dishes, categories, pricing, and stock availability.
+            </p>
           </div>
         </div>
 
@@ -225,7 +237,9 @@ onMounted(async () => {
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
           <!-- Search Input -->
           <div class="relative flex-1">
-            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <Search
+              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+            />
             <input
               v-model="searchQuery"
               @keyup.enter="loadMenu"
@@ -243,7 +257,7 @@ onMounted(async () => {
             :class="[
               isFilterOpen
                 ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
-                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
@@ -355,7 +369,9 @@ onMounted(async () => {
           v-if="!store.loading && filteredMenuItems.length === 0"
           class="text-center py-12 sm:py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs px-4"
         >
-          <div class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3 border border-indigo-200 dark:border-indigo-500/20">
+          <div
+            class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3 border border-indigo-200 dark:border-indigo-500/20"
+          >
             <Utensils class="w-7 h-7 stroke-[2]" />
           </div>
           <p class="text-lg font-bold text-slate-900 dark:text-white mb-1">No Menu Items Found</p>
@@ -377,9 +393,19 @@ onMounted(async () => {
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
           <div class="text-slate-500 dark:text-slate-400 font-medium">
-            Showing <span class="font-bold text-slate-900 dark:text-white">{{ store.pagination.from || 1 }}</span> to
-            <span class="font-bold text-slate-900 dark:text-white">{{ store.pagination.to || store.menuItems.length }}</span> of
-            <span class="font-bold text-slate-900 dark:text-white">{{ store.pagination.total }}</span> dishes
+            Showing
+            <span class="font-bold text-slate-900 dark:text-white">{{
+              store.pagination.from || 1
+            }}</span>
+            to
+            <span class="font-bold text-slate-900 dark:text-white">{{
+              store.pagination.to || store.menuItems.length
+            }}</span>
+            of
+            <span class="font-bold text-slate-900 dark:text-white">{{
+              store.pagination.total
+            }}</span>
+            dishes
           </div>
 
           <div class="flex items-center gap-2 sm:gap-3">
@@ -413,7 +439,7 @@ onMounted(async () => {
                 :class="[
                   currentPage === page
                     ? 'bg-blue-600 text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
                 ]"
               >
                 {{ page }}

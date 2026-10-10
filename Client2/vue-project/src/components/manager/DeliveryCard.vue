@@ -1,5 +1,7 @@
 <template>
-  <div class="delivery-card rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+  <div
+    class="delivery-card rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow"
+  >
     <div class="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3">
       <div class="flex items-center justify-between">
         <div>
@@ -61,7 +63,9 @@
         </div>
         <div>
           <p class="text-xs text-gray-600 font-medium">Est. Time</p>
-          <p class="text-sm font-semibold text-gray-900">{{ delivery.estimated_time || '15 min' }}</p>
+          <p class="text-sm font-semibold text-gray-900">
+            {{ delivery.estimated_time || '15 min' }}
+          </p>
         </div>
       </div>
 
@@ -135,8 +139,8 @@ interface Props {
 withDefaults(defineProps<Props>(), {})
 
 defineEmits<{
-  'reassign': []
-  'cancel': []
+  reassign: []
+  cancel: []
   'view-details': []
 }>()
 

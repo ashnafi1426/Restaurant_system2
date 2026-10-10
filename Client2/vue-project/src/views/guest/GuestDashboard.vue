@@ -3,8 +3,17 @@
     <div class="max-w-6xl mx-auto px-4">
       <!-- Header -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ languageStore.t('welcome', 'Welcome') }}, {{ currentUser?.first_name }}</h1>
-        <p class="text-gray-600">{{ languageStore.t('manage_reviews_and_account', 'Manage your reviews, orders, and account settings') }}</p>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+          {{ languageStore.t('welcome', 'Welcome') }}, {{ currentUser?.first_name }}
+        </h1>
+        <p class="text-gray-600">
+          {{
+            languageStore.t(
+              'manage_reviews_and_account',
+              'Manage your reviews, orders, and account settings',
+            )
+          }}
+        </p>
       </div>
 
       <!-- Stats Cards -->
@@ -30,7 +39,9 @@
         <div class="bg-white rounded-lg shadow p-6">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-600 text-sm">{{ languageStore.t('pending_approval', 'Pending Approval') }}</p>
+              <p class="text-gray-600 text-sm">
+                {{ languageStore.t('pending_approval', 'Pending Approval') }}
+              </p>
               <p class="text-3xl font-bold text-yellow-600">{{ pendingReviewsCount }}</p>
             </div>
             <div class="text-4xl">⏳</div>
@@ -41,7 +52,9 @@
         <div class="bg-white rounded-lg shadow p-6">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-600 text-sm">{{ languageStore.t('notifications', 'Notifications') }}</p>
+              <p class="text-gray-600 text-sm">
+                {{ languageStore.t('notifications', 'Notifications') }}
+              </p>
               <p class="text-3xl font-bold text-blue-600">{{ unreadNotifications }}</p>
             </div>
             <div class="text-4xl">🔔</div>
@@ -50,7 +63,9 @@
             @click="showNotifications = !showNotifications"
             class="mt-4 w-full text-sm text-blue-600 hover:text-blue-700 font-semibold cursor-pointer"
           >
-            {{ showNotifications ? languageStore.t('hide', 'Hide') : languageStore.t('view', 'View') }}
+            {{
+              showNotifications ? languageStore.t('hide', 'Hide') : languageStore.t('view', 'View')
+            }}
           </button>
         </div>
 
@@ -58,7 +73,9 @@
         <div class="bg-white rounded-lg shadow p-6">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-600 text-sm">{{ languageStore.t('avg_rating_given', 'Avg Rating Given') }}</p>
+              <p class="text-gray-600 text-sm">
+                {{ languageStore.t('avg_rating_given', 'Avg Rating Given') }}
+              </p>
               <div class="flex items-center gap-1 mt-1">
                 <span class="text-2xl font-bold text-green-600">{{ avgRating }}</span>
                 <span class="text-lg text-yellow-400">★</span>
@@ -76,7 +93,9 @@
           <!-- Recent Notifications -->
           <div v-if="showNotifications" class="bg-white rounded-lg shadow">
             <div class="border-b border-gray-200 p-6">
-              <h2 class="text-xl font-bold text-gray-900">{{ languageStore.t('review_notifications', 'Review Notifications') }}</h2>
+              <h2 class="text-xl font-bold text-gray-900">
+                {{ languageStore.t('review_notifications', 'Review Notifications') }}
+              </h2>
             </div>
 
             <div v-if="notificationsLoading" class="p-6">
@@ -86,7 +105,9 @@
             </div>
 
             <div v-else-if="notifications.length === 0" class="p-6 text-center">
-              <p class="text-gray-600">{{ languageStore.t('no_notifications_yet', 'No notifications yet') }}</p>
+              <p class="text-gray-600">
+                {{ languageStore.t('no_notifications_yet', 'No notifications yet') }}
+              </p>
             </div>
 
             <div v-else class="divide-y divide-gray-200">
@@ -106,12 +127,20 @@
                   <!-- Content -->
                   <div class="flex-1 min-w-0">
                     <h3 class="font-semibold text-gray-900">
-                      <span v-if="notification.notification_type === 'new_review'">{{ languageStore.t('new_review_submitted', 'New Review Submitted') }}</span>
-                      <span v-else-if="notification.notification_type === 'review_approved'">{{ languageStore.t('review_approved', 'Review Approved') }}</span>
-                      <span v-else>{{ languageStore.t('review_rejected', 'Review Rejected') }}</span>
+                      <span v-if="notification.notification_type === 'new_review'">{{
+                        languageStore.t('new_review_submitted', 'New Review Submitted')
+                      }}</span>
+                      <span v-else-if="notification.notification_type === 'review_approved'">{{
+                        languageStore.t('review_approved', 'Review Approved')
+                      }}</span>
+                      <span v-else>{{
+                        languageStore.t('review_rejected', 'Review Rejected')
+                      }}</span>
                     </h3>
                     <p class="text-sm text-gray-600 mt-1">{{ notification.message }}</p>
-                    <p class="text-xs text-gray-500 mt-2">{{ formatTime(notification.created_at) }}</p>
+                    <p class="text-xs text-gray-500 mt-2">
+                      {{ formatTime(notification.created_at) }}
+                    </p>
                   </div>
 
                   <!-- Unread Badge -->
@@ -136,7 +165,9 @@
           <!-- Eligible Items for Review -->
           <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center justify-between mb-4">
-              <h2 class="text-xl font-bold text-gray-900">{{ languageStore.t('items_available_to_review', 'Items Available to Review') }}</h2>
+              <h2 class="text-xl font-bold text-gray-900">
+                {{ languageStore.t('items_available_to_review', 'Items Available to Review') }}
+              </h2>
               <span class="text-sm text-gray-600">({{ eligibleItems.length }})</span>
             </div>
 
@@ -145,7 +176,9 @@
             </div>
 
             <div v-else-if="eligibleItems.length === 0" class="text-center py-8">
-              <p class="text-gray-600">{{ languageStore.t('no_items_review_yet', 'No items available for review yet') }}</p>
+              <p class="text-gray-600">
+                {{ languageStore.t('no_items_review_yet', 'No items available for review yet') }}
+              </p>
             </div>
 
             <div v-else class="space-y-3">
@@ -156,7 +189,9 @@
               >
                 <div>
                   <h3 class="font-semibold text-gray-900">{{ item.name }}</h3>
-                  <p class="text-sm text-gray-600">{{ languageStore.t('order_number', 'Order') }} #{{ item.order_number }}</p>
+                  <p class="text-sm text-gray-600">
+                    {{ languageStore.t('order_number', 'Order') }} #{{ item.order_number }}
+                  </p>
                 </div>
                 <button
                   @click="reviewItem(item)"
@@ -172,7 +207,9 @@
                   @click="$router.push('/reviews')"
                   class="w-full text-blue-600 hover:text-blue-700 font-semibold text-sm py-2 cursor-pointer"
                 >
-                  {{ languageStore.t('view_all_items', 'View All Items') }} ({{ eligibleItems.length }})
+                  {{ languageStore.t('view_all_items', 'View All Items') }} ({{
+                    eligibleItems.length
+                  }})
                 </button>
               </div>
             </div>
@@ -183,7 +220,9 @@
         <div class="space-y-6">
           <!-- Quick Actions Card -->
           <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">{{ languageStore.t('quick_actions', 'Quick Actions') }}</h3>
+            <h3 class="text-lg font-bold text-gray-900 mb-4">
+              {{ languageStore.t('quick_actions', 'Quick Actions') }}
+            </h3>
             <div class="space-y-3">
               <button
                 @click="$router.push('/reviews')"
@@ -220,24 +259,39 @@
           </div>
 
           <!-- Reviews Info Card -->
-          <div class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg shadow p-6 border border-purple-200">
-            <h3 class="text-lg font-bold text-gray-900 mb-3">{{ languageStore.t('about_reviews', 'About Reviews') }}</h3>
+          <div
+            class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg shadow p-6 border border-purple-200"
+          >
+            <h3 class="text-lg font-bold text-gray-900 mb-3">
+              {{ languageStore.t('about_reviews', 'About Reviews') }}
+            </h3>
             <ul class="space-y-2 text-sm text-gray-700">
               <li class="flex items-start gap-2">
                 <span class="text-lg text-emerald-600">✓</span>
-                <span>{{ languageStore.t('help_guests_feedback', 'Help other guests with your honest feedback') }}</span>
+                <span>{{
+                  languageStore.t(
+                    'help_guests_feedback',
+                    'Help other guests with your honest feedback',
+                  )
+                }}</span>
               </li>
               <li class="flex items-start gap-2">
                 <span class="text-lg text-emerald-600">✓</span>
-                <span>{{ languageStore.t('earn_badges_reviews', 'Earn badges for helpful reviews') }}</span>
+                <span>{{
+                  languageStore.t('earn_badges_reviews', 'Earn badges for helpful reviews')
+                }}</span>
               </li>
               <li class="flex items-start gap-2">
                 <span class="text-lg text-emerald-600">✓</span>
-                <span>{{ languageStore.t('receive_responses_mgmt', 'Receive responses from management') }}</span>
+                <span>{{
+                  languageStore.t('receive_responses_mgmt', 'Receive responses from management')
+                }}</span>
               </li>
               <li class="flex items-start gap-2">
                 <span class="text-lg text-emerald-600">✓</span>
-                <span>{{ languageStore.t('reviews_moderated_quality', 'Reviews are moderated for quality') }}</span>
+                <span>{{
+                  languageStore.t('reviews_moderated_quality', 'Reviews are moderated for quality')
+                }}</span>
               </li>
             </ul>
           </div>
@@ -282,7 +336,7 @@ const formatTime = (dateString: string) => {
   if (hours < 1) return 'Just now'
   if (hours < 24) return `${hours}h ago`
   if (days < 7) return `${days}d ago`
-  
+
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
@@ -290,7 +344,7 @@ const reviewItem = (item: EligibleMenuItem) => {
   // Navigate to review submission with item pre-filled
   router.push({
     name: 'reviews.index',
-    params: { itemId: item.id }
+    params: { itemId: item.id },
   })
 }
 
@@ -309,7 +363,7 @@ const loadNotifications = async () => {
 
 const loadEligibleItems = async () => {
   if (!currentUser?.id) return
-  
+
   eligibleItemsLoading.value = true
   try {
     eligibleItems.value = await reviewService.getEligibleItems(currentUser.id)
@@ -325,8 +379,10 @@ const loadStats = async () => {
     // This would be calculated from the reviews in the store
     // For now, using placeholder logic
     myReviewsCount.value = reviewStore.guestReviews.length
-    pendingReviewsCount.value = reviewStore.guestReviews.filter(r => r.status === 'pending').length
-    
+    pendingReviewsCount.value = reviewStore.guestReviews.filter(
+      (r) => r.status === 'pending',
+    ).length
+
     if (reviewStore.guestReviews.length > 0) {
       const totalRating = reviewStore.guestReviews.reduce((sum, r) => sum + r.rating, 0)
       avgRating.value = (totalRating / reviewStore.guestReviews.length).toFixed(1)

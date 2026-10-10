@@ -11,7 +11,10 @@ export const useTaxRateStore = defineStore('taxRate', () => {
 
   const activeTaxRates = computed(() => taxRates.value.filter((t) => t.is_active))
   const defaultTaxRate = computed(
-    () => taxRates.value.find((t) => t.is_default && t.is_active) || taxRates.value.find((t) => t.is_active) || null
+    () =>
+      taxRates.value.find((t) => t.is_default && t.is_active) ||
+      taxRates.value.find((t) => t.is_active) ||
+      null,
   )
 
   async function withSaving<T>(action: () => Promise<T>, fallbackMessage: string): Promise<T> {

@@ -42,9 +42,13 @@ const cancel = () => {
   <DashboardLayout>
     <div class="max-w-6xl mx-auto bg-white dark:bg-slate-900 p-6 rounded-lg">
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-white">{{ languageStore.t('create_guest', 'Create Guest') }}</h1>
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
+          {{ languageStore.t('create_guest', 'Create Guest') }}
+        </h1>
 
-        <p class="text-gray-500 dark:text-slate-400 mt-2">{{ languageStore.t('register_new_guest', 'Register a new hotel guest.') }}</p>
+        <p class="text-gray-500 dark:text-slate-400 mt-2">
+          {{ languageStore.t('register_new_guest', 'Register a new hotel guest.') }}
+        </p>
       </div>
 
       <GuestForm

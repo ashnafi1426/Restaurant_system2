@@ -13,7 +13,9 @@ const goBack = () => {
 }
 
 const goHome = () => {
-  const role = String(auth.user?.role || '').toLowerCase().trim()
+  const role = String(auth.user?.role || '')
+    .toLowerCase()
+    .trim()
 
   if (auth.isPlatformAdmin || auth.hasRole('admin') || role === 'admin') {
     router.push('/admin')
@@ -46,21 +48,36 @@ const goHome = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300">
-    <div class="max-w-md w-full text-center space-y-6 bg-white dark:bg-slate-900 p-8 sm:p-10 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl">
-      <div class="w-16 h-16 mx-auto rounded-3xl bg-rose-500/10 dark:bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-600 dark:text-rose-400 shadow-xs">
+  <div
+    class="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300"
+  >
+    <div
+      class="max-w-md w-full text-center space-y-6 bg-white dark:bg-slate-900 p-8 sm:p-10 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl"
+    >
+      <div
+        class="w-16 h-16 mx-auto rounded-3xl bg-rose-500/10 dark:bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-600 dark:text-rose-400 shadow-xs"
+      >
         <ShieldAlert class="w-8 h-8" />
       </div>
 
       <div class="space-y-2">
-        <span class="text-xs font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20">
+        <span
+          class="text-xs font-black uppercase tracking-widest text-rose-600 dark:text-rose-400 bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20"
+        >
           {{ languageStore.t('access_denied_403', '403 Access Denied') }}
         </span>
-        <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white pt-2">
+        <h1
+          class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white pt-2"
+        >
           {{ languageStore.t('unauthorized_access', 'Unauthorized Access') }}
         </h1>
         <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-          {{ languageStore.t('unauthorized_desc', 'You do not possess the required permission or scope to access this page or perform this action. Contact system administrator for authorization.') }}
+          {{
+            languageStore.t(
+              'unauthorized_desc',
+              'You do not possess the required permission or scope to access this page or perform this action. Contact system administrator for authorization.',
+            )
+          }}
         </p>
       </div>
 

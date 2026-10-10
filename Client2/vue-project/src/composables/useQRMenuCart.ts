@@ -42,7 +42,9 @@ export function useQRMenuCart() {
     if (item) {
       const oldQuantity = item.quantity
       item.quantity++
-      console.log(`[useQRMenuCart] Increased ${item.name} quantity from ${oldQuantity} to ${item.quantity}`)
+      console.log(
+        `[useQRMenuCart] Increased ${item.name} quantity from ${oldQuantity} to ${item.quantity}`,
+      )
     }
   }
 
@@ -51,7 +53,9 @@ export function useQRMenuCart() {
     if (item && item.quantity > 1) {
       const oldQuantity = item.quantity
       item.quantity--
-      console.log(`[useQRMenuCart] Decreased ${item.name} quantity from ${oldQuantity} to ${item.quantity}`)
+      console.log(
+        `[useQRMenuCart] Decreased ${item.name} quantity from ${oldQuantity} to ${item.quantity}`,
+      )
     } else if (item) {
       console.log(`[useQRMenuCart] Removing ${item.name} from cart (quantity was 1)`)
       removeFromCart(itemId)

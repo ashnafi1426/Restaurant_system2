@@ -52,14 +52,14 @@ class WaiterManagementService {
     const response = await api.get('/manager/waiters', { params })
     const data = response.data.data || response.data
     const paginationData = response.data.pagination || {
-      total: (Array.isArray(data) ? data.length : 0),
+      total: Array.isArray(data) ? data.length : 0,
       per_page: params?.per_page || 15,
       current_page: 1,
       last_page: 1,
     }
-    
+
     return {
-      data: Array.isArray(data) ? data : (data.data || []),
+      data: Array.isArray(data) ? data : data.data || [],
       pagination: paginationData,
     }
   }
@@ -93,7 +93,7 @@ class WaiterManagementService {
       maximum_orders?: number
       status?: 'active' | 'inactive' | 'suspended'
       availability?: 'available' | 'busy' | 'break' | 'offline'
-    }
+    },
   ): Promise<Waiter> {
     const response = await api.put(`/manager/waiters/${waiterId}`, data)
     return response.data.data
@@ -118,7 +118,7 @@ class WaiterManagementService {
 
   async changeAvailability(
     waiterId: string,
-    availability: 'available' | 'busy' | 'break' | 'offline'
+    availability: 'available' | 'busy' | 'break' | 'offline',
   ): Promise<Waiter> {
     const response = await api.patch(`/manager/waiters/${waiterId}/availability`, {
       availability,

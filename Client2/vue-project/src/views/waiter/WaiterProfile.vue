@@ -2,8 +2,18 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import {
-  Briefcase, Mail, Phone, Save, Lock, Eye, EyeOff,
-  Camera, Clock, CheckCircle, AlertCircle, X
+  Briefcase,
+  Mail,
+  Phone,
+  Save,
+  Lock,
+  Eye,
+  EyeOff,
+  Camera,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  X,
 } from 'lucide-vue-next'
 import api from '@/api/auth'
 import { useLanguageStore } from '@/stores/language'
@@ -51,7 +61,9 @@ let alertTimer: ReturnType<typeof setTimeout> | null = null
 const showAlert = (type: 'success' | 'error', message: string) => {
   if (alertTimer) clearTimeout(alertTimer)
   alert.value = { show: true, type, message }
-  alertTimer = setTimeout(() => { alert.value.show = false }, 5000)
+  alertTimer = setTimeout(() => {
+    alert.value.show = false
+  }, 5000)
 }
 
 onUnmounted(() => {
@@ -94,7 +106,11 @@ const strengthConfig = computed(() => {
     case 3:
       return { bar: 'bg-blue-400', text: 'text-blue-500', label: languageStore.t('good', 'Good') }
     default:
-      return { bar: 'bg-emerald-500', text: 'text-emerald-500', label: languageStore.t('strong', 'Strong') }
+      return {
+        bar: 'bg-emerald-500',
+        text: 'text-emerald-500',
+        label: languageStore.t('strong', 'Strong'),
+      }
   }
 })
 
@@ -183,7 +199,10 @@ const changePassword = async () => {
       const first = Object.values(errors)[0] as string[]
       showAlert('error', first[0])
     } else {
-      showAlert('error', err.response?.data?.message || 'Incorrect current password or server error.')
+      showAlert(
+        'error',
+        err.response?.data?.message || 'Incorrect current password or server error.',
+      )
     }
   } finally {
     changingPw.value = false
@@ -213,16 +232,18 @@ const onPhotoSelected = async (event: Event) => {
   }
 
   const reader = new FileReader()
-  reader.onload = (e) => { photoPreview.value = e.target?.result as string }
+  reader.onload = (e) => {
+    photoPreview.value = e.target?.result as string
+  }
   reader.readAsDataURL(file)
 
   uploadingPhoto.value = true
   try {
     const formData = new FormData()
     formData.append('photo', file)
-    
+
     const res = await api.post('/waiter/profile/photo', formData)
-    
+
     if (res.data?.success) {
       if (profileData.value.waiter) {
         profileData.value.waiter.profile_photo = res.data.data?.profile_photo
@@ -247,12 +268,17 @@ onMounted(fetchProfile)
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans">
-      
+    <div
+      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans"
+    >
       <div v-if="loading" class="flex items-center justify-center py-24">
         <div class="flex flex-col items-center gap-3">
-          <div class="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-          <p class="text-sm text-slate-500 dark:text-slate-400 font-semibold">{{ languageStore.t('loading_profile', 'Loading profile...') }}</p>
+          <div
+            class="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"
+          ></div>
+          <p class="text-sm text-slate-500 dark:text-slate-400 font-semibold">
+            {{ languageStore.t('loading_profile', 'Loading profile...') }}
+          </p>
         </div>
       </div>
       <template v-else>
@@ -263,21 +289,35 @@ onMounted(fetchProfile)
               'flex items-start gap-3 px-4 py-3 rounded-2xl text-sm font-semibold border',
               alert.type === 'success'
                 ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300'
-                : 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300'
+                : 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300',
             ]"
           >
-            <component :is="alert.type === 'success' ? CheckCircle : AlertCircle" class="w-5 h-5 mt-0.5 flex-shrink-0" />
+            <component
+              :is="alert.type === 'success' ? CheckCircle : AlertCircle"
+              class="w-5 h-5 mt-0.5 flex-shrink-0"
+            />
             <span>{{ alert.message }}</span>
-            <button @click="alert.show = false" class="ml-auto opacity-60 hover:opacity-100 transition">
+            <button
+              @click="alert.show = false"
+              class="ml-auto opacity-60 hover:opacity-100 transition"
+            >
               <X class="w-4 h-4" />
             </button>
           </div>
         </transition>
 
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col md:flex-row items-center gap-6">
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col md:flex-row items-center gap-6"
+        >
           <div class="flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
-            <div class="relative flex-shrink-0 group cursor-pointer" @click="triggerPhotoUpload" :title="languageStore.t('click_change_photo', 'Click to change photo')">
-              <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-amber-500/30 shadow-md bg-amber-500/10 flex items-center justify-center">
+            <div
+              class="relative flex-shrink-0 group cursor-pointer"
+              @click="triggerPhotoUpload"
+              :title="languageStore.t('click_change_photo', 'Click to change photo')"
+            >
+              <div
+                class="w-24 h-24 rounded-full overflow-hidden border-4 border-amber-500/30 shadow-md bg-amber-500/10 flex items-center justify-center"
+              >
                 <img
                   v-if="photoPreview || profileData.waiter?.profile_photo"
                   :src="photoPreview || getPhotoUrl(profileData.waiter?.profile_photo)"
@@ -288,84 +328,145 @@ onMounted(fetchProfile)
                   {{ (profileData.first_name || 'W')?.[0]?.toUpperCase() }}
                 </span>
               </div>
-              <div class="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <div
+                class="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              >
                 <Camera class="w-6 h-6 text-white" />
               </div>
-              <div v-if="uploadingPhoto" class="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center">
-                <div class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div
+                v-if="uploadingPhoto"
+                class="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center"
+              >
+                <div
+                  class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"
+                ></div>
               </div>
             </div>
-            <input ref="photoInput" type="file" accept="image/jpeg,image/png,image/jpg,image/gif" class="hidden" @change="onPhotoSelected" />
+            <input
+              ref="photoInput"
+              type="file"
+              accept="image/jpeg,image/png,image/jpg,image/gif"
+              class="hidden"
+              @change="onPhotoSelected"
+            />
 
             <div>
               <div class="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
                 <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                   {{ profileData.first_name }} {{ profileData.last_name }}
                 </h1>
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  {{ profileData.waiter?.status || 'Active' }} {{ languageStore.t('waiter', 'Waiter') }}
+                <span
+                  class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                >
+                  {{ profileData.waiter?.status || 'Active' }}
+                  {{ languageStore.t('waiter', 'Waiter') }}
                 </span>
               </div>
 
-              <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
-                <span class="font-mono font-bold text-amber-600 dark:text-amber-400">{{ languageStore.t('dining_delivery_staff', 'Dining & Delivery Staff') }}</span>
+              <div
+                class="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium"
+              >
+                <span class="font-mono font-bold text-amber-600 dark:text-amber-400">{{
+                  languageStore.t('dining_delivery_staff', 'Dining & Delivery Staff')
+                }}</span>
                 <span>•</span>
                 <span>{{ profileData.email }}</span>
               </div>
-              <p class="text-[11px] text-slate-400 mt-1">{{ languageStore.t('click_avatar_upload_photo', 'Click your avatar to upload a profile photo') }}</p>
+              <p class="text-[11px] text-slate-400 mt-1">
+                {{
+                  languageStore.t(
+                    'click_avatar_upload_photo',
+                    'Click your avatar to upload a profile photo',
+                  )
+                }}
+              </p>
             </div>
           </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div class="lg:col-span-1 space-y-6">
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4">
-              <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider">{{ languageStore.t('quick_info', 'Quick Info') }}</h3>
+            <div
+              class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs space-y-4"
+            >
+              <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider">
+                {{ languageStore.t('quick_info', 'Quick Info') }}
+              </h3>
               <div class="space-y-3 text-xs">
                 <div class="flex items-start gap-3">
                   <Briefcase class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">{{ languageStore.t('role', 'Role') }}</p>
-                    <p class="font-extrabold text-slate-900 dark:text-white capitalize">{{ profileData.role || 'Waiter' }}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">
+                      {{ languageStore.t('role', 'Role') }}
+                    </p>
+                    <p class="font-extrabold text-slate-900 dark:text-white capitalize">
+                      {{ profileData.role || 'Waiter' }}
+                    </p>
                   </div>
                 </div>
                 <div class="flex items-start gap-3">
                   <Mail class="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                   <div class="min-w-0 flex-1">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">{{ languageStore.t('email', 'Email') }}</p>
-                    <p class="font-extrabold text-slate-900 dark:text-white truncate">{{ profileData.email }}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">
+                      {{ languageStore.t('email', 'Email') }}
+                    </p>
+                    <p class="font-extrabold text-slate-900 dark:text-white truncate">
+                      {{ profileData.email }}
+                    </p>
                   </div>
                 </div>
 
                 <div class="flex items-start gap-3">
                   <Phone class="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">{{ languageStore.t('phone', 'Phone') }}</p>
-                    <p class="font-extrabold text-slate-900 dark:text-white">{{ profileData.phone || languageStore.t('not_provided', 'Not provided') }}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">
+                      {{ languageStore.t('phone', 'Phone') }}
+                    </p>
+                    <p class="font-extrabold text-slate-900 dark:text-white">
+                      {{ profileData.phone || languageStore.t('not_provided', 'Not provided') }}
+                    </p>
                   </div>
                 </div>
 
                 <div v-if="profileData.waiter?.shift" class="flex items-start gap-3">
                   <Clock class="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">{{ languageStore.t('shift', 'Shift') }}</p>
-                    <p class="font-extrabold text-slate-900 dark:text-white capitalize">{{ profileData.waiter.shift }}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">
+                      {{ languageStore.t('shift', 'Shift') }}
+                    </p>
+                    <p class="font-extrabold text-slate-900 dark:text-white capitalize">
+                      {{ profileData.waiter.shift }}
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
           <div class="lg:col-span-3 space-y-6">
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
+            <div
+              class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6"
+            >
               <div>
-                <h3 class="text-lg font-black text-slate-900 dark:text-white">{{ languageStore.t('personal_information', 'Personal Information') }}</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('update_waiter_account_details', 'Update your waiter account details.') }}</p>
+                <h3 class="text-lg font-black text-slate-900 dark:text-white">
+                  {{ languageStore.t('personal_information', 'Personal Information') }}
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  {{
+                    languageStore.t(
+                      'update_waiter_account_details',
+                      'Update your waiter account details.',
+                    )
+                  }}
+                </p>
               </div>
 
               <form @submit.prevent="saveProfile" class="space-y-4 text-xs font-sans">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('first_name', 'First Name') }} *</label>
+                    <label
+                      class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1"
+                      >{{ languageStore.t('first_name', 'First Name') }} *</label
+                    >
                     <input
                       v-model="form.first_name"
                       type="text"
@@ -374,7 +475,10 @@ onMounted(fetchProfile)
                     />
                   </div>
                   <div>
-                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('last_name', 'Last Name') }} *</label>
+                    <label
+                      class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1"
+                      >{{ languageStore.t('last_name', 'Last Name') }} *</label
+                    >
                     <input
                       v-model="form.last_name"
                       type="text"
@@ -385,18 +489,31 @@ onMounted(fetchProfile)
                 </div>
 
                 <div>
-                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('email_address', 'Email Address') }}</label>
+                  <label
+                    class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1"
+                    >{{ languageStore.t('email_address', 'Email Address') }}</label
+                  >
                   <input
                     v-model="form.email"
                     type="email"
                     disabled
                     class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 font-bold cursor-not-allowed"
                   />
-                  <p class="text-[10px] text-slate-400 mt-1">{{ languageStore.t('email_cannot_be_changed', 'Email cannot be changed. Contact your administrator.') }}</p>
+                  <p class="text-[10px] text-slate-400 mt-1">
+                    {{
+                      languageStore.t(
+                        'email_cannot_be_changed',
+                        'Email cannot be changed. Contact your administrator.',
+                      )
+                    }}
+                  </p>
                 </div>
 
                 <div>
-                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('phone_number', 'Phone Number') }}</label>
+                  <label
+                    class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1"
+                    >{{ languageStore.t('phone_number', 'Phone Number') }}</label
+                  >
                   <input
                     v-model="form.phone"
                     type="tel"
@@ -407,14 +524,21 @@ onMounted(fetchProfile)
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('shift', 'Shift') }}</label>
+                    <label
+                      class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1"
+                      >{{ languageStore.t('shift', 'Shift') }}</label
+                    >
                     <select
                       v-model="form.shift"
                       class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-amber-500 transition"
                     >
-                      <option value="">{{ languageStore.t('select_shift', 'Select shift') }}</option>
+                      <option value="">
+                        {{ languageStore.t('select_shift', 'Select shift') }}
+                      </option>
                       <option value="morning">{{ languageStore.t('morning', 'Morning') }}</option>
-                      <option value="afternoon">{{ languageStore.t('afternoon', 'Afternoon') }}</option>
+                      <option value="afternoon">
+                        {{ languageStore.t('afternoon', 'Afternoon') }}
+                      </option>
                       <option value="evening">{{ languageStore.t('evening', 'Evening') }}</option>
                       <option value="night">{{ languageStore.t('night', 'Night') }}</option>
                     </select>
@@ -422,11 +546,16 @@ onMounted(fetchProfile)
                 </div>
 
                 <div>
-                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('bio', 'Bio') }}</label>
+                  <label
+                    class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1"
+                    >{{ languageStore.t('bio', 'Bio') }}</label
+                  >
                   <textarea
                     v-model="form.bio"
                     rows="3"
-                    :placeholder="languageStore.t('short_bio_placeholder', 'A short bio about yourself...')"
+                    :placeholder="
+                      languageStore.t('short_bio_placeholder', 'A short bio about yourself...')
+                    "
                     class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-amber-500 transition resize-none"
                   ></textarea>
                 </div>
@@ -437,36 +566,64 @@ onMounted(fetchProfile)
                     :disabled="saving"
                     class="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shadow-md shadow-amber-600/20 transition flex items-center gap-1.5 disabled:opacity-50"
                   >
-                    <div v-if="saving" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div
+                      v-if="saving"
+                      class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"
+                    ></div>
                     <Save v-else class="w-3.5 h-3.5" />
-                    <span>{{ saving ? languageStore.t('saving', 'Saving...') : languageStore.t('save_changes', 'Save Changes') }}</span>
+                    <span>{{
+                      saving
+                        ? languageStore.t('saving', 'Saving...')
+                        : languageStore.t('save_changes', 'Save Changes')
+                    }}</span>
                   </button>
                 </div>
               </form>
             </div>
 
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
+            <div
+              class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6"
+            >
               <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
                   <Lock class="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 </div>
                 <div>
-                  <h3 class="text-lg font-black text-slate-900 dark:text-white">{{ languageStore.t('change_password', 'Change Password') }}</h3>
-                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('change_password_desc', 'Change your temporary or current password here.') }}</p>
+                  <h3 class="text-lg font-black text-slate-900 dark:text-white">
+                    {{ languageStore.t('change_password', 'Change Password') }}
+                  </h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {{
+                      languageStore.t(
+                        'change_password_desc',
+                        'Change your temporary or current password here.',
+                      )
+                    }}
+                  </p>
                 </div>
               </div>
 
               <form @submit.prevent="changePassword" class="space-y-4 text-xs font-sans">
                 <div>
-                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">
-                    {{ languageStore.t('current_temporary_password', 'Current / Temporary Password') }} *
+                  <label
+                    class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1"
+                  >
+                    {{
+                      languageStore.t('current_temporary_password', 'Current / Temporary Password')
+                    }}
+                    *
                   </label>
                   <div class="relative">
                     <input
                       v-model="pwForm.current_password"
                       :type="showCurrentPw ? 'text' : 'password'"
                       required
-                      :placeholder="languageStore.t('enter_current_password', 'Enter your current or temporary password')"
+                      :placeholder="
+                        languageStore.t(
+                          'enter_current_password',
+                          'Enter your current or temporary password',
+                        )
+                      "
                       class="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-amber-500 transition"
                     />
                     <button
@@ -481,7 +638,10 @@ onMounted(fetchProfile)
                 </div>
 
                 <div>
-                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('new_password', 'New Password') }} *</label>
+                  <label
+                    class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1"
+                    >{{ languageStore.t('new_password', 'New Password') }} *</label
+                  >
                   <div class="relative">
                     <input
                       v-model="pwForm.new_password"
@@ -506,26 +666,38 @@ onMounted(fetchProfile)
                         v-for="i in 4"
                         :key="i"
                         class="h-1 flex-1 rounded-full transition-all"
-                        :class="passwordStrength >= i ? strengthConfig.bar : 'bg-slate-200 dark:bg-slate-700'"
+                        :class="
+                          passwordStrength >= i
+                            ? strengthConfig.bar
+                            : 'bg-slate-200 dark:bg-slate-700'
+                        "
                       ></div>
                     </div>
-                    <p class="text-[10px] font-bold" :class="strengthConfig.text">{{ strengthConfig.label }}</p>
+                    <p class="text-[10px] font-bold" :class="strengthConfig.text">
+                      {{ strengthConfig.label }}
+                    </p>
                   </div>
                 </div>
 
                 <div>
-                  <label class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1">{{ languageStore.t('confirm_new_password', 'Confirm New Password') }} *</label>
+                  <label
+                    class="block text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 mb-1"
+                    >{{ languageStore.t('confirm_new_password', 'Confirm New Password') }} *</label
+                  >
                   <div class="relative">
                     <input
                       v-model="pwForm.new_password_confirmation"
                       :type="showConfirmPw ? 'text' : 'password'"
                       required
-                      :placeholder="languageStore.t('reenter_new_password', 'Re-enter new password')"
+                      :placeholder="
+                        languageStore.t('reenter_new_password', 'Re-enter new password')
+                      "
                       :class="[
                         'w-full px-3.5 py-2.5 pr-10 rounded-xl bg-slate-50 dark:bg-slate-950 border text-slate-900 dark:text-white font-bold focus:outline-none transition',
-                        pwForm.new_password_confirmation && pwForm.new_password !== pwForm.new_password_confirmation
+                        pwForm.new_password_confirmation &&
+                        pwForm.new_password !== pwForm.new_password_confirmation
                           ? 'border-red-400 focus:border-red-400'
-                          : 'border-slate-200 dark:border-slate-800 focus:border-amber-500'
+                          : 'border-slate-200 dark:border-slate-800 focus:border-amber-500',
                       ]"
                     />
                     <button
@@ -538,7 +710,10 @@ onMounted(fetchProfile)
                     </button>
                   </div>
                   <p
-                    v-if="pwForm.new_password_confirmation && pwForm.new_password !== pwForm.new_password_confirmation"
+                    v-if="
+                      pwForm.new_password_confirmation &&
+                      pwForm.new_password !== pwForm.new_password_confirmation
+                    "
                     class="text-[10px] text-red-500 font-bold mt-1"
                   >
                     {{ languageStore.t('passwords_dont_match', 'Passwords do not match') }}
@@ -548,12 +723,25 @@ onMounted(fetchProfile)
                 <div class="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
                   <button
                     type="submit"
-                    :disabled="changingPw || !!(pwForm.new_password_confirmation && pwForm.new_password !== pwForm.new_password_confirmation)"
+                    :disabled="
+                      changingPw ||
+                      !!(
+                        pwForm.new_password_confirmation &&
+                        pwForm.new_password !== pwForm.new_password_confirmation
+                      )
+                    "
                     class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs shadow-md shadow-amber-500/20 transition flex items-center gap-1.5 disabled:opacity-50"
                   >
-                    <div v-if="changingPw" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div
+                      v-if="changingPw"
+                      class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"
+                    ></div>
                     <Lock v-else class="w-3.5 h-3.5" />
-                    <span>{{ changingPw ? languageStore.t('changing', 'Changing...') : languageStore.t('change_password', 'Change Password') }}</span>
+                    <span>{{
+                      changingPw
+                        ? languageStore.t('changing', 'Changing...')
+                        : languageStore.t('change_password', 'Change Password')
+                    }}</span>
                   </button>
                 </div>
               </form>

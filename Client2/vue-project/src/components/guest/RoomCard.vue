@@ -36,10 +36,10 @@ const availabilityClass = computed(() =>
   props.room.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700',
 )
 
-const availabilityText = computed(() => 
-  props.room.available 
-    ? languageStore.t('available', 'Available') 
-    : languageStore.t('fully_booked', 'Fully Booked')
+const availabilityText = computed(() =>
+  props.room.available
+    ? languageStore.t('available', 'Available')
+    : languageStore.t('fully_booked', 'Fully Booked'),
 )
 
 function viewDetails() {
@@ -62,21 +62,25 @@ function reserveRoom() {
   >
     <!-- Image Container with Overlay - Fixed Height -->
     <div class="relative overflow-hidden h-[160px] md:h-[180px] flex-shrink-0">
-      <img 
-        :src="room.image" 
-        :alt="room.name" 
-        class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" 
+      <img
+        :src="room.image"
+        :alt="room.name"
+        class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
       />
-      
+
       <!-- Gradient Overlay -->
-      <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"
+      ></div>
 
       <!-- Price Tag - Bottom Left - Minimized -->
       <div class="absolute bottom-2 left-2 flex items-baseline gap-0.5">
         <span class="text-xl md:text-2xl font-semibold text-white drop-shadow-lg">
           {{ formattedPrice }}
         </span>
-        <span class="text-[9px] font-light text-white/90">{{ languageStore.t('per_night', '/night') }}</span>
+        <span class="text-[9px] font-light text-white/90">{{
+          languageStore.t('per_night', '/night')
+        }}</span>
       </div>
     </div>
 
@@ -99,35 +103,41 @@ function reserveRoom() {
           <span class="text-[9px] font-light text-slate-700">
             {{ room.rating }}
           </span>
-          <span class="text-[9px] text-slate-400 font-light">
-            ({{ room.reviews }})
-          </span>
+          <span class="text-[9px] text-slate-400 font-light"> ({{ room.reviews }}) </span>
         </div>
       </div>
 
       <!-- Room Info Grid - Minimized -->
       <div class="grid grid-cols-3 gap-1.5 mb-2 pb-2 border-b border-slate-100">
         <div class="text-center">
-          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">{{ languageStore.t('guests', 'Guests') }}</p>
+          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">
+            {{ languageStore.t('guests', 'Guests') }}
+          </p>
           <p class="text-[11px] font-medium text-slate-900">
             {{ room.capacity }}
           </p>
         </div>
 
         <div class="text-center border-x border-slate-100">
-          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">{{ languageStore.t('size', 'Size') }}</p>
+          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">
+            {{ languageStore.t('size', 'Size') }}
+          </p>
           <p class="text-[11px] font-medium text-slate-900">{{ room.size }}m²</p>
         </div>
 
         <div class="text-center">
-          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">{{ languageStore.t('bed', 'Bed') }}</p>
+          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">
+            {{ languageStore.t('bed', 'Bed') }}
+          </p>
           <p class="text-[11px] font-medium text-slate-900">{{ room.bed_type }}</p>
         </div>
       </div>
 
       <!-- Amenities - Ultra Compact -->
       <div class="mb-2">
-        <p class="text-[9px] font-light text-slate-700 mb-1">{{ languageStore.t('amenities', 'Amenities') }}</p>
+        <p class="text-[9px] font-light text-slate-700 mb-1">
+          {{ languageStore.t('amenities', 'Amenities') }}
+        </p>
         <div class="flex flex-wrap gap-1">
           <span
             v-for="item in room.amenities.slice(0, 3)"

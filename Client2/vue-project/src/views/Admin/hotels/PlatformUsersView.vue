@@ -12,7 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
-  ChevronsRight
+  ChevronsRight,
 } from 'lucide-vue-next'
 
 interface PlatformUser {
@@ -152,17 +152,26 @@ const roleBadgeClasses: Record<string, string> = {
 }
 
 const getRoleBadgeClass = (role: string) => {
-  return roleBadgeClasses[String(role).toLowerCase()] || 'bg-slate-500/10 text-slate-600 border-slate-500/20'
+  return (
+    roleBadgeClasses[String(role).toLowerCase()] ||
+    'bg-slate-500/10 text-slate-600 border-slate-500/20'
+  )
 }
 </script>
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans">
+    <div
+      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full font-sans"
+    >
       <!-- Header -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+      >
         <div class="flex items-center gap-3">
-          <div class="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+          <div
+            class="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
+          >
             <Users class="w-6 h-6" />
           </div>
           <div>
@@ -170,7 +179,9 @@ const getRoleBadgeClass = (role: string) => {
               <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                 All Users & Staff
               </h1>
-              <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+              <span
+                class="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
+              >
                 {{ totalUsers }} Users
               </span>
             </div>
@@ -190,13 +201,18 @@ const getRoleBadgeClass = (role: string) => {
         </button>
       </div>
 
-      <div v-if="errorMessage" class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center gap-2">
+      <div
+        v-if="errorMessage"
+        class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center gap-2"
+      >
         <AlertCircle class="w-4 h-4 flex-shrink-0" />
         <span>{{ errorMessage }}</span>
       </div>
 
       <!-- Filters Toolbar -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-xs flex flex-col md:flex-row items-center justify-between gap-3"
+      >
         <div class="relative w-full md:w-80">
           <Search class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
           <input
@@ -241,10 +257,14 @@ const getRoleBadgeClass = (role: string) => {
       </div>
 
       <!-- Table -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden">
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden"
+      >
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs border-collapse">
-            <thead class="bg-slate-100/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-700/80">
+            <thead
+              class="bg-slate-100/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-700/80"
+            >
               <tr>
                 <th class="py-4 px-5">User</th>
                 <th class="py-4 px-4">Hotel Property</th>
@@ -253,7 +273,9 @@ const getRoleBadgeClass = (role: string) => {
                 <th class="py-4 px-4">Joined Date</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium">
+            <tbody
+              class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium"
+            >
               <tr v-if="loading">
                 <td colspan="5" class="p-12 text-center text-xs text-slate-400">
                   <RefreshCw class="w-6 h-6 text-indigo-500 animate-spin mx-auto mb-2" />
@@ -275,7 +297,9 @@ const getRoleBadgeClass = (role: string) => {
                 <!-- User -->
                 <td class="py-4 px-5">
                   <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-xs">
+                    <div
+                      class="w-9 h-9 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-xs"
+                    >
                       {{ getUserInitials(u) }}
                     </div>
                     <div>
@@ -307,7 +331,10 @@ const getRoleBadgeClass = (role: string) => {
                 <!-- Role -->
                 <td class="py-4 px-4">
                   <span
-                    :class="['px-2.5 py-1 rounded-lg border font-black text-[11px] uppercase tracking-wide', getRoleBadgeClass(u.role)]"
+                    :class="[
+                      'px-2.5 py-1 rounded-lg border font-black text-[11px] uppercase tracking-wide',
+                      getRoleBadgeClass(u.role),
+                    ]"
                   >
                     {{ u.role }}
                   </span>
@@ -317,7 +344,11 @@ const getRoleBadgeClass = (role: string) => {
                 <td class="py-4 px-4">
                   <span
                     class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border"
-                    :class="u.is_active ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-slate-500/10 text-slate-500 border-slate-500/20'"
+                    :class="
+                      u.is_active
+                        ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                        : 'bg-slate-500/10 text-slate-500 border-slate-500/20'
+                    "
                   >
                     {{ u.is_active ? 'Active' : 'Inactive' }}
                   </span>
@@ -333,15 +364,22 @@ const getRoleBadgeClass = (role: string) => {
         </div>
 
         <!-- Enhanced Pagination -->
-        <div v-if="lastPage > 1 || totalUsers > perPageOptions[0]" class="p-4 border-t border-slate-200 dark:border-slate-800">
+        <div
+          v-if="lastPage > 1 || totalUsers > perPageOptions[0]"
+          class="p-4 border-t border-slate-200 dark:border-slate-800"
+        >
           <!-- Pagination Info and Per Page Selector -->
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+          <div
+            class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4"
+          >
             <div class="flex items-center gap-4">
               <!-- Per Page Selector -->
               <div class="flex items-center gap-2">
-                <label class="text-xs font-bold text-slate-600 dark:text-slate-400">Per page:</label>
-                <select 
-                  v-model="perPage" 
+                <label class="text-xs font-bold text-slate-600 dark:text-slate-400"
+                  >Per page:</label
+                >
+                <select
+                  v-model="perPage"
                   class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   <option v-for="option in perPageOptions" :key="option" :value="option">
@@ -349,18 +387,21 @@ const getRoleBadgeClass = (role: string) => {
                   </option>
                 </select>
               </div>
-              
+
               <!-- Results Info -->
               <div class="text-xs text-slate-500 dark:text-slate-400">
-                Showing {{ paginationInfo.start }}-{{ paginationInfo.end }} of {{ totalUsers }} users
+                Showing {{ paginationInfo.start }}-{{ paginationInfo.end }} of
+                {{ totalUsers }} users
               </div>
             </div>
-            
+
             <!-- Quick Page Jump -->
             <div v-if="lastPage > 1" class="flex items-center gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-400">Go to page:</label>
-              <select 
-                :value="currentPage" 
+              <label class="text-xs font-bold text-slate-600 dark:text-slate-400"
+                >Go to page:</label
+              >
+              <select
+                :value="currentPage"
                 @change="goToPage(Number(($event.target as HTMLSelectElement).value))"
                 class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
@@ -382,7 +423,7 @@ const getRoleBadgeClass = (role: string) => {
             >
               <ChevronsLeft class="w-4 h-4" />
             </button>
-            
+
             <!-- Previous Page -->
             <button
               :disabled="currentPage <= 1"
@@ -402,18 +443,13 @@ const getRoleBadgeClass = (role: string) => {
                     'px-3 py-2 rounded-lg text-xs font-bold transition',
                     page === currentPage
                       ? 'bg-indigo-500 text-white shadow-lg'
-                      : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300'
+                      : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300',
                   ]"
                   @click="goToPage(Number(page))"
                 >
                   {{ page }}
                 </button>
-                <span 
-                  v-else 
-                  class="px-2 py-2 text-slate-400 text-xs"
-                >
-                  ...
-                </span>
+                <span v-else class="px-2 py-2 text-slate-400 text-xs"> ... </span>
               </template>
             </div>
 
@@ -426,7 +462,7 @@ const getRoleBadgeClass = (role: string) => {
             >
               <ChevronRight class="w-4 h-4" />
             </button>
-            
+
             <!-- Last Page -->
             <button
               :disabled="currentPage >= lastPage"

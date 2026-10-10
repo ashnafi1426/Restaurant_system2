@@ -10,7 +10,7 @@ import {
   Loader2,
   Calendar,
   User,
-  CalendarOff
+  CalendarOff,
 } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -62,24 +62,39 @@ function handleDelete(item: CheckIn) {
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs font-sans w-full">
-    <div v-if="loading" class="p-12 text-center flex flex-col items-center justify-center space-y-2">
+  <div
+    class="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs font-sans w-full"
+  >
+    <div
+      v-if="loading"
+      class="p-12 text-center flex flex-col items-center justify-center space-y-2"
+    >
       <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-      <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Loading check-in records...</p>
+      <p class="text-xs font-bold text-slate-500 dark:text-slate-400">
+        Loading check-in records...
+      </p>
     </div>
 
     <div v-else-if="checkIns.length === 0" class="p-12 text-center space-y-2">
-      <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+      <div
+        class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto"
+      >
         <CalendarOff class="w-6 h-6" />
       </div>
       <h3 class="text-sm font-black text-slate-900 dark:text-white">No Check-In Records</h3>
-      <p class="text-xs text-slate-500 dark:text-slate-400">Start checking in guests to see them here.</p>
+      <p class="text-xs text-slate-500 dark:text-slate-400">
+        Start checking in guests to see them here.
+      </p>
     </div>
 
     <div v-else class="overflow-x-auto w-full">
       <table class="w-full text-left border-collapse min-w-[850px]" @click="closeMenu">
-        <thead class="bg-slate-50/90 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
-          <tr class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider select-none">
+        <thead
+          class="bg-slate-50/90 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800"
+        >
+          <tr
+            class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider select-none"
+          >
             <th class="px-3 py-2.5 whitespace-nowrap">Reservation</th>
             <th class="px-3 py-2.5 whitespace-nowrap">Guest</th>
             <th class="px-3 py-2.5 whitespace-nowrap">Room</th>
@@ -103,7 +118,9 @@ function handleDelete(item: CheckIn) {
 
             <td class="px-3 py-2.5">
               <div class="flex items-center gap-2 max-w-[170px]">
-                <div class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-black text-[10px] flex items-center justify-center flex-shrink-0">
+                <div
+                  class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-black text-[10px] flex items-center justify-center flex-shrink-0"
+                >
                   {{ (checkIn.guest?.full_name?.[0] || 'G').toUpperCase() }}
                 </div>
                 <div class="min-w-0 flex-1">
@@ -118,17 +135,23 @@ function handleDelete(item: CheckIn) {
             </td>
 
             <td class="px-3 py-2.5 whitespace-nowrap">
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-extrabold text-xs">
+              <span
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-extrabold text-xs"
+              >
                 <BedDouble class="w-3.5 h-3.5" />
                 Room {{ checkIn.room?.room_number || checkIn.room_id }}
               </span>
             </td>
 
-            <td class="px-3 py-2.5 whitespace-nowrap font-bold text-slate-800 dark:text-slate-200 text-xs">
+            <td
+              class="px-3 py-2.5 whitespace-nowrap font-bold text-slate-800 dark:text-slate-200 text-xs"
+            >
               {{ formatDate(checkIn.checked_in_at) }}
             </td>
 
-            <td class="px-3 py-2.5 whitespace-nowrap font-bold text-slate-800 dark:text-slate-200 text-xs">
+            <td
+              class="px-3 py-2.5 whitespace-nowrap font-bold text-slate-800 dark:text-slate-200 text-xs"
+            >
               {{ formatDate(checkIn.expected_check_out_at) }}
             </td>
 
@@ -154,7 +177,10 @@ function handleDelete(item: CheckIn) {
                 <button
                   @click.stop="toggleMenu(checkIn.id)"
                   class="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                  :class="{ 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white': openMenuId === checkIn.id }"
+                  :class="{
+                    'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white':
+                      openMenuId === checkIn.id,
+                  }"
                   title="Actions"
                 >
                   <MoreVertical class="w-3.5 h-3.5" />

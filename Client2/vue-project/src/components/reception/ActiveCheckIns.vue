@@ -34,9 +34,13 @@ const formatDate = (date: string) => {
 </script>
 
 <template>
-  <div class="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm">
+  <div
+    class="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-4 sm:p-5 md:p-6 lg:p-8 shadow-sm"
+  >
     <div class="flex items-center justify-between mb-3 sm:mb-4 md:mb-5">
-      <h3 class="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">Active Guests</h3>
+      <h3 class="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white">
+        Active Guests
+      </h3>
       <span class="text-xs sm:text-sm md:text-base text-gray-600 dark:text-slate-400 font-medium"
         >{{ checkIns.length }} Active</span
       >
@@ -52,14 +56,18 @@ const formatDate = (date: string) => {
           <div
             class="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center"
           >
-            <span class="text-xs sm:text-sm md:text-base font-bold text-teal-700 dark:text-teal-300">
+            <span
+              class="text-xs sm:text-sm md:text-base font-bold text-teal-700 dark:text-teal-300"
+            >
               {{ getInitials(checkIn.guest?.first_name || 'U', checkIn.guest?.last_name || 'N') }}
             </span>
           </div>
         </div>
 
         <div class="flex-1 min-w-0">
-          <p class="text-xs sm:text-sm md:text-base font-semibold text-gray-900 dark:text-white truncate">
+          <p
+            class="text-xs sm:text-sm md:text-base font-semibold text-gray-900 dark:text-white truncate"
+          >
             {{ checkIn.guest?.first_name }} {{ checkIn.guest?.last_name }}
           </p>
           <p class="text-xs sm:text-sm md:text-base text-gray-500 dark:text-slate-400 truncate">
@@ -81,7 +89,9 @@ const formatDate = (date: string) => {
     </div>
 
     <div v-else class="text-center py-6 sm:py-8 md:py-10">
-      <p class="text-xs sm:text-sm md:text-base text-gray-500 dark:text-slate-400">No active guests</p>
+      <p class="text-xs sm:text-sm md:text-base text-gray-500 dark:text-slate-400">
+        No active guests
+      </p>
     </div>
 
     <div

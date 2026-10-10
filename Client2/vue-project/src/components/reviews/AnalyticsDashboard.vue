@@ -1,7 +1,9 @@
 <template>
   <div class="analytics-dashboard">
     <div class="header mb-6">
-      <h2 class="text-2xl font-bold mb-4">{{ languageStore.t('review_analytics', 'Review Analytics') }}</h2>
+      <h2 class="text-2xl font-bold mb-4">
+        {{ languageStore.t('review_analytics', 'Review Analytics') }}
+      </h2>
 
       <div class="flex gap-2">
         <button
@@ -12,7 +14,7 @@
             'px-4 py-2 rounded-lg font-semibold transition-colors cursor-pointer',
             selectedPeriod === period
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+              : 'bg-gray-200 hover:bg-gray-300 text-gray-900',
           ]"
         >
           {{ languageStore.t(period, period.charAt(0).toUpperCase() + period.slice(1)) }}
@@ -22,11 +24,15 @@
 
     <div class="grid grid-cols-4 gap-4 mb-6">
       <div class="bg-white border border-gray-200 rounded-lg p-4">
-        <p class="text-gray-600 text-sm mb-2">{{ languageStore.t('pending_reviews', 'Pending Reviews') }}</p>
+        <p class="text-gray-600 text-sm mb-2">
+          {{ languageStore.t('pending_reviews', 'Pending Reviews') }}
+        </p>
         <p class="text-3xl font-bold text-yellow-600">{{ pendingCount }}</p>
       </div>
       <div class="bg-white border border-gray-200 rounded-lg p-4">
-        <p class="text-gray-600 text-sm mb-2">{{ languageStore.t('total_reviews', 'Total Reviews') }}</p>
+        <p class="text-gray-600 text-sm mb-2">
+          {{ languageStore.t('total_reviews', 'Total Reviews') }}
+        </p>
         <p class="text-3xl font-bold text-blue-600">{{ totalReviews }}</p>
       </div>
       <div class="bg-white border border-gray-200 rounded-lg p-4">
@@ -34,20 +40,26 @@
         <p class="text-3xl font-bold text-green-600">{{ avgRating }}</p>
       </div>
       <div class="bg-white border border-gray-200 rounded-lg p-4">
-        <p class="text-gray-600 text-sm mb-2">{{ languageStore.t('response_rate', 'Response Rate') }}</p>
+        <p class="text-gray-600 text-sm mb-2">
+          {{ languageStore.t('response_rate', 'Response Rate') }}
+        </p>
         <p class="text-3xl font-bold text-purple-600">{{ responseRate }}%</p>
       </div>
     </div>
 
     <div class="grid grid-cols-2 gap-6 mb-6">
       <div class="bg-white border border-gray-200 rounded-lg p-4">
-        <h3 class="text-lg font-semibold mb-4">{{ languageStore.t('review_trends', 'Review Trends') }}</h3>
+        <h3 class="text-lg font-semibold mb-4">
+          {{ languageStore.t('review_trends', 'Review Trends') }}
+        </h3>
         <div v-if="loading" class="h-64 bg-gray-100 rounded flex items-center justify-center">
           <p class="text-gray-600">{{ languageStore.t('loading', 'Loading...') }}</p>
         </div>
         <div v-else class="space-y-2">
           <div v-if="trends.length === 0" class="h-64 flex items-center justify-center">
-            <p class="text-gray-600">{{ languageStore.t('no_data_available', 'No data available') }}</p>
+            <p class="text-gray-600">
+              {{ languageStore.t('no_data_available', 'No data available') }}
+            </p>
           </div>
           <div v-else v-for="trend in trends" :key="trend.date" class="flex items-center gap-3">
             <span class="text-sm text-gray-600 w-24">{{ trend.date }}</span>
@@ -63,25 +75,46 @@
       </div>
 
       <div class="bg-white border border-gray-200 rounded-lg p-4">
-        <h3 class="text-lg font-semibold mb-4">{{ languageStore.t('top_rated_items', 'Top Rated Items') }}</h3>
+        <h3 class="text-lg font-semibold mb-4">
+          {{ languageStore.t('top_rated_items', 'Top Rated Items') }}
+        </h3>
         <div v-if="loading" class="h-64 bg-gray-100 rounded flex items-center justify-center">
           <p class="text-gray-600">{{ languageStore.t('loading', 'Loading...') }}</p>
         </div>
         <div v-else class="space-y-3">
           <div v-if="topRated.length === 0" class="h-64 flex items-center justify-center">
-            <p class="text-gray-600">{{ languageStore.t('no_data_available', 'No data available') }}</p>
+            <p class="text-gray-600">
+              {{ languageStore.t('no_data_available', 'No data available') }}
+            </p>
           </div>
-          <div v-else v-for="(item, index) in topRated" :key="item.menu_item_id" class="flex items-center gap-3 pb-3 border-b border-gray-100 last:border-b-0">
+          <div
+            v-else
+            v-for="(item, index) in topRated"
+            :key="item.menu_item_id"
+            class="flex items-center gap-3 pb-3 border-b border-gray-100 last:border-b-0"
+          >
             <span class="text-lg font-bold text-yellow-500 w-6">{{ index + 1 }}</span>
             <div class="flex-1">
               <p class="font-semibold text-gray-900">{{ item.name }}</p>
-              <p class="text-sm text-gray-600">{{ item.review_count }} {{ languageStore.t('reviews', 'reviews') }}</p>
+              <p class="text-sm text-gray-600">
+                {{ item.review_count }} {{ languageStore.t('reviews', 'reviews') }}
+              </p>
             </div>
             <div class="text-right">
               <div class="flex gap-1 justify-end">
-                <span v-for="i in 5" :key="i" class="text-sm" :class="i <= Math.round(item.average_rating) ? 'text-yellow-400' : 'text-gray-300'">★</span>
+                <span
+                  v-for="i in 5"
+                  :key="i"
+                  class="text-sm"
+                  :class="
+                    i <= Math.round(item.average_rating) ? 'text-yellow-400' : 'text-gray-300'
+                  "
+                  >★</span
+                >
               </div>
-              <p class="text-sm font-semibold text-gray-900">{{ item.average_rating.toFixed(1) }}</p>
+              <p class="text-sm font-semibold text-gray-900">
+                {{ item.average_rating.toFixed(1) }}
+              </p>
             </div>
           </div>
         </div>
@@ -89,22 +122,39 @@
     </div>
 
     <div class="bg-white border border-gray-200 rounded-lg p-4">
-      <h3 class="text-lg font-semibold mb-4">{{ languageStore.t('items_needing_attention', 'Items Needing Attention') }}</h3>
+      <h3 class="text-lg font-semibold mb-4">
+        {{ languageStore.t('items_needing_attention', 'Items Needing Attention') }}
+      </h3>
       <div v-if="loading" class="h-32 bg-gray-100 rounded flex items-center justify-center">
         <p class="text-gray-600">{{ languageStore.t('loading', 'Loading...') }}</p>
       </div>
       <div v-else class="space-y-3">
         <div v-if="lowestRated.length === 0" class="h-32 flex items-center justify-center">
-          <p class="text-gray-600">{{ languageStore.t('no_items_low_ratings', 'No items with low ratings') }}</p>
+          <p class="text-gray-600">
+            {{ languageStore.t('no_items_low_ratings', 'No items with low ratings') }}
+          </p>
         </div>
-        <div v-else v-for="item in lowestRated" :key="item.menu_item_id" class="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
+        <div
+          v-else
+          v-for="item in lowestRated"
+          :key="item.menu_item_id"
+          class="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg"
+        >
           <div>
             <p class="font-semibold text-gray-900">{{ item.name }}</p>
-            <p class="text-sm text-gray-600">{{ item.review_count }} {{ languageStore.t('reviews', 'reviews') }}</p>
+            <p class="text-sm text-gray-600">
+              {{ item.review_count }} {{ languageStore.t('reviews', 'reviews') }}
+            </p>
           </div>
           <div class="text-right">
             <div class="flex gap-1 justify-end mb-1">
-              <span v-for="i in 5" :key="i" class="text-sm" :class="i <= Math.round(item.average_rating) ? 'text-yellow-400' : 'text-gray-300'">★</span>
+              <span
+                v-for="i in 5"
+                :key="i"
+                class="text-sm"
+                :class="i <= Math.round(item.average_rating) ? 'text-yellow-400' : 'text-gray-300'"
+                >★</span
+              >
             </div>
             <p class="text-lg font-bold text-red-600">{{ item.average_rating.toFixed(1) }}</p>
           </div>
@@ -149,13 +199,21 @@ const loadAnalytics = async () => {
     lowestRated.value = lowestItems
     trends.value = trendsData
 
-    maxTrendCount.value = Math.max(...trends.value.map(t => t.count), 1)
+    maxTrendCount.value = Math.max(...trends.value.map((t) => t.count), 1)
 
     if (overallStats) {
       totalReviews.value = overallStats.total_reviews || 0
       avgRating.value = (overallStats.average_rating || 0).toFixed(1)
-      const total = (overallStats.approved_reviews || 0) + (overallStats.rejected_reviews || 0) + (overallStats.pending_reviews || 0)
-      responseRate.value = total > 0 ? Math.round(((overallStats.approved_reviews + overallStats.rejected_reviews) / total) * 100) : 0
+      const total =
+        (overallStats.approved_reviews || 0) +
+        (overallStats.rejected_reviews || 0) +
+        (overallStats.pending_reviews || 0)
+      responseRate.value =
+        total > 0
+          ? Math.round(
+              ((overallStats.approved_reviews + overallStats.rejected_reviews) / total) * 100,
+            )
+          : 0
     } else {
       totalReviews.value = topItems.reduce((sum, item) => sum + item.review_count, 0)
       if (topItems.length > 0) {

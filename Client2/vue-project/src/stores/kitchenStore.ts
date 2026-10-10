@@ -33,7 +33,8 @@ export const useKitchenStore = defineStore('kitchen', () => {
       statistics.value = data?.statistics || null
     } catch (err: any) {
       console.error('[kitchenStore] Failed to load kitchen dashboard:', err)
-      error.value = err?.response?.data?.message ?? err.message ?? 'Failed to load kitchen dashboard'
+      error.value =
+        err?.response?.data?.message ?? err.message ?? 'Failed to load kitchen dashboard'
     } finally {
       loading.value = false
     }
@@ -44,7 +45,7 @@ export const useKitchenStore = defineStore('kitchen', () => {
   async function executeStatusChange(
     orderId: string,
     action: () => Promise<KitchenOrder>,
-    fallbackMsg: string
+    fallbackMsg: string,
   ): Promise<KitchenOrder> {
     actionLoading.value = orderId
     error.value = null
@@ -63,21 +64,36 @@ export const useKitchenStore = defineStore('kitchen', () => {
   }
 
   function startPreparing(orderId: string) {
-    return executeStatusChange(orderId, () => kitchenService.startPreparing(orderId), 'Failed to start preparing order')
+    return executeStatusChange(
+      orderId,
+      () => kitchenService.startPreparing(orderId),
+      'Failed to start preparing order',
+    )
   }
 
   function markReady(orderId: string) {
-    return executeStatusChange(orderId, () => kitchenService.markReady(orderId), 'Failed to mark order ready')
+    return executeStatusChange(
+      orderId,
+      () => kitchenService.markReady(orderId),
+      'Failed to mark order ready',
+    )
   }
 
   function markServed(orderId: string) {
-    return executeStatusChange(orderId, () => kitchenService.markServed(orderId), 'Failed to complete order')
+    return executeStatusChange(
+      orderId,
+      () => kitchenService.markServed(orderId),
+      'Failed to complete order',
+    )
   }
 
   function syncStatistics() {
-    kitchenService.getStatistics().then((stats) => {
-      if (stats) statistics.value = stats
-    }).catch(() => {})
+    kitchenService
+      .getStatistics()
+      .then((stats) => {
+        if (stats) statistics.value = stats
+      })
+      .catch(() => {})
   }
 
   function updateOrder(updatedOrder: KitchenOrder) {

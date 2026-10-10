@@ -53,10 +53,11 @@ const filteredList = computed(() => {
 
   if (search.value.trim()) {
     const q = search.value.toLowerCase().trim()
-    list = list.filter((rt) =>
-      (rt.name || '').toLowerCase().includes(q) ||
-      (rt.description || '').toLowerCase().includes(q) ||
-      String(rt.id).includes(q)
+    list = list.filter(
+      (rt) =>
+        (rt.name || '').toLowerCase().includes(q) ||
+        (rt.description || '').toLowerCase().includes(q) ||
+        String(rt.id).includes(q),
     )
   }
 
@@ -215,11 +216,18 @@ onBeforeUnmount(() => {
     >
       <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
         <div class="relative flex-1">
-          <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+          <Search
+            class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+          />
           <input
             v-model="search"
             type="text"
-            :placeholder="languageStore.t('search_room_types', 'Search room types by name, ID, or description...')"
+            :placeholder="
+              languageStore.t(
+                'search_room_types',
+                'Search room types by name, ID, or description...',
+              )
+            "
             class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
           />
         </div>
@@ -231,11 +239,15 @@ onBeforeUnmount(() => {
           :class="[
             isFilterOpen
               ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
-              : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+              : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
           ]"
         >
           <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-          <span>{{ isFilterOpen ? languageStore.t('hide_filters', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
+          <span>{{
+            isFilterOpen
+              ? languageStore.t('hide_filters', 'Hide Filter')
+              : languageStore.t('filter', 'Filter')
+          }}</span>
         </button>
       </div>
 
@@ -338,9 +350,12 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <div class="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800/60">
+        <div
+          class="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800/60"
+        >
           <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-            {{ languageStore.t('found', 'Found') }} {{ total }} {{ languageStore.t('matching_room_types', 'matching room type(s)') }}
+            {{ languageStore.t('found', 'Found') }} {{ total }}
+            {{ languageStore.t('matching_room_types', 'matching room type(s)') }}
           </span>
           <button
             type="button"
@@ -354,16 +369,30 @@ onBeforeUnmount(() => {
       </div>
     </Transition>
 
-    <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
+    <div
+      class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
+    >
       <div class="hidden md:block overflow-x-auto w-full">
         <table class="w-full text-left border-collapse">
-          <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+          <thead
+            class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
+          >
             <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-              <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('type_name', 'Type Name') }}</th>
-              <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('price_night', 'Price/Night') }}</th>
-              <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('capacity', 'Capacity') }}</th>
-              <th class="py-3 px-4 text-center whitespace-nowrap">{{ languageStore.t('status', 'Status') }}</th>
-              <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">{{ languageStore.t('actions', 'Actions') }}</th>
+              <th class="py-3 px-4 pl-5 whitespace-nowrap">
+                {{ languageStore.t('type_name', 'Type Name') }}
+              </th>
+              <th class="py-3 px-4 whitespace-nowrap">
+                {{ languageStore.t('price_night', 'Price/Night') }}
+              </th>
+              <th class="py-3 px-4 text-center whitespace-nowrap">
+                {{ languageStore.t('capacity', 'Capacity') }}
+              </th>
+              <th class="py-3 px-4 text-center whitespace-nowrap">
+                {{ languageStore.t('status', 'Status') }}
+              </th>
+              <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">
+                {{ languageStore.t('actions', 'Actions') }}
+              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
@@ -376,7 +405,12 @@ onBeforeUnmount(() => {
                       {{ languageStore.t('loading_room_types', 'Loading Room Types...') }}
                     </p>
                     <p class="text-[11px] text-slate-500 dark:text-slate-400">
-                      {{ languageStore.t('fetching_room_types_sub', 'Fetching pricing tiers and room capacities') }}
+                      {{
+                        languageStore.t(
+                          'fetching_room_types_sub',
+                          'Fetching pricing tiers and room capacities',
+                        )
+                      }}
                     </p>
                   </div>
                 </div>
@@ -398,12 +432,16 @@ onBeforeUnmount(() => {
                   </div>
                 </td>
 
-                <td class="py-3 px-4 whitespace-nowrap font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm font-mono">
+                <td
+                  class="py-3 px-4 whitespace-nowrap font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm font-mono"
+                >
                   ${{ parseFloat(String(rt.base_price_per_night || 0)).toFixed(2) }}
                 </td>
 
                 <td class="py-3 px-4 text-center whitespace-nowrap">
-                  <span class="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700">
+                  <span
+                    class="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700"
+                  >
                     <Users class="w-3.5 h-3.5 text-slate-400" />
                     {{ rt.capacity }} {{ languageStore.t('guests', 'Guests') }}
                   </span>
@@ -426,12 +464,18 @@ onBeforeUnmount(() => {
                   </span>
                 </td>
 
-                <td class="py-3 px-4 text-right whitespace-nowrap pr-5 relative" data-menu-container>
+                <td
+                  class="py-3 px-4 text-right whitespace-nowrap pr-5 relative"
+                  data-menu-container
+                >
                   <div class="relative inline-block text-left">
                     <button
                       @click="toggleMenu(rt.id!, $event)"
                       class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                      :class="{ 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white': openMenuId === rt.id }"
+                      :class="{
+                        'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white':
+                          openMenuId === rt.id,
+                      }"
                       :title="languageStore.t('actions', 'Actions')"
                     >
                       <MoreVertical class="w-4 h-4" />
@@ -482,8 +526,16 @@ onBeforeUnmount(() => {
               </tr>
 
               <tr v-if="paginatedRoomTypes.length === 0">
-                <td colspan="5" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                  {{ languageStore.t('no_room_types_found', 'No room types match your current search or filter criteria.') }}
+                <td
+                  colspan="5"
+                  class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
+                >
+                  {{
+                    languageStore.t(
+                      'no_room_types_found',
+                      'No room types match your current search or filter criteria.',
+                    )
+                  }}
                 </td>
               </tr>
             </template>
@@ -492,7 +544,10 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-        <div v-if="loading" class="py-16 text-center flex flex-col items-center justify-center gap-3">
+        <div
+          v-if="loading"
+          class="py-16 text-center flex flex-col items-center justify-center gap-3"
+        >
           <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
           <span class="text-xs font-extrabold text-slate-700 dark:text-slate-300">
             {{ languageStore.t('loading_room_types', 'Loading Room Types...') }}
@@ -522,9 +577,16 @@ onBeforeUnmount(() => {
               </span>
             </div>
 
-            <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-              <span>{{ languageStore.t('capacity', 'Capacity') }}: {{ rt.capacity }} {{ languageStore.t('guests', 'Guests') }}</span>
-              <span class="font-extrabold text-slate-900 dark:text-white">${{ parseFloat(String(rt.base_price_per_night || 0)).toFixed(2) }}</span>
+            <div
+              class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400"
+            >
+              <span
+                >{{ languageStore.t('capacity', 'Capacity') }}: {{ rt.capacity }}
+                {{ languageStore.t('guests', 'Guests') }}</span
+              >
+              <span class="font-extrabold text-slate-900 dark:text-white"
+                >${{ parseFloat(String(rt.base_price_per_night || 0)).toFixed(2) }}</span
+              >
             </div>
 
             <div class="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
@@ -548,8 +610,16 @@ onBeforeUnmount(() => {
               </button>
             </div>
           </div>
-          <div v-if="paginatedRoomTypes.length === 0" class="p-8 text-center text-slate-500 text-xs font-bold">
-            {{ languageStore.t('no_room_types_found', 'No room types match your current search or filter criteria.') }}
+          <div
+            v-if="paginatedRoomTypes.length === 0"
+            class="p-8 text-center text-slate-500 text-xs font-bold"
+          >
+            {{
+              languageStore.t(
+                'no_room_types_found',
+                'No room types match your current search or filter criteria.',
+              )
+            }}
           </div>
         </template>
       </div>
@@ -559,14 +629,20 @@ onBeforeUnmount(() => {
         class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
       >
         <div class="text-slate-500 dark:text-slate-400 font-medium">
-          {{ languageStore.t('showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
-          <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
-          <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> {{ languageStore.t('room_types', 'room types') }}
+          {{ languageStore.t('showing', 'Showing') }}
+          <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
+          {{ languageStore.t('to', 'to') }}
+          <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span>
+          {{ languageStore.t('of', 'of') }}
+          <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span>
+          {{ languageStore.t('room_types', 'room types') }}
         </div>
 
         <div class="flex items-center gap-2 sm:gap-3">
           <div class="flex items-center gap-1.5">
-            <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page') }}:</span>
+            <span class="text-slate-500 dark:text-slate-400 font-medium"
+              >{{ languageStore.t('per_page', 'Per page') }}:</span
+            >
             <select
               :value="perPage"
               @change="changePerPage"
@@ -595,7 +671,7 @@ onBeforeUnmount(() => {
               :class="[
                 currentPage === page
                   ? 'bg-blue-600 text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
               ]"
             >
               {{ page }}

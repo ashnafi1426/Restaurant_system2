@@ -1,19 +1,31 @@
 <template>
-  <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
+  <div
+    class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden"
+  >
     <div class="bg-slate-900 dark:bg-slate-950 px-5 py-3.5 text-white border-b border-slate-800">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2.5">
           <Activity :size="20" class="text-amber-500" />
-          <h3 class="text-sm font-black tracking-wide uppercase">{{ languageStore.t('recently_updated_orders', 'Recently Updated Orders') }}</h3>
+          <h3 class="text-sm font-black tracking-wide uppercase">
+            {{ languageStore.t('recently_updated_orders', 'Recently Updated Orders') }}
+          </h3>
         </div>
-        <span class="text-[10px] font-black bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider">{{ languageStore.t('live_feed', 'Live Feed') }}</span>
+        <span
+          class="text-[10px] font-black bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider"
+          >{{ languageStore.t('live_feed', 'Live Feed') }}</span
+        >
       </div>
     </div>
 
     <div class="max-h-96 overflow-y-auto">
-      <div v-if="recentOrders.length === 0" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
+      <div
+        v-if="recentOrders.length === 0"
+        class="px-6 py-12 text-center text-slate-500 dark:text-slate-400"
+      >
         <ListX :size="32" class="mx-auto mb-3 text-slate-400 dark:text-slate-600" />
-        <p class="text-sm font-medium">{{ languageStore.t('no_recent_orders', 'No recent orders') }}</p>
+        <p class="text-sm font-medium">
+          {{ languageStore.t('no_recent_orders', 'No recent orders') }}
+        </p>
       </div>
 
       <div v-else class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -45,22 +57,32 @@
                 <div class="flex items-center gap-2">
                   <span class="text-xs font-bold text-slate-900 dark:text-white">
                     <template v-if="order.table?.table_number || order.order_type === 'walk_in'">
-                      <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                      <span
+                        class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400"
+                      >
                         <UtensilsCrossed class="w-3.5 h-3.5" />
-                        {{ order.table?.table_name || `${languageStore.t('table', 'Table')} ${order.table?.table_number || ''}` }}
+                        {{
+                          order.table?.table_name ||
+                          `${languageStore.t('table', 'Table')} ${order.table?.table_number || ''}`
+                        }}
                       </span>
                     </template>
                     <template v-else-if="order.room?.room_number">
                       {{ languageStore.t('room', 'Room') }} {{ order.room.room_number }}
                     </template>
                     <template v-else>
-                      <span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                      <span
+                        class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400"
+                      >
                         <ShoppingBag class="w-3.5 h-3.5" />
                         {{ languageStore.t('takeout', 'Takeout') }}
                       </span>
                     </template>
                   </span>
-                  <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono font-bold">{{ order.order_number }}</span>
+                  <span
+                    class="text-[10px] text-slate-500 dark:text-slate-400 font-mono font-bold"
+                    >{{ order.order_number }}</span
+                  >
                 </div>
                 <span
                   :class="[
@@ -73,9 +95,13 @@
               </div>
 
               <p class="text-xs text-slate-600 dark:text-slate-400 mb-2">
-                <span class="font-medium text-slate-800 dark:text-slate-200">{{ order.guest?.full_name || languageStore.t('walk_in_guest', 'Walk-in Guest') }}</span>
+                <span class="font-medium text-slate-800 dark:text-slate-200">{{
+                  order.guest?.full_name || languageStore.t('walk_in_guest', 'Walk-in Guest')
+                }}</span>
                 •
-                <span class="text-slate-500 dark:text-slate-400">{{ order.items?.length || 0 }} {{ languageStore.t('items', 'items') }}</span>
+                <span class="text-slate-500 dark:text-slate-400"
+                  >{{ order.items?.length || 0 }} {{ languageStore.t('items', 'items') }}</span
+                >
               </p>
 
               <div class="text-xs text-slate-700 dark:text-slate-300 mb-2">
@@ -86,7 +112,10 @@
                 >
                   {{ item.quantity }}x {{ item.name }}
                 </div>
-                <div v-if="(order.items || []).length > 2" class="text-slate-500 dark:text-slate-400">
+                <div
+                  v-if="(order.items || []).length > 2"
+                  class="text-slate-500 dark:text-slate-400"
+                >
                   +{{ (order.items || []).length - 2 }} {{ languageStore.t('more', 'more') }}
                 </div>
               </div>
@@ -105,7 +134,9 @@
       </div>
     </div>
 
-    <div class="bg-slate-50 dark:bg-slate-800/60 px-6 py-3 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-600 dark:text-slate-400">
+    <div
+      class="bg-slate-50 dark:bg-slate-800/60 px-6 py-3 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-600 dark:text-slate-400"
+    >
       {{ languageStore.t('last_10_orders', 'Last 10 orders • Updates auto-refresh every 10s') }}
     </div>
   </div>
@@ -113,7 +144,16 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Clock, ChefHat, CheckCircle, XCircle, Activity, ListX, ShoppingBag, UtensilsCrossed } from 'lucide-vue-next'
+import {
+  Clock,
+  ChefHat,
+  CheckCircle,
+  XCircle,
+  Activity,
+  ListX,
+  ShoppingBag,
+  UtensilsCrossed,
+} from 'lucide-vue-next'
 import { useLanguageStore } from '@/stores/language'
 import type { KitchenOrder } from '@/types/kitchen'
 

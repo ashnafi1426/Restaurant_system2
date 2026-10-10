@@ -3,7 +3,7 @@ export interface Guest {
   first_name: string
   last_name: string
   full_name: string
-  name?: string  // Alias for full_name
+  name?: string // Alias for full_name
   email: string | null
   phone: string
   address: string | null
@@ -92,4 +92,3 @@ export interface OrderItem {
 export interface CartItem extends MenuItem {
   quantity: number
 }
-

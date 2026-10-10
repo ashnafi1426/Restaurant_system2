@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import tableAssignmentService, { type TableAssignment, type TableAssignmentStats } from '@/services/manager/tableAssignmentService'
+import tableAssignmentService, {
+  type TableAssignment,
+  type TableAssignmentStats,
+} from '@/services/manager/tableAssignmentService'
 import { getErrorMessage } from '@/utils/error'
 
 export const useTableAssignmentStore = defineStore('tableAssignment', () => {
@@ -15,7 +18,7 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
     backup_assignments: 0,
     by_shift: {},
   })
-  
+
   const loading = ref(false)
   const error = ref<string | null>(null)
   const pagination = ref({
@@ -26,15 +29,13 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
   })
 
   const hasAssignments = computed(() => assignments.value.length > 0)
-  const primaryAssignments = computed(() => 
-    assignments.value.filter(a => a.priority === 'primary')
+  const primaryAssignments = computed(() =>
+    assignments.value.filter((a) => a.priority === 'primary'),
   )
-  const secondaryAssignments = computed(() => 
-    assignments.value.filter(a => a.priority === 'secondary')
+  const secondaryAssignments = computed(() =>
+    assignments.value.filter((a) => a.priority === 'secondary'),
   )
-  const backupAssignments = computed(() => 
-    assignments.value.filter(a => a.priority === 'backup')
-  )
+  const backupAssignments = computed(() => assignments.value.filter((a) => a.priority === 'backup'))
 
   async function loadAssignments(filters?: {
     date?: string
@@ -51,9 +52,9 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
 
     try {
       const response = await tableAssignmentService.getAssignments(filters)
-      
+
       assignments.value = response.data || []
-      
+
       if (response.pagination) {
         pagination.value = response.pagination
       }
@@ -91,11 +92,11 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
 
     try {
       const response = await tableAssignmentService.assignWaitersToTables(assignments)
-      
+
       await loadAssignments()
       await loadTodayAssignments()
       await loadStats()
-      
+
       return response
     } catch (err: any) {
       console.error('[tableAssignmentStore] Failed to assign waiters:', err)
@@ -114,18 +115,18 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
       shift_id?: string
       priority?: 'primary' | 'secondary' | 'backup'
       status?: 'active' | 'inactive' | 'completed'
-    }
+    },
   ) {
     loading.value = true
     error.value = null
 
     try {
       const updated = await tableAssignmentService.updateAssignment(assignmentId, data)
-      
+
       await loadAssignments()
       await loadTodayAssignments()
       await loadStats()
-      
+
       return updated
     } catch (err: any) {
       console.error('[tableAssignmentStore] Failed to update assignment:', err)
@@ -142,10 +143,10 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
 
     try {
       await tableAssignmentService.deleteAssignment(assignmentId)
-      
-      assignments.value = assignments.value.filter(a => a.id !== assignmentId)
-      todayAssignments.value = todayAssignments.value.filter(a => a.id !== assignmentId)
-      
+
+      assignments.value = assignments.value.filter((a) => a.id !== assignmentId)
+      todayAssignments.value = todayAssignments.value.filter((a) => a.id !== assignmentId)
+
       await loadStats()
       return true
     } catch (err: any) {
@@ -220,12 +221,12 @@ export const useTableAssignmentStore = defineStore('tableAssignment', () => {
     loading,
     error,
     pagination,
-    
+
     hasAssignments,
     primaryAssignments,
     secondaryAssignments,
     backupAssignments,
-    
+
     loadAssignments,
     fetchAssignments: loadAssignments,
     loadTodayAssignments,

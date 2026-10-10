@@ -8,7 +8,17 @@ import { useSidebarStore } from '../../stores/sidebarStore'
 import { useLanguageStore } from '@/stores/language'
 import LanguageSelector from '@/components/common/LanguageSelector.vue'
 // import NotificationCenter from '@/components/reception/NotificationCenter.vue'
-import { Sun, Moon, PanelLeft, Maximize, Minimize, Building2, ChevronDown, Check, Search } from 'lucide-vue-next'
+import {
+  Sun,
+  Moon,
+  PanelLeft,
+  Maximize,
+  Minimize,
+  Building2,
+  ChevronDown,
+  Check,
+  Search,
+} from 'lucide-vue-next'
 
 const auth = useAuthStore()
 const hotelStore = useHotelStore()
@@ -24,7 +34,9 @@ const handleSwitchHotel = async (hotelId: string) => {
   hotelDropdownOpen.value = false
   const success = await hotelStore.switchHotel(hotelId)
   if (success) {
-    const newRole = String(hotelStore.currentHotel?.role || auth.currentRole || 'admin').toLowerCase().trim()
+    const newRole = String(hotelStore.currentHotel?.role || auth.currentRole || 'admin')
+      .toLowerCase()
+      .trim()
 
     let targetRoute = '/admin'
     if (auth.isPlatformAdmin || newRole === 'admin') {
@@ -44,16 +56,26 @@ const handleSwitchHotel = async (hotelId: string) => {
     }
 
     const currentPath = router.currentRoute.value.path
-    const canStayOnCurrent = auth.isPlatformAdmin || 
-      (newRole === 'admin') || 
-      (newRole === 'manager' && (currentPath.startsWith('/manager') || currentPath.startsWith('/reviews'))) ||
-      (newRole === 'receptionist' && (currentPath.startsWith('/receptionist') || currentPath === '/reports' || currentPath.startsWith('/reservations') || currentPath.startsWith('/guests'))) ||
+    const canStayOnCurrent =
+      auth.isPlatformAdmin ||
+      newRole === 'admin' ||
+      (newRole === 'manager' &&
+        (currentPath.startsWith('/manager') || currentPath.startsWith('/reviews'))) ||
+      (newRole === 'receptionist' &&
+        (currentPath.startsWith('/receptionist') ||
+          currentPath === '/reports' ||
+          currentPath.startsWith('/reservations') ||
+          currentPath.startsWith('/guests'))) ||
       (newRole === 'cashier' && currentPath.startsWith('/cashier')) ||
       (newRole === 'chef' && currentPath.startsWith('/chef')) ||
-      (newRole === 'kitchen' && (currentPath.startsWith('/kitchen') || currentPath.startsWith('/chef')))
+      (newRole === 'kitchen' &&
+        (currentPath.startsWith('/kitchen') || currentPath.startsWith('/chef')))
 
     if (canStayOnCurrent) {
-      await router.replace({ path: currentPath, query: { ...router.currentRoute.value.query, _t: Date.now().toString() } })
+      await router.replace({
+        path: currentPath,
+        query: { ...router.currentRoute.value.query, _t: Date.now().toString() },
+      })
       return
     }
 
@@ -110,7 +132,7 @@ const logout = async () => {
 
 const toggleSidebar = () => {
   const screenWidth = window.innerWidth
-  
+
   if (screenWidth >= 1024) {
     sidebarStore.toggleCollapse()
   } else {
@@ -133,11 +155,15 @@ const toggleSidebar = () => {
       </button>
 
       <div class="min-w-0 shrink">
-        <h1 class="text-sm sm:text-lg lg:text-xl font-bold text-slate-800 dark:text-slate-100 truncate whitespace-nowrap leading-tight">
+        <h1
+          class="text-sm sm:text-lg lg:text-xl font-bold text-slate-800 dark:text-slate-100 truncate whitespace-nowrap leading-tight"
+        >
           {{ languageStore.t('dashboard', 'Dashboard') }}
         </h1>
 
-        <p class="text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap hidden 2xl:block leading-tight">
+        <p
+          class="text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap hidden 2xl:block leading-tight"
+        >
           {{ languageStore.t('hotel_management_system', 'Hotel Management System') }}
         </p>
       </div>
@@ -164,7 +190,9 @@ const toggleSidebar = () => {
           v-if="hotelDropdownOpen && hotelStore.hasMultipleHotels"
           class="absolute left-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
         >
-          <div class="px-3 py-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+          <div
+            class="px-3 py-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider"
+          >
             {{ languageStore.t('switch_hotel', 'Switch Hotel') }}
           </div>
           <button
@@ -172,10 +200,17 @@ const toggleSidebar = () => {
             :key="h.id"
             @click="handleSwitchHotel(h.id)"
             class="w-full px-3 py-2 text-left flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50 text-xs sm:text-sm transition-colors"
-            :class="h.id === hotelStore.hotelId ? 'text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50/50 dark:bg-emerald-950/20' : 'text-slate-700 dark:text-slate-300'"
+            :class="
+              h.id === hotelStore.hotelId
+                ? 'text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50/50 dark:bg-emerald-950/20'
+                : 'text-slate-700 dark:text-slate-300'
+            "
           >
             <span class="truncate">{{ h.name }}</span>
-            <Check v-if="h.id === hotelStore.hotelId" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+            <Check
+              v-if="h.id === hotelStore.hotelId"
+              class="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0"
+            />
           </button>
         </div>
       </div>
@@ -185,7 +220,9 @@ const toggleSidebar = () => {
     <div class="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto">
       <!-- Responsive Search Input -->
       <div class="relative hidden md:block">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 dark:text-slate-500 pointer-events-none" />
+        <Search
+          class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 dark:text-slate-500 pointer-events-none"
+        />
 
         <input
           type="text"
@@ -209,10 +246,7 @@ const toggleSidebar = () => {
           v-if="!isFullscreen"
           class="w-4.5 h-4.5 text-slate-600 dark:text-slate-400 transition-transform duration-300"
         />
-        <Minimize
-          v-else
-          class="w-4.5 h-4.5 text-amber-500 transition-transform duration-300"
-        />
+        <Minimize v-else class="w-4.5 h-4.5 text-amber-500 transition-transform duration-300" />
       </button>
 
       <!-- Theme Toggle Button -->
@@ -225,10 +259,7 @@ const toggleSidebar = () => {
           v-if="!themeStore.isDark"
           class="w-4.5 h-4.5 text-slate-600 transition-transform duration-300"
         />
-        <Moon
-          v-else
-          class="w-4.5 h-4.5 text-yellow-400 transition-transform duration-300"
-        />
+        <Moon v-else class="w-4.5 h-4.5 text-yellow-400 transition-transform duration-300" />
       </button>
 
       <!-- User Profile Button (Guaranteed Visible with shrink-0) -->
@@ -249,8 +280,15 @@ const toggleSidebar = () => {
               {{ auth.user?.name || 'Admin' }}
             </h3>
 
-            <p class="text-[10px] text-slate-400 dark:text-slate-500 truncate leading-tight capitalize">
-              {{ languageStore.t(auth.currentRole || 'Administrator', auth.currentRole || 'Administrator') }}
+            <p
+              class="text-[10px] text-slate-400 dark:text-slate-500 truncate leading-tight capitalize"
+            >
+              {{
+                languageStore.t(
+                  auth.currentRole || 'Administrator',
+                  auth.currentRole || 'Administrator',
+                )
+              }}
             </p>
           </div>
 
@@ -270,7 +308,9 @@ const toggleSidebar = () => {
               </div>
 
               <div class="min-w-0">
-                <h4 class="font-semibold text-slate-800 dark:text-slate-100 text-xs sm:text-sm truncate">
+                <h4
+                  class="font-semibold text-slate-800 dark:text-slate-100 text-xs sm:text-sm truncate"
+                >
                   {{ auth.user?.name }}
                 </h4>
 

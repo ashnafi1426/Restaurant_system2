@@ -234,7 +234,7 @@ watch(
     stopPolling()
     fetchBookingStatus()
     startPolling()
-  }
+  },
 )
 
 watch(
@@ -243,20 +243,26 @@ watch(
     if (newStatus === 'checked_out' || newStatus === 'cancelled') {
       stopPolling()
     }
-  }
+  },
 )
 </script>
 
 <template>
   <div class="w-full space-y-6">
-    <div v-if="isLoading" class="bg-white rounded-2xl shadow-lg p-8 flex items-center justify-center min-h-96">
+    <div
+      v-if="isLoading"
+      class="bg-white rounded-2xl shadow-lg p-8 flex items-center justify-center min-h-96"
+    >
       <div class="text-center">
         <Loader class="w-12 h-12 text-amber-600 animate-spin mx-auto mb-4" />
         <p class="text-lg font-semibold text-slate-900">Loading booking details...</p>
       </div>
     </div>
 
-    <div v-else-if="error" class="bg-red-50 border-2 border-red-200 rounded-2xl p-6 flex items-start gap-4">
+    <div
+      v-else-if="error"
+      class="bg-red-50 border-2 border-red-200 rounded-2xl p-6 flex items-start gap-4"
+    >
       <AlertCircle class="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
       <div>
         <p class="font-bold text-red-900">Error Loading Booking</p>
@@ -271,7 +277,9 @@ watch(
     </div>
 
     <div v-else-if="booking" class="space-y-4">
-      <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 rounded-2xl shadow-lg p-6 md:p-8 text-white">
+      <div
+        class="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 rounded-2xl shadow-lg p-6 md:p-8 text-white"
+      >
         <div class="flex items-start justify-between mb-4">
           <div>
             <h2 class="text-3xl md:text-4xl font-bold mb-2">Booking Reference</h2>
@@ -326,7 +334,9 @@ watch(
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <p class="text-sm text-slate-500 font-semibold mb-1">Room Type</p>
-            <p class="text-lg font-bold text-slate-900">{{ booking.room?.room_type?.name || 'Standard Room' }}</p>
+            <p class="text-lg font-bold text-slate-900">
+              {{ booking.room?.room_type?.name || 'Standard Room' }}
+            </p>
           </div>
           <div>
             <p class="text-sm text-slate-500 font-semibold mb-1">Room Number</p>
@@ -338,7 +348,9 @@ watch(
           </div>
           <div>
             <p class="text-sm text-slate-500 font-semibold mb-1">Capacity</p>
-            <p class="text-lg font-bold text-slate-900">{{ booking.room?.room_type?.capacity || 2 }} guests</p>
+            <p class="text-lg font-bold text-slate-900">
+              {{ booking.room?.room_type?.capacity || 2 }} guests
+            </p>
           </div>
         </div>
       </div>
@@ -364,7 +376,9 @@ watch(
             </div>
             <div>
               <p class="text-xs text-amber-600 font-semibold">Duration</p>
-              <p class="text-lg font-bold text-slate-900">{{ numberOfNights }} Night{{ numberOfNights !== 1 ? 's' : '' }}</p>
+              <p class="text-lg font-bold text-slate-900">
+                {{ numberOfNights }} Night{{ numberOfNights !== 1 ? 's' : '' }}
+              </p>
             </div>
           </div>
           <div class="flex items-center gap-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
@@ -390,7 +404,10 @@ watch(
             <span class="font-semibold text-slate-900">ETB {{ roomPricePerNight }}</span>
           </div>
           <div class="flex justify-between items-center">
-            <span class="text-slate-600">{{ numberOfNights }} Night{{ numberOfNights !== 1 ? 's' : '' }} × ETB {{ roomPricePerNight }}</span>
+            <span class="text-slate-600"
+              >{{ numberOfNights }} Night{{ numberOfNights !== 1 ? 's' : '' }} × ETB
+              {{ roomPricePerNight }}</span
+            >
             <span class="font-semibold text-slate-900">ETB {{ calculatedTotal }}</span>
           </div>
         </div>
@@ -400,12 +417,18 @@ watch(
         </div>
       </div>
 
-      <div v-if="booking.special_requests" class="bg-blue-50 rounded-2xl border border-blue-200 p-6 md:p-8">
+      <div
+        v-if="booking.special_requests"
+        class="bg-blue-50 rounded-2xl border border-blue-200 p-6 md:p-8"
+      >
         <p class="text-sm font-semibold text-blue-600 mb-2">Special Requests</p>
         <p class="text-slate-900">{{ booking.special_requests }}</p>
       </div>
 
-      <div v-if="booking.status === 'cancelled' && booking.cancelled_at" class="bg-red-50 rounded-2xl border border-red-200 p-6 md:p-8">
+      <div
+        v-if="booking.status === 'cancelled' && booking.cancelled_at"
+        class="bg-red-50 rounded-2xl border border-red-200 p-6 md:p-8"
+      >
         <p class="text-sm font-semibold text-red-600 mb-2">Booking Cancelled</p>
         <p class="text-slate-900">
           This booking was cancelled on
@@ -432,10 +455,15 @@ watch(
 
       <div v-if="booking.status !== 'cancelled'" class="text-xs text-slate-500 text-center">
         <p class="font-semibold mb-1">Cancellation Policy</p>
-        <p>Bookings can only be cancelled 48 hours before check-in. Contact support for assistance.</p>
+        <p>
+          Bookings can only be cancelled 48 hours before check-in. Contact support for assistance.
+        </p>
       </div>
 
-      <div v-if="showCancelConfirm" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div
+        v-if="showCancelConfirm"
+        class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      >
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
           <div class="flex items-center gap-3 mb-4">
             <div class="p-3 bg-red-100 rounded-lg">

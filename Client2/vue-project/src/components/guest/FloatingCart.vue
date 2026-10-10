@@ -72,7 +72,9 @@ const openCart = () => {
     leave-to-class="translate-y-full opacity-0"
   >
     <div v-if="isVisible" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-lg">
-      <div class="rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 shadow-2xl overflow-hidden">
+      <div
+        class="rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 shadow-2xl overflow-hidden"
+      >
         <button @click="openCart" class="w-full px-6 py-5 text-white">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
@@ -104,10 +106,16 @@ const openCart = () => {
               <div class="text-left">
                 <h3 class="text-lg font-bold">
                   {{ totalItems }}
-                  {{ totalItems === 1 ? languageStore.t('item', 'Item') : languageStore.t('items', 'Items') }}
+                  {{
+                    totalItems === 1
+                      ? languageStore.t('item', 'Item')
+                      : languageStore.t('items', 'Items')
+                  }}
                 </h3>
 
-                <p class="text-sm text-teal-100">{{ languageStore.t('ready_for_checkout', 'Ready for checkout') }}</p>
+                <p class="text-sm text-teal-100">
+                  {{ languageStore.t('ready_for_checkout', 'Ready for checkout') }}
+                </p>
               </div>
             </div>
 

@@ -103,8 +103,12 @@ const renderStars = (rating: number | null) => {
       <div v-if="reviewStats" class="mb-2 sm:mb-3 p-2 bg-yellow-50 rounded-lg">
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-1">
-            <span class="text-sm font-bold text-yellow-600">{{ reviewStats.average_rating?.toFixed(1) || 'N/A' }}</span>
-            <span class="text-xs text-yellow-600">{{ renderStars(reviewStats.average_rating) }}</span>
+            <span class="text-sm font-bold text-yellow-600">{{
+              reviewStats.average_rating?.toFixed(1) || 'N/A'
+            }}</span>
+            <span class="text-xs text-yellow-600">{{
+              renderStars(reviewStats.average_rating)
+            }}</span>
           </div>
           <span class="text-xs text-gray-600">({{ reviewStats.total_reviews }})</span>
         </div>
@@ -120,9 +124,17 @@ const renderStars = (rating: number | null) => {
       <div class="pt-2 sm:pt-3 border-t border-slate-200 flex items-center justify-between gap-2">
         <div>
           <p class="text-lg sm:text-xl md:text-2xl font-black text-purple-600">
-            ${{ ((item.total_price !== undefined && item.total_price !== null) ? Number(item.total_price) : Number(item.price)).toFixed(2) }}
+            ${{
+              (item.total_price !== undefined && item.total_price !== null
+                ? Number(item.total_price)
+                : Number(item.price)
+              ).toFixed(2)
+            }}
           </p>
-          <div v-if="item.tax_rate && Number(item.tax_rate.rate) > 0" class="text-[10px] text-slate-500 font-medium">
+          <div
+            v-if="item.tax_rate && Number(item.tax_rate.rate) > 0"
+            class="text-[10px] text-slate-500 font-medium"
+          >
             <span v-if="item.tax_included" class="text-emerald-600 font-semibold">
               Incl. {{ item.tax_rate.rate }}% {{ item.tax_rate.name || 'VAT' }}
             </span>

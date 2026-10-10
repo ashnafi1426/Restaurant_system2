@@ -5,7 +5,7 @@ import { useHotelStore } from '@/stores/hotelStore'
 import { useLanguageStore } from '@/stores/language'
 import { storeToRefs } from 'pinia'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
-import { 
+import {
   Search,
   Filter,
   X,
@@ -74,7 +74,12 @@ const filteredOrders = computed(() => {
     if (selectedType.value === 'room') {
       list = list.filter((order) => Boolean(order.room?.room_number))
     } else if (selectedType.value === 'walk_in') {
-      list = list.filter((order) => Boolean(order.table?.table_number) || order.order_type === 'walk_in' || !order.room?.room_number)
+      list = list.filter(
+        (order) =>
+          Boolean(order.table?.table_number) ||
+          order.order_type === 'walk_in' ||
+          !order.room?.room_number,
+      )
     }
   }
 
@@ -83,12 +88,23 @@ const filteredOrders = computed(() => {
     const q = searchQuery.value.toLowerCase().trim()
     list = list.filter((order) => {
       const roomNum = order.room?.room_number ? String(order.room.room_number).toLowerCase() : ''
-      const tableNum = order.table?.table_number ? String(order.table.table_number).toLowerCase() : ''
+      const tableNum = order.table?.table_number
+        ? String(order.table.table_number).toLowerCase()
+        : ''
       const tableName = order.table?.table_name ? String(order.table.table_name).toLowerCase() : ''
       const ordNum = (order.order_number || '').toLowerCase()
       const guestName = (order.guest?.full_name || '').toLowerCase()
-      const itemsMatch = (order.items || []).some((item) => (item.name || '').toLowerCase().includes(q))
-      return roomNum.includes(q) || tableNum.includes(q) || tableName.includes(q) || ordNum.includes(q) || guestName.includes(q) || itemsMatch
+      const itemsMatch = (order.items || []).some((item) =>
+        (item.name || '').toLowerCase().includes(q),
+      )
+      return (
+        roomNum.includes(q) ||
+        tableNum.includes(q) ||
+        tableName.includes(q) ||
+        ordNum.includes(q) ||
+        guestName.includes(q) ||
+        itemsMatch
+      )
     })
   }
 
@@ -167,9 +183,12 @@ const refresh = async () => {
   await kitchenStore.fetchDashboard()
 }
 
-watch(() => hotelStore.hotelId, async () => {
-  await kitchenStore.fetchDashboard()
-})
+watch(
+  () => hotelStore.hotelId,
+  async () => {
+    await kitchenStore.fetchDashboard()
+  },
+)
 
 const getStatusBadgeColor = (status: string) => {
   switch (status) {
@@ -222,7 +241,13 @@ const getFoodIcon = (itemName: string, category?: string) => {
   if (name.includes('steak') || name.includes('beef') || name.includes('mignon')) return Beef
   if (name.includes('chicken') || name.includes('poultry')) return ChefHat
   if (name.includes('fish') || name.includes('salmon') || name.includes('tuna')) return Fish
-  if (name.includes('soup') || name.includes('ramen') || name.includes('noodle') || name.includes('bowl')) return Soup
+  if (
+    name.includes('soup') ||
+    name.includes('ramen') ||
+    name.includes('noodle') ||
+    name.includes('bowl')
+  )
+    return Soup
   if (cat.includes('salad') || name.includes('salad')) return Salad
   if (cat.includes('dessert') || name.includes('cake') || name.includes('lava')) return Cake
   if (name.includes('ice cream') || name.includes('gelato')) return IceCream
@@ -230,7 +255,13 @@ const getFoodIcon = (itemName: string, category?: string) => {
   if (cat.includes('drink') || cat.includes('beverage')) return Coffee
   if (name.includes('coffee') || name.includes('espresso') || name.includes('tea')) return Coffee
   if (name.includes('wine') || name.includes('beer') || name.includes('cocktail')) return Wine
-  if (name.includes('fruit') || name.includes('apple') || name.includes('banana') || name.includes('orange')) return Apple
+  if (
+    name.includes('fruit') ||
+    name.includes('apple') ||
+    name.includes('banana') ||
+    name.includes('orange')
+  )
+    return Apple
 
   return UtensilsCrossed
 }
@@ -243,26 +274,45 @@ const getFoodIcon = (itemName: string, category?: string) => {
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
       <!-- Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs">
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
+      >
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md flex-shrink-0 text-white">
+          <div
+            class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md flex-shrink-0 text-white"
+          >
             <UtensilsCrossed class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{{ languageStore.t('all_food_orders', 'All Food Orders') }}</h1>
-              <span v-if="hotelStore.hotelName" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                {{ languageStore.t('all_food_orders', 'All Food Orders') }}
+              </h1>
+              <span
+                v-if="hotelStore.hotelName"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
+              >
                 <Building2 class="w-3 h-3" />
                 {{ hotelStore.hotelName }}
               </span>
             </div>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ languageStore.t('all_food_orders_desc', 'Complete kitchen order logs, status tracking, and history.') }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {{
+                languageStore.t(
+                  'all_food_orders_desc',
+                  'Complete kitchen order logs, status tracking, and history.',
+                )
+              }}
+            </p>
           </div>
         </div>
 
         <div class="flex items-center gap-2">
-          <div class="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-extrabold text-xs sm:text-sm">
-            {{ languageStore.t('total', 'Total') }}: {{ orders?.length || 0 }} {{ languageStore.t('orders', 'Orders') }}
+          <div
+            class="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-extrabold text-xs sm:text-sm"
+          >
+            {{ languageStore.t('total', 'Total') }}: {{ orders?.length || 0 }}
+            {{ languageStore.t('orders', 'Orders') }}
           </div>
         </div>
       </div>
@@ -275,11 +325,18 @@ const getFoodIcon = (itemName: string, category?: string) => {
         <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
           <!-- Search Input -->
           <div class="relative flex-1">
-            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <Search
+              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+            />
             <input
               v-model="searchQuery"
               type="text"
-              :placeholder="languageStore.t('search_food_orders_placeholder', 'Search by order #, room, guest, or food items...')"
+              :placeholder="
+                languageStore.t(
+                  'search_food_orders_placeholder',
+                  'Search by order #, room, guest, or food items...',
+                )
+              "
               class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 dark:focus:border-amber-400 transition outline-none"
             />
           </div>
@@ -292,11 +349,15 @@ const getFoodIcon = (itemName: string, category?: string) => {
             :class="[
               isFilterOpen
                 ? 'bg-amber-600/10 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-500/40'
-                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]'
+                : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{ isFilterOpen ? languageStore.t('hide_filter', 'Hide Filter') : languageStore.t('filter', 'Filter') }}</span>
+            <span>{{
+              isFilterOpen
+                ? languageStore.t('hide_filter', 'Hide Filter')
+                : languageStore.t('filter', 'Filter')
+            }}</span>
           </button>
         </div>
 
@@ -365,9 +426,13 @@ const getFoodIcon = (itemName: string, category?: string) => {
                 v-model="selectedType"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 dark:focus:border-amber-400 transition cursor-pointer font-medium outline-none"
               >
-                <option value="all">{{ languageStore.t('all_order_types', 'All Order Types') }}</option>
+                <option value="all">
+                  {{ languageStore.t('all_order_types', 'All Order Types') }}
+                </option>
                 <option value="room">{{ languageStore.t('room_service', 'Room Service') }}</option>
-                <option value="walk_in">{{ languageStore.t('takeout_walk_in', 'Takeout / Walk-in') }}</option>
+                <option value="walk_in">
+                  {{ languageStore.t('takeout_walk_in', 'Takeout / Walk-in') }}
+                </option>
               </select>
             </div>
 
@@ -387,19 +452,33 @@ const getFoodIcon = (itemName: string, category?: string) => {
       </Transition>
 
       <!-- Table Container -->
-      <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full">
+      <div
+        class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
+      >
         <!-- Desktop Table View -->
         <div class="hidden md:block overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
-            <thead class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]">
+            <thead
+              class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
+            >
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-                <th class="py-3 px-4 pl-5 whitespace-nowrap">{{ languageStore.t('order_ref', 'Order Ref') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('room_service', 'Room / Service') }}</th>
+                <th class="py-3 px-4 pl-5 whitespace-nowrap">
+                  {{ languageStore.t('order_ref', 'Order Ref') }}
+                </th>
+                <th class="py-3 px-4 whitespace-nowrap">
+                  {{ languageStore.t('room_service', 'Room / Service') }}
+                </th>
                 <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('guest', 'Guest') }}</th>
-                <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('dishes_quantity', 'Dishes & Quantity') }}</th>
+                <th class="py-3 px-4 whitespace-nowrap">
+                  {{ languageStore.t('dishes_quantity', 'Dishes & Quantity') }}
+                </th>
                 <th class="py-3 px-4 whitespace-nowrap">{{ languageStore.t('time', 'Time') }}</th>
-                <th class="py-3 px-4 text-right whitespace-nowrap">{{ languageStore.t('total', 'Total') }}</th>
-                <th class="py-3 px-4 text-center pr-5 whitespace-nowrap">{{ languageStore.t('status', 'Status') }}</th>
+                <th class="py-3 px-4 text-right whitespace-nowrap">
+                  {{ languageStore.t('total', 'Total') }}
+                </th>
+                <th class="py-3 px-4 text-center pr-5 whitespace-nowrap">
+                  {{ languageStore.t('status', 'Status') }}
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
@@ -408,7 +487,9 @@ const getFoodIcon = (itemName: string, category?: string) => {
                 <td colspan="7" class="px-6 py-20 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
                     <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_food_orders', 'Loading food orders...') }}</span>
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{
+                      languageStore.t('loading_food_orders', 'Loading food orders...')
+                    }}</span>
                   </div>
                 </td>
               </tr>
@@ -420,125 +501,172 @@ const getFoodIcon = (itemName: string, category?: string) => {
                   :key="order.id"
                   class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
                 >
-                <!-- Order Ref -->
-                <td class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs">
-                  {{ order.order_number || `ORD-${String(order.id).padStart(6, '0')}` }}
-                </td>
-
-                <!-- Room / Service -->
-                <td class="py-3 px-4 whitespace-nowrap">
-                  <span
-                    v-if="order.table?.table_number || order.order_type === 'walk_in'"
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-200 dark:border-emerald-800"
+                  <!-- Order Ref -->
+                  <td
+                    class="py-3 px-4 pl-5 whitespace-nowrap font-mono font-extrabold text-blue-600 dark:text-blue-400 text-xs"
                   >
-                    <UtensilsCrossed class="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                    {{ order.table?.table_name || `${languageStore.t('table', 'Table')} ${order.table?.table_number || ''}` }}
-                  </span>
-                  <span
-                    v-else-if="order.room?.room_number"
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
-                  >
-                    <BedDouble class="w-3 h-3 text-slate-400" />
-                    {{ languageStore.t('room', 'Room') }} {{ order.room.room_number }}
-                  </span>
-                  <span
-                    v-else
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800"
-                  >
-                    <ShoppingBag class="w-3 h-3" />
-                    {{ languageStore.t('takeout', 'Takeout') }}
-                  </span>
-                </td>
+                    {{ order.order_number || `ORD-${String(order.id).padStart(6, '0')}` }}
+                  </td>
 
-                <!-- Guest -->
-                <td class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white">
-                  {{ order.guest?.full_name || languageStore.t('walk_in_guest', 'Walk-in Guest') }}
-                </td>
-
-                <!-- Items Preview -->
-                <td class="py-3 px-4">
-                  <div class="flex items-center gap-1.5 flex-wrap max-w-sm">
+                  <!-- Room / Service -->
+                  <td class="py-3 px-4 whitespace-nowrap">
                     <span
-                      v-for="(item, idx) in (order.items || []).slice(0, 2)"
-                      :key="idx"
-                      class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md"
+                      v-if="order.table?.table_number || order.order_type === 'walk_in'"
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-200 dark:border-emerald-800"
                     >
-                      <component :is="getFoodIcon(item.name, item.category)" :size="12" class="text-amber-500" />
-                      <span>{{ item.quantity }}x {{ item.name }}</span>
+                      <UtensilsCrossed class="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                      {{
+                        order.table?.table_name ||
+                        `${languageStore.t('table', 'Table')} ${order.table?.table_number || ''}`
+                      }}
                     </span>
-                    <span v-if="(order.items || []).length > 2" class="text-[10px] text-slate-400 font-bold">
-                      +{{ (order.items || []).length - 2 }} {{ languageStore.t('more', 'more') }}
+                    <span
+                      v-else-if="order.room?.room_number"
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700"
+                    >
+                      <BedDouble class="w-3 h-3 text-slate-400" />
+                      {{ languageStore.t('room', 'Room') }} {{ order.room.room_number }}
                     </span>
-                  </div>
-                </td>
+                    <span
+                      v-else
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800"
+                    >
+                      <ShoppingBag class="w-3 h-3" />
+                      {{ languageStore.t('takeout', 'Takeout') }}
+                    </span>
+                  </td>
 
-                <!-- Time -->
-                <td class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 font-medium">
-                  {{ formatTime(order.order_time) }}
-                </td>
-
-                <!-- Total -->
-                <td class="py-3 px-4 text-right whitespace-nowrap font-extrabold text-slate-900 dark:text-white font-mono text-xs sm:text-sm">
-                  ${{ parseFloat(String(order.total || 0)).toFixed(2) }}
-                </td>
-
-                <!-- Status -->
-                <td class="py-3 px-4 text-center pr-5 whitespace-nowrap">
-                  <span
-                    class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
-                    :class="getStatusBadgeColor(order.status)"
+                  <!-- Guest -->
+                  <td
+                    class="py-3 px-4 whitespace-nowrap font-medium text-slate-900 dark:text-white"
                   >
-                    <component :is="getStatusIconComponent(order.status)" class="w-3 h-3" />
-                    <span>{{ languageStore.t(order.status, order.status) }}</span>
-                  </span>
-                </td>
-              </tr>
+                    {{
+                      order.guest?.full_name || languageStore.t('walk_in_guest', 'Walk-in Guest')
+                    }}
+                  </td>
 
-              <!-- Empty State -->
-              <tr v-if="paginatedOrders.length === 0">
-                <td colspan="7" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold">
-                  {{ languageStore.t('no_food_orders_found', 'No food orders match your current search or filter criteria.') }}
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </div>
+                  <!-- Items Preview -->
+                  <td class="py-3 px-4">
+                    <div class="flex items-center gap-1.5 flex-wrap max-w-sm">
+                      <span
+                        v-for="(item, idx) in (order.items || []).slice(0, 2)"
+                        :key="idx"
+                        class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md"
+                      >
+                        <component
+                          :is="getFoodIcon(item.name, item.category)"
+                          :size="12"
+                          class="text-amber-500"
+                        />
+                        <span>{{ item.quantity }}x {{ item.name }}</span>
+                      </span>
+                      <span
+                        v-if="(order.items || []).length > 2"
+                        class="text-[10px] text-slate-400 font-bold"
+                      >
+                        +{{ (order.items || []).length - 2 }} {{ languageStore.t('more', 'more') }}
+                      </span>
+                    </div>
+                  </td>
 
-      <!-- Mobile Card View -->
-      <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-        <div v-if="loading" class="py-16 text-center flex flex-col items-center justify-center gap-3">
-          <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-          <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{ languageStore.t('loading_food_orders', 'Loading food orders...') }}</span>
+                  <!-- Time -->
+                  <td
+                    class="py-3 px-4 whitespace-nowrap text-slate-600 dark:text-slate-400 font-medium"
+                  >
+                    {{ formatTime(order.order_time) }}
+                  </td>
+
+                  <!-- Total -->
+                  <td
+                    class="py-3 px-4 text-right whitespace-nowrap font-extrabold text-slate-900 dark:text-white font-mono text-xs sm:text-sm"
+                  >
+                    ${{ parseFloat(String(order.total || 0)).toFixed(2) }}
+                  </td>
+
+                  <!-- Status -->
+                  <td class="py-3 px-4 text-center pr-5 whitespace-nowrap">
+                    <span
+                      class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider"
+                      :class="getStatusBadgeColor(order.status)"
+                    >
+                      <component :is="getStatusIconComponent(order.status)" class="w-3 h-3" />
+                      <span>{{ languageStore.t(order.status, order.status) }}</span>
+                    </span>
+                  </td>
+                </tr>
+
+                <!-- Empty State -->
+                <tr v-if="paginatedOrders.length === 0">
+                  <td
+                    colspan="7"
+                    class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
+                  >
+                    {{
+                      languageStore.t(
+                        'no_food_orders_found',
+                        'No food orders match your current search or filter criteria.',
+                      )
+                    }}
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
         </div>
-        <template v-else>
-          <div
-            v-for="order in paginatedOrders"
-            :key="order.id"
-            class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
-          >
-            <div class="flex items-center justify-between">
-              <span class="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs">
-                {{ order.order_number }}
-              </span>
-              <span
-                class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
-                :class="getStatusBadgeColor(order.status)"
-              >
-                {{ languageStore.t(order.status, order.status) }}
-              </span>
-            </div>
 
-            <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-              <span>{{ order.guest?.full_name || languageStore.t('walk_in_guest', 'Walk-in Guest') }}</span>
-              <span class="font-extrabold text-slate-900 dark:text-white">${{ parseFloat(String(order.total || 0)).toFixed(2) }}</span>
+        <!-- Mobile Card View -->
+        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+          <div
+            v-if="loading"
+            class="py-16 text-center flex flex-col items-center justify-center gap-3"
+          >
+            <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{
+              languageStore.t('loading_food_orders', 'Loading food orders...')
+            }}</span>
+          </div>
+          <template v-else>
+            <div
+              v-for="order in paginatedOrders"
+              :key="order.id"
+              class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
+            >
+              <div class="flex items-center justify-between">
+                <span class="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs">
+                  {{ order.order_number }}
+                </span>
+                <span
+                  class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
+                  :class="getStatusBadgeColor(order.status)"
+                >
+                  {{ languageStore.t(order.status, order.status) }}
+                </span>
+              </div>
+
+              <div
+                class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400"
+              >
+                <span>{{
+                  order.guest?.full_name || languageStore.t('walk_in_guest', 'Walk-in Guest')
+                }}</span>
+                <span class="font-extrabold text-slate-900 dark:text-white"
+                  >${{ parseFloat(String(order.total || 0)).toFixed(2) }}</span
+                >
+              </div>
             </div>
-          </div>
-          <div v-if="paginatedOrders.length === 0" class="p-8 text-center text-slate-500 text-xs font-bold">
-            {{ languageStore.t('no_food_orders_found', 'No food orders match your current search or filter criteria.') }}
-          </div>
-        </template>
-      </div>
+            <div
+              v-if="paginatedOrders.length === 0"
+              class="p-8 text-center text-slate-500 text-xs font-bold"
+            >
+              {{
+                languageStore.t(
+                  'no_food_orders_found',
+                  'No food orders match your current search or filter criteria.',
+                )
+              }}
+            </div>
+          </template>
+        </div>
 
         <!-- Pagination Footer -->
         <div
@@ -546,14 +674,20 @@ const getFoodIcon = (itemName: string, category?: string) => {
           class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
           <div class="text-slate-500 dark:text-slate-400 font-medium">
-            {{ languageStore.t('showing', 'Showing') }} <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> {{ languageStore.t('to', 'to') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> {{ languageStore.t('of', 'of') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> {{ languageStore.t('orders', 'orders') }}
+            {{ languageStore.t('showing', 'Showing') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
+            {{ languageStore.t('to', 'to') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span>
+            {{ languageStore.t('of', 'of') }}
+            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span>
+            {{ languageStore.t('orders', 'orders') }}
           </div>
 
           <div class="flex items-center gap-2 sm:gap-3">
             <div class="flex items-center gap-1.5">
-              <span class="text-slate-500 dark:text-slate-400 font-medium">{{ languageStore.t('per_page', 'Per page:') }}</span>
+              <span class="text-slate-500 dark:text-slate-400 font-medium">{{
+                languageStore.t('per_page', 'Per page:')
+              }}</span>
               <select
                 :value="itemsPerPage"
                 @change="changeItemsPerPage"
@@ -582,7 +716,7 @@ const getFoodIcon = (itemName: string, category?: string) => {
                 :class="[
                   currentPage === page
                     ? 'bg-amber-600 text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
                 ]"
               >
                 {{ page }}

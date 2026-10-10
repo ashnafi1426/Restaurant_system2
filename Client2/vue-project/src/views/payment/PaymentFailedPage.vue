@@ -1,5 +1,7 @@
 <template>
-  <div class="failed-container min-h-screen bg-gradient-to-br from-red-50 to-orange-100 py-12 flex items-center justify-center">
+  <div
+    class="failed-container min-h-screen bg-gradient-to-br from-red-50 to-orange-100 py-12 flex items-center justify-center"
+  >
     <!-- Main Failed Card -->
     <div class="max-w-2xl w-full mx-auto px-4">
       <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
@@ -8,11 +10,7 @@
           <!-- Failed Icon -->
           <div class="flex justify-center mb-6">
             <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center">
-              <svg
-                class="w-12 h-12 text-red-600"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
+              <svg class="w-12 h-12 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fill-rule="evenodd"
                   d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -23,9 +21,7 @@
           </div>
 
           <h1 class="text-4xl font-bold text-white mb-3">Payment Failed</h1>
-          <p class="text-red-50 text-lg">
-            Your payment could not be processed
-          </p>
+          <p class="text-red-50 text-lg">Your payment could not be processed</p>
         </div>
 
         <!-- Content -->
@@ -36,7 +32,8 @@
               Transaction Could Not Be Completed
             </h2>
             <p class="text-slate-600">
-              Unfortunately, your payment was not successful. Please review the details below and try again.
+              Unfortunately, your payment was not successful. Please review the details below and
+              try again.
             </p>
           </div>
 
@@ -57,7 +54,10 @@
               <div>
                 <h3 class="font-semibold text-red-900">Payment Unsuccessful</h3>
                 <p class="text-red-700 text-sm mt-1">
-                  {{ failureReason || 'Your payment was declined. Please try again with a different payment method.' }}
+                  {{
+                    failureReason ||
+                    'Your payment was declined. Please try again with a different payment method.'
+                  }}
                 </p>
               </div>
             </div>
@@ -198,7 +198,10 @@
               class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"
             >
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 1119.414 5.414 1 1 0 11-1.414-1.414A5.002 5.002 0 005.659 5.242V4a1 1 0 01-1-1H4zm6 14a1 1 0 01-1-1v-2.101a7.002 7.002 0 1119.414-5.414 1 1 0 011.414 1.414A5.002 5.002 0 015 14.5v2a1 1 0 01-1 1z"/>
+                <path
+                  fill-rule="evenodd"
+                  d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 1119.414 5.414 1 1 0 11-1.414-1.414A5.002 5.002 0 005.659 5.242V4a1 1 0 01-1-1H4zm6 14a1 1 0 01-1-1v-2.101a7.002 7.002 0 1119.414-5.414 1 1 0 011.414 1.414A5.002 5.002 0 015 14.5v2a1 1 0 01-1 1z"
+                />
               </svg>
               💳 Try Payment Again
             </button>
@@ -214,7 +217,7 @@
           <div class="mt-8 text-center">
             <p class="text-slate-600 mb-3">Need help?</p>
             <p class="text-slate-700">
-              <span class="font-medium">Email:</span> support@hotel.com<br>
+              <span class="font-medium">Email:</span> support@hotel.com<br />
               <span class="font-medium">Phone:</span> +1-800-000-0000
             </p>
           </div>
