@@ -41,7 +41,7 @@ interface Room {
     city?: string
   }
   room_number?: string
-  room_type_id?: number
+  room_type_id?: string | number
   room_type?: RoomType | string
   description?: string
   floor?: number

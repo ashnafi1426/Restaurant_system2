@@ -5,7 +5,7 @@
         <label class="block text-sm font-medium text-slate-700 mb-2">Room Type</label>
         <select
           :value="type"
-          @change="$emit('update:type', $event.target.value)"
+          @change="onTypeChange"
           class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="All">All Types</option>
@@ -20,7 +20,7 @@
         <label class="block text-sm font-medium text-slate-700 mb-2">Capacity</label>
         <select
           :value="capacity"
-          @change="$emit('update:capacity', $event.target.value)"
+          @change="onCapacityChange"
           class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="All">Any Capacity</option>
@@ -40,8 +40,18 @@ defineProps<{
   capacity: string
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   'update:type': [value: string]
   'update:capacity': [value: string]
 }>()
+
+const onTypeChange = (e: Event) => {
+  const target = e.target as HTMLSelectElement | null
+  if (target) emit('update:type', target.value)
+}
+
+const onCapacityChange = (e: Event) => {
+  const target = e.target as HTMLSelectElement | null
+  if (target) emit('update:capacity', target.value)
+}
 </script>
