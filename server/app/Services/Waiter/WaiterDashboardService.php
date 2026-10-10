@@ -127,6 +127,11 @@ class WaiterDashboardService
                 }
             }
 
+            if (!$activeDelivery) {
+                $onDeliveryList = $this->getOnDelivery($waiterId, 1);
+                $activeDelivery = $onDeliveryList[0] ?? null;
+            }
+
             // Derive counts from todayStats without re-querying the database
             $pendingCount = (int) ($todayStats['pending_assignments'] ?? 0);
             $activeCount = (int) ($todayStats['active_assignments'] ?? 0);

@@ -298,6 +298,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import SkeletonLoaders from '@/components/waiter/SkeletonLoaders.vue'
 import waiterService from '@/services/waiterService'
 import { useHotelStore } from '@/stores/hotelStore'
+import { useAuthStore } from '@/stores/auth'
 import { useLanguageStore } from '@/stores/language'
 import {
   Building2,
@@ -316,6 +317,7 @@ import {
 } from 'lucide-vue-next'
 
 const hotelStore = useHotelStore()
+const authStore = useAuthStore()
 const languageStore = useLanguageStore()
 
 const loading = ref(true)
@@ -331,6 +333,8 @@ const activeDelivery = ref<any | null>(null)
 const activeMenuId = ref<string | null>(null)
 const showDetailModal = ref(false)
 const selectedOrder = ref<any | null>(null)
+
+let autoRefreshTimer: ReturnType<typeof setInterval> | null = null
 
 // Format Helpers
 const getItemCount = (items: any): number => {
@@ -440,18 +444,84 @@ const loadDashboard = async (isManualRefresh = false) => {
   }
 }
 
+const setupWebSocket = () => {
+  if (typeof window === 'undefined' || !(window as any).Echo) return
+
+  try {
+    const echo = (window as any).Echo
+    const waiterId = authStore.user?.waiter?.id || authStore.user?.id
+    if (waiterId) {
+      echo.private(`waiter.${waiterId}`)
+        .listen('.waiter.assigned', () => {
+          loadDashboard(true)
+        })
+        .listen('WaiterAssignedEvent', () => {
+          loadDashboard(true)
+        })
+    }
+
+    if (hotelStore.hotelId) {
+      echo.private(`hotel.${hotelStore.hotelId}.waiters`)
+        .listen('.waiter.assigned', () => {
+          loadDashboard(true)
+        })
+        .listen('WaiterAssignedEvent', () => {
+          loadDashboard(true)
+        })
+
+      echo.private(`hotel.${hotelStore.hotelId}.orders`)
+        .listen('.OrderStatusUpdated', () => {
+          loadDashboard(true)
+        })
+        .listen('.OrderCreated', () => {
+          loadDashboard(true)
+        })
+    }
+  } catch (e) {
+    console.warn('[WaiterDashboard] Echo subscription warning:', e)
+  }
+}
+
+const teardownWebSocket = () => {
+  if (typeof window === 'undefined' || !(window as any).Echo) return
+  try {
+    const echo = (window as any).Echo
+    const waiterId = authStore.user?.waiter?.id || authStore.user?.id
+    if (waiterId) {
+      echo.leave(`waiter.${waiterId}`)
+    }
+    if (hotelStore.hotelId) {
+      echo.leave(`hotel.${hotelStore.hotelId}.waiters`)
+      echo.leave(`hotel.${hotelStore.hotelId}.orders`)
+    }
+  } catch (e) {}
+}
+
 watch(() => hotelStore.hotelId, () => {
+  teardownWebSocket()
   restoreCachedData()
-  loadDashboard()
+  loadDashboard(true)
+  setupWebSocket()
 })
 
 onMounted(() => {
   restoreCachedData()
-  loadDashboard()
+  loadDashboard(true)
+  setupWebSocket()
   window.addEventListener('click', handleOutsideClick)
+
+  // Auto-refresh poll every 15 seconds to ensure live consistency
+  autoRefreshTimer = setInterval(() => {
+    loadDashboard(true)
+  }, 15000)
 })
 
 onUnmounted(() => {
+  if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer)
+    autoRefreshTimer = null
+  }
+  teardownWebSocket()
   window.removeEventListener('click', handleOutsideClick)
 })
 </script>

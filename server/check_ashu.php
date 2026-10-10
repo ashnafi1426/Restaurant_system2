@@ -10,9 +10,14 @@ auth()->login($user);
 $hotelId = '01a05ff0-93d7-7073-99ec-b3424a1b1090'; // Executive Hotel
 app(\App\Services\TenantContext::class)->setHotelId($hotelId);
 
+// Clear cache to test fresh computation
+\Illuminate\Support\Facades\Cache::flush();
+
 $service = app(\App\Services\Waiter\WaiterDashboardService::class);
-$readyList = $service->getReadyForPickup(8, 100);
-echo "Actual Ready for Pickup count: " . count($readyList) . "\n";
-foreach ($readyList as $r) {
-    echo "  - " . ($r['order_number'] ?? $r['id']) . " (" . ($r['destination'] ?? 'N/A') . ")\n";
-}
+$stats = $service->getDashboardStats(8);
+
+echo "New dashboard stats for Waiter 8 (Executive Hotel):\n";
+echo "today_stats: " . json_encode($stats['today_stats'], JSON_PRETTY_PRINT) . "\n";
+echo "pending_count: " . $stats['pending_count'] . "\n";
+echo "active_count: " . $stats['active_count'] . "\n";
+echo "recent_assignments: " . count($stats['recent_assignments']) . "\n";
