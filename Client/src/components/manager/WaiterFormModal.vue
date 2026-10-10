@@ -401,8 +401,12 @@ onMounted(async () => {
 
     const rawFloors: any = floorsRes
     const rawShifts: any = shiftsRes
-    floors.value = Array.isArray(rawFloors) ? rawFloors : rawFloors?.data?.data || rawFloors?.data || []
-    shifts.value = Array.isArray(rawShifts) ? rawShifts : rawShifts?.data?.data || rawShifts?.data || []
+    floors.value = Array.isArray(rawFloors)
+      ? rawFloors
+      : rawFloors?.data?.data || rawFloors?.data || []
+    shifts.value = Array.isArray(rawShifts)
+      ? rawShifts
+      : rawShifts?.data?.data || rawShifts?.data || []
   } catch (error) {
     console.error('[WaiterFormModal] Failed to load floors and shifts:', error)
     errorMessage.value = 'Failed to load floors and shifts'

@@ -90,9 +90,10 @@ function removeFromCart(id: string) {
 
 function updateQuantity(itemOrPayload: any, quantity?: number) {
   const id = typeof itemOrPayload === 'object' ? itemOrPayload.id : itemOrPayload
-  const qty = typeof itemOrPayload === 'object' && itemOrPayload.quantity !== undefined
-    ? itemOrPayload.quantity
-    : (quantity ?? 1)
+  const qty =
+    typeof itemOrPayload === 'object' && itemOrPayload.quantity !== undefined
+      ? itemOrPayload.quantity
+      : (quantity ?? 1)
   const product = cartItems.value.find((i) => i.id === id)
 
   if (product) {

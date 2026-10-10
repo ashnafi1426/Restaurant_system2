@@ -115,6 +115,8 @@ export interface Order {
   service_charge_amount?: number
   discount: number
   total: number
+  total_amount?: number
+  customer_name?: string
   notes?: string
   served_at?: string | null
   cancelled_at?: string | null

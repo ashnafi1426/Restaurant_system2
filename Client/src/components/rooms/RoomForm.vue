@@ -37,6 +37,7 @@ const existingRoomNumbers = ref<string[]>([])
 const loadingRoomTypes = ref(false)
 const loadingFloors = ref(false)
 const loadingRoomNumbers = ref(false)
+const loadingRooms = loadingRoomNumbers
 
 const showAddFloorInline = ref(false)
 const newFloorNumber = ref<number | null>(null)

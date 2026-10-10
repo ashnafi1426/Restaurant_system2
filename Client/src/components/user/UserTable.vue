@@ -141,7 +141,9 @@ const closeMenu = () => {
 }
 
 const handleAction = (action: 'view' | 'edit' | 'delete', user: User) => {
-  emit(action, user)
+  if (action === 'view') emit('view', user)
+  else if (action === 'edit') emit('edit', user)
+  else if (action === 'delete') emit('delete', user)
   closeMenu()
 }
 
