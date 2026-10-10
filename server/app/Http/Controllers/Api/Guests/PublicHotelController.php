@@ -22,8 +22,10 @@ class PublicHotelController extends Controller
 
     public function show(string $slug): JsonResponse
     {
-        $hotel = Hotel::where('slug', $slug)
-            ->where('status', 'active')
+        $hotel = Hotel::where('status', 'active')
+            ->where(function ($q) use ($slug) {
+                $q->where('slug', $slug)->orWhere('id', $slug);
+            })
             ->select('id', 'name', 'slug', 'logo', 'address', 'city', 'country', 'phone', 'email', 'currency', 'status')
             ->first();
 

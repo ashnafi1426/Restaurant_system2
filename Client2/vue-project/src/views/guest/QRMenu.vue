@@ -8,6 +8,8 @@
       :guest-avatar="guestAvatar"
       :room-number="roomNumber"
       :qr-token="qrToken"
+      :hotel-id="hotelId"
+      :hotel-name="hotelName"
       :hero-image="heroImage"
       :hero-heading="heroHeading"
       :hero-subheading="heroSubheading"
@@ -472,8 +474,10 @@ import { qrService } from '@/services/qrService'
 import { unifiedOrderService } from '@/services/unifiedOrderService'
 import type { OrderContext } from '@/types/restaurantTable'
 import { useLanguageStore } from '@/stores/language'
+import { useGuestHotelStore } from '@/stores/guestHotelStore'
 
 const languageStore = useLanguageStore()
+const guestHotelStore = useGuestHotelStore()
 
 interface MenuItem {
   id: string | number
@@ -513,6 +517,8 @@ const qrToken = ref(
   localStorage.getItem('qrToken') ||
   ''
 )
+const hotelId = ref<string>(guestHotelStore.hotelId || localStorage.getItem('hotel_id') || '')
+const hotelName = ref<string>(guestHotelStore.hotelName || '')
 const roomNumber = ref('101')
 const guestName = ref('Guest User')
 const guestEmail = ref('guest@royalhorizon.com')
@@ -943,9 +949,13 @@ const detectOrderContext = async () => {
 
       // CRITICAL: Store hotel_id from QR resolution to ensure correct tenant isolation
       if (result.data.hotel_id) {
+        hotelId.value = result.data.hotel_id
+        hotelName.value = result.data.hotel_name || ''
         localStorage.setItem('hotel_id', result.data.hotel_id)
+        localStorage.setItem('guest_hotel_id', result.data.hotel_id)
         localStorage.setItem('active_hotel_id', result.data.hotel_id)
         console.log('[QRMenu] Stored hotel_id from QR resolution:', result.data.hotel_id)
+        guestHotelStore.selectHotelById(result.data.hotel_id)
       }
 
       orderContext.value = {
@@ -976,9 +986,13 @@ const detectOrderContext = async () => {
 
       // CRITICAL: Store hotel_id from QR resolution for table orders
       if (result.data.hotel_id) {
+        hotelId.value = result.data.hotel_id
+        hotelName.value = result.data.hotel_name || ''
         localStorage.setItem('hotel_id', result.data.hotel_id)
+        localStorage.setItem('guest_hotel_id', result.data.hotel_id)
         localStorage.setItem('active_hotel_id', result.data.hotel_id)
         console.log('[QRMenu] Stored hotel_id from table QR resolution:', result.data.hotel_id)
+        guestHotelStore.selectHotelById(result.data.hotel_id)
       }
 
       orderContext.value = {
@@ -1049,6 +1063,15 @@ onMounted(async () => {
   if (qrToken.value) {
     await detectOrderContext()
   } else {
+    const qHotel = (route.query.hotel_id as string) || (route.query.hotel as string)
+    if (qHotel) {
+      await guestHotelStore.selectHotelById(qHotel)
+      hotelId.value = guestHotelStore.hotelId
+      hotelName.value = guestHotelStore.hotelName
+    } else if (guestHotelStore.hotelId) {
+      hotelId.value = guestHotelStore.hotelId
+      hotelName.value = guestHotelStore.hotelName
+    }
     roomNumber.value = localStorage.getItem('roomNumber') || '101'
     isLoadingContext.value = false
   }

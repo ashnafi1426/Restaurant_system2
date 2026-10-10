@@ -33,7 +33,11 @@ class MenuService
      */
     public function getCategorizedMenuItems(?string $hotelId, bool $forceRefresh = false): Collection
     {
-        $cacheScope = $hotelId ?: 'all';
+        if (!$hotelId) {
+            $hotelId = \App\Models\Hotel::where('status', 'active')->orderBy('created_at')->value('id');
+        }
+
+        $cacheScope = $hotelId ?: 'default';
         $cacheKey = "qr_menu_items:{$cacheScope}";
 
         if ($forceRefresh) {
@@ -72,7 +76,10 @@ class MenuService
 
             $menuItems = $query->orderBy('category')->orderBy('name')->get();
 
-            return $menuItems->groupBy('category')
+            return $menuItems->groupBy(function ($item) {
+                    $cat = trim($item->category ?? '');
+                    return !empty($cat) ? $cat : 'Other';
+                })
                 ->map(fn($items, $category) => [
                     'category' => $category,
                     'items' => $items->map(fn($item) => $this->formatMenuItemForGuest($item))->values()->all(),
@@ -90,7 +97,11 @@ class MenuService
      */
     public function getCategoriesWithCounts(?string $hotelId, bool $forceRefresh = false): array
     {
-        $cacheScope = $hotelId ?: 'all';
+        if (!$hotelId) {
+            $hotelId = \App\Models\Hotel::where('status', 'active')->orderBy('created_at')->value('id');
+        }
+
+        $cacheScope = $hotelId ?: 'default';
         $cacheKey = "qr_menu_categories:{$cacheScope}";
 
         if ($forceRefresh) {
@@ -225,7 +236,7 @@ class MenuService
                 'type' => $taxRateModel->type,
             ] : null,
             'image' => $imageUrl,
-            'category' => $item->category,
+            'category' => !empty(trim($item->category ?? '')) ? trim($item->category) : 'Other',
             'is_available' => (bool) $item->is_available,
             'average_rating' => $item->average_rating ? round((float) $item->average_rating, 1) : null,
             'rating' => $item->average_rating ? round((float) $item->average_rating, 1) : null,

@@ -1,0 +1,791 @@
+{
+  "info": {
+    "_postman_id": "restaurant-hotel-e2e-collection-v2",
+    "name": "Restaurant & Hotel Management System - E2E API Suite",
+    "description": "Comprehensive End-to-End Postman Collection covering all 10 modules: Authentication, Guest QR Ordering, Kitchen KDS, Waiter Delivery, Cashier & Payments, Reviews & Ratings, Rooms & Reservations, Table & Floor Assignments, Menu Management, and Admin & Manager Operations.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000/api", "type": "string" },
+    { "key": "auth_token", "value": "", "type": "string" },
+    { "key": "hotel_id", "value": "1", "type": "string" },
+    { "key": "qr_token", "value": "TEST-QR-TOKEN", "type": "string" },
+    { "key": "order_id", "value": "", "type": "string" },
+    { "key": "menu_item_id", "value": "1", "type": "string" },
+    { "key": "room_id", "value": "1", "type": "string" },
+    { "key": "table_id", "value": "1", "type": "string" },
+    { "key": "review_id", "value": "1", "type": "string" },
+    { "key": "tx_ref", "value": "TX-TEST-12345", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "01. Authentication & User Profile",
+      "item": [
+        {
+          "name": "Login (Admin / Staff / Waiter / Cashier)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token || (res.data && res.data.token)) {",
+                  "    const token = res.token || res.data.token;",
+                  "    pm.collectionVariables.set('auth_token', token);",
+                  "    console.log('Saved auth_token:', token);",
+                  "}",
+                  "if (res.user && res.user.hotel_id) {",
+                  "    pm.collectionVariables.set('hotel_id', res.user.hotel_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@royalhorizon.com\",\n  \"password\": \"password\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Get Authenticated User (Me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/auth/me", "host": ["{{base_url}}"], "path": ["auth", "me"] }
+          }
+        },
+        {
+          "name": "Get My Hotels",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/auth/my-hotels", "host": ["{{base_url}}"], "path": ["auth", "my-hotels"] }
+          }
+        },
+        {
+          "name": "Switch Active Hotel",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hotel_id\": \"{{hotel_id}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/switch-hotel", "host": ["{{base_url}}"], "path": ["auth", "switch-hotel"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/auth/logout", "host": ["{{base_url}}"], "path": ["auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Guest & QR Ordering (Public & Room Service)",
+      "item": [
+        {
+          "name": "Resolve QR Code (Table or Room)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qr_token\": \"{{qr_token}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/qr/resolve", "host": ["{{base_url}}"], "path": ["qr", "resolve"] }
+          }
+        },
+        {
+          "name": "Validate QR Token Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{qr_token}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/qr/validate", "host": ["{{base_url}}"], "path": ["qr", "validate"] }
+          }
+        },
+        {
+          "name": "Get Public Menu Categories",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/guest/categories", "host": ["{{base_url}}"], "path": ["guest", "categories"] }
+          }
+        },
+        {
+          "name": "Get Menu Items for Guest",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/guest/menu/items", "host": ["{{base_url}}"], "path": ["guest", "menu", "items"] }
+          }
+        },
+        {
+          "name": "Create Guest Order (Unified)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) {",
+                  "    pm.collectionVariables.set('order_id', res.data.id);",
+                  "    console.log('Created order_id:', res.data.id);",
+                  "} else if (res.id) {",
+                  "    pm.collectionVariables.set('order_id', res.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qr_token\": \"{{qr_token}}\",\n  \"guest_name\": \"Guest Customer\",\n  \"guest_phone\": \"+251911223344\",\n  \"order_type\": \"dine_in\",\n  \"items\": [\n    {\n      \"menu_item_id\": {{menu_item_id}},\n      \"quantity\": 2,\n      \"special_instructions\": \"Well cooked\"\n    }\n  ],\n  \"payment_type\": \"cash\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/guest/unified-orders", "host": ["{{base_url}}"], "path": ["guest", "unified-orders"] }
+          }
+        },
+        {
+          "name": "Check Realtime Order Status",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/guest/orders/{{order_id}}/realtime-status",
+              "host": ["{{base_url}}"],
+              "path": ["guest", "orders", "{{order_id}}", "realtime-status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Kitchen Display System (KDS)",
+      "item": [
+        {
+          "name": "Get Kitchen Active Orders Queue",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/kitchen/orders", "host": ["{{base_url}}"], "path": ["kitchen", "orders"] }
+          }
+        },
+        {
+          "name": "Kitchen Order Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/kitchen/statistics", "host": ["{{base_url}}"], "path": ["kitchen", "statistics"] }
+          }
+        },
+        {
+          "name": "Kitchen: Start Preparing Order",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/kitchen/orders/{{order_id}}/start",
+              "host": ["{{base_url}}"],
+              "path": ["kitchen", "orders", "{{order_id}}", "start"]
+            }
+          }
+        },
+        {
+          "name": "Kitchen: Mark Order Ready for Pickup",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/kitchen/orders/{{order_id}}/ready",
+              "host": ["{{base_url}}"],
+              "path": ["kitchen", "orders", "{{order_id}}", "ready"]
+            }
+          }
+        },
+        {
+          "name": "Kitchen: Mark Order Completed",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/kitchen/orders/{{order_id}}/complete",
+              "host": ["{{base_url}}"],
+              "path": ["kitchen", "orders", "{{order_id}}", "complete"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Waiter & Delivery Management",
+      "item": [
+        {
+          "name": "Waiter Dashboard Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/waiter/dashboard", "host": ["{{base_url}}"], "path": ["waiter", "dashboard"] }
+          }
+        },
+        {
+          "name": "Waiter: Kitchen Ready Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/waiter/dashboard/kitchen-ready-orders", "host": ["{{base_url}}"], "path": ["waiter", "dashboard", "kitchen-ready-orders"] }
+          }
+        },
+        {
+          "name": "Waiter: Ready for Pickup Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/waiter/dashboard/ready-pickup", "host": ["{{base_url}}"], "path": ["waiter", "dashboard", "ready-pickup"] }
+          }
+        },
+        {
+          "name": "Waiter: Accept Delivery Assignment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/waiter/assignments/{{order_id}}/accept",
+              "host": ["{{base_url}}"],
+              "path": ["waiter", "assignments", "{{order_id}}", "accept"]
+            }
+          }
+        },
+        {
+          "name": "Waiter: Pickup Order from Kitchen",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/waiter/assignments/{{order_id}}/pickup",
+              "host": ["{{base_url}}"],
+              "path": ["waiter", "assignments", "{{order_id}}", "pickup"]
+            }
+          }
+        },
+        {
+          "name": "Waiter: Start Delivery Route",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/waiter/assignments/{{order_id}}/start-delivery",
+              "host": ["{{base_url}}"],
+              "path": ["waiter", "assignments", "{{order_id}}", "start-delivery"]
+            }
+          }
+        },
+        {
+          "name": "Waiter: Mark Order Delivered & Served",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/waiter/assignments/{{order_id}}/deliver",
+              "host": ["{{base_url}}"],
+              "path": ["waiter", "assignments", "{{order_id}}", "deliver"]
+            }
+          }
+        },
+        {
+          "name": "Waiter Delivery History",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/waiter/history", "host": ["{{base_url}}"], "path": ["waiter", "history"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. Cashier, Billing & Chapa Payments",
+      "item": [
+        {
+          "name": "Cashier Active Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/cashier/dashboard/orders", "host": ["{{base_url}}"], "path": ["cashier", "dashboard", "orders"] }
+          }
+        },
+        {
+          "name": "Initialize Online Payment (Chapa)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.tx_ref || (res.data && res.data.tx_ref)) {",
+                  "    const tx = res.tx_ref || res.data.tx_ref;",
+                  "    pm.collectionVariables.set('tx_ref', tx);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 350.00,\n  \"currency\": \"ETB\",\n  \"email\": \"guest@example.com\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"order_id\": \"{{order_id}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/payments/initialize", "host": ["{{base_url}}"], "path": ["payments", "initialize"] }
+          }
+        },
+        {
+          "name": "Verify Payment Transaction",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/payments/verify/{{tx_ref}}",
+              "host": ["{{base_url}}"],
+              "path": ["payments", "verify", "{{tx_ref}}"]
+            }
+          }
+        },
+        {
+          "name": "Cashier: Clear & Settle Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cashier/dashboard/orders/{{order_id}}/clear",
+              "host": ["{{base_url}}"],
+              "path": ["cashier", "dashboard", "orders", "{{order_id}}", "clear"]
+            }
+          }
+        },
+        {
+          "name": "Cashier Revenue Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/cashier/reports/revenue", "host": ["{{base_url}}"], "path": ["cashier", "reports", "revenue"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06. Guest Reviews & 5-Star Ratings",
+      "item": [
+        {
+          "name": "Submit Guest Rating & Review (Auto-approved)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"menu_item_id\": \"{{menu_item_id}}\",\n  \"rating\": 5,\n  \"review_text\": \"Exceptional taste and prompt service!\",\n  \"guest_name\": \"Happy Customer\",\n  \"guest_email\": \"customer@example.com\",\n  \"order_id\": \"{{order_id}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/guest-reviews", "host": ["{{base_url}}"], "path": ["guest-reviews"] }
+          }
+        },
+        {
+          "name": "Get Public Reviews for Menu Item",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/menu-items/{{menu_item_id}}/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["menu-items", "{{menu_item_id}}", "reviews"]
+            }
+          }
+        },
+        {
+          "name": "Get Menu Item Rating Stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/menu-items/{{menu_item_id}}/review-stats",
+              "host": ["{{base_url}}"],
+              "path": ["menu-items", "{{menu_item_id}}", "review-stats"]
+            }
+          }
+        },
+        {
+          "name": "Vote Review Helpful / Unhelpful",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_helpful\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/reviews/{{review_id}}/vote",
+              "host": ["{{base_url}}"],
+              "path": ["reviews", "{{review_id}}", "vote"]
+            }
+          }
+        },
+        {
+          "name": "Admin: Overall Review Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/admin/analytics/reviews/overall", "host": ["{{base_url}}"], "path": ["admin", "analytics", "reviews", "overall"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07. Hotel, Rooms & Reception Management",
+      "item": [
+        {
+          "name": "List Room Types",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/room-types", "host": ["{{base_url}}"], "path": ["room-types"] }
+          }
+        },
+        {
+          "name": "List Rooms",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/rooms", "host": ["{{base_url}}"], "path": ["rooms"] }
+          }
+        },
+        {
+          "name": "Create Reservation",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guest_name\": \"Sarah Connor\",\n  \"guest_email\": \"sarah@example.com\",\n  \"guest_phone\": \"+251911334455\",\n  \"room_id\": {{room_id}},\n  \"check_in\": \"2026-10-10 14:00:00\",\n  \"check_out\": \"2026-10-12 11:00:00\",\n  \"number_of_guests\": 2\n}"
+            },
+            "url": { "raw": "{{base_url}}/reservations", "host": ["{{base_url}}"], "path": ["reservations"] }
+          }
+        },
+        {
+          "name": "Reception Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/reception/dashboard", "host": ["{{base_url}}"], "path": ["reception", "dashboard"] }
+          }
+        },
+        {
+          "name": "Generate Room QR Code",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/qr-code/generate/{{room_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["qr-code", "generate", "{{room_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08. Restaurant Tables & Waiter Floor Assignments",
+      "item": [
+        {
+          "name": "List Restaurant Tables",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/manager/restaurant-tables", "host": ["{{base_url}}"], "path": ["manager", "restaurant-tables"] }
+          }
+        },
+        {
+          "name": "Get Today's Table Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/manager/table-assignments/today", "host": ["{{base_url}}"], "path": ["manager", "table-assignments", "today"] }
+          }
+        },
+        {
+          "name": "Assign Waiter to Table",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"waiter_id\": 1,\n  \"table_id\": {{table_id}},\n  \"shift_id\": 1,\n  \"notes\": \"Assigned for lunch shift\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/manager/table-assignments", "host": ["{{base_url}}"], "path": ["manager", "table-assignments"] }
+          }
+        },
+        {
+          "name": "Regenerate Table QR Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/manager/restaurant-tables/{{table_id}}/regenerate-qr",
+              "host": ["{{base_url}}"],
+              "path": ["manager", "restaurant-tables", "{{table_id}}", "regenerate-qr"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "09. Menu & Categories Management",
+      "item": [
+        {
+          "name": "List All Menu Items",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/menu-items", "host": ["{{base_url}}"], "path": ["menu-items"] }
+          }
+        },
+        {
+          "name": "Create Menu Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Signature Flame Ribeye\",\n  \"description\": \"Aged 28 days, seared with thyme garlic butter.\",\n  \"price\": 450.00,\n  \"category_id\": 1,\n  \"is_available\": true,\n  \"preparation_time\": 25\n}"
+            },
+            "url": { "raw": "{{base_url}}/menu-items", "host": ["{{base_url}}"], "path": ["menu-items"] }
+          }
+        },
+        {
+          "name": "Toggle Item Availability",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/menu-items/{{menu_item_id}}/toggle-availability",
+              "host": ["{{base_url}}"],
+              "path": ["menu-items", "{{menu_item_id}}", "toggle-availability"]
+            }
+          }
+        },
+        {
+          "name": "List Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/categories", "host": ["{{base_url}}"], "path": ["categories"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Admin & Manager Operations & Analytics",
+      "item": [
+        {
+          "name": "Manager Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/manager/dashboard/statistics", "host": ["{{base_url}}"], "path": ["manager", "dashboard", "statistics"] }
+          }
+        },
+        {
+          "name": "Manager Kitchen Workload",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/manager/kitchen/chef-workload", "host": ["{{base_url}}"], "path": ["manager", "kitchen", "chef-workload"] }
+          }
+        },
+        {
+          "name": "Manager Revenue Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/manager/revenue/summary", "host": ["{{base_url}}"], "path": ["manager", "revenue", "summary"] }
+          }
+        },
+        {
+          "name": "Manager Occupancy Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/manager/occupancy/summary", "host": ["{{base_url}}"], "path": ["manager", "occupancy", "summary"] }
+          }
+        },
+        {
+          "name": "RBAC Roles List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/roles", "host": ["{{base_url}}"], "path": ["roles"] }
+          }
+        },
+        {
+          "name": "Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/audit-logs", "host": ["{{base_url}}"], "path": ["audit-logs"] }
+          }
+        }
+      ]
+    }
+  ]
+}

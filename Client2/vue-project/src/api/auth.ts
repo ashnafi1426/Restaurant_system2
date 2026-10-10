@@ -45,7 +45,7 @@ api.interceptors.request.use(
         }
       }
     }
-    if (hotelId) {
+    if (!config.headers['X-Hotel-ID'] && !config.headers['x-hotel-id'] && hotelId) {
       config.headers['X-Hotel-ID'] = hotelId
     }
 

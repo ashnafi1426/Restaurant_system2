@@ -158,7 +158,7 @@ class GuestOrderController extends Controller
     {
         try {
             $forceRefresh = $request->boolean('refresh') || $request->header('X-Refresh') === 'true';
-            $resolution = QRResolutionService::resolveQRToken($qrToken);
+            $resolution = QRResolutionService::resolveQRToken($qrToken, $forceRefresh);
             $hotelId = null;
 
             if ($resolution['success'] && !empty($resolution['data']['hotel_id'])) {
@@ -166,7 +166,11 @@ class GuestOrderController extends Controller
             } else {
                 $room = Room::withoutGlobalScopes()->where('qr_token', $qrToken)->first();
                 $table = RestaurantTable::withoutGlobalScopes()->where('qr_token', $qrToken)->first();
-                $hotelId = $room?->hotel_id ?? $table?->hotel_id ?? Hotel::value('id');
+                $hotelId = $room?->hotel_id ?? $table?->hotel_id;
+            }
+
+            if (!$hotelId) {
+                $hotelId = $request->query('hotel_id') ?? Hotel::where('status', 'active')->orderBy('created_at')->value('id');
             }
 
             if (!$hotelId && !$resolution['success']) {
@@ -185,6 +189,7 @@ class GuestOrderController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $categorized,
+                'hotel_id' => $hotelId,
             ]);
         } catch (Throwable $e) {
             Log::error('[GUEST ORDER] Error fetching menu items: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
@@ -203,17 +208,36 @@ class GuestOrderController extends Controller
     {
         try {
             $forceRefresh = $request->boolean('refresh') || $request->header('X-Refresh') === 'true';
-            $hotelId = $request->header('X-Hotel-ID')
-                ?: $request->header('x-hotel-id')
-                ?: TenantContext::id()
-                ?: $request->query('hotel_id');
+            $hotelId = null;
 
+            // 1. If qr_token is passed in query or header, RESOLVE HOTEL FROM QR TOKEN FIRST!
             $qrToken = $request->query('qr_token') ?? $request->header('X-QR-Token');
-            if (!$hotelId && $qrToken) {
-                $resolution = QRResolutionService::resolveQRToken($qrToken);
+            if ($qrToken) {
+                $resolution = QRResolutionService::resolveQRToken($qrToken, $forceRefresh);
                 if (!empty($resolution['data']['hotel_id'])) {
                     $hotelId = $resolution['data']['hotel_id'];
+                } else {
+                    $room = Room::withoutGlobalScopes()->where('qr_token', $qrToken)->first();
+                    $table = RestaurantTable::withoutGlobalScopes()->where('qr_token', $qrToken)->first();
+                    $hotelId = $room?->hotel_id ?? $table?->hotel_id;
                 }
+            }
+
+            // 2. Query param hotel_id (explicit guest hotel parameter)
+            if (!$hotelId && $request->filled('hotel_id')) {
+                $hotelId = $request->query('hotel_id');
+            }
+
+            // 3. Header or tenant context
+            if (!$hotelId) {
+                $hotelId = $request->header('X-Hotel-ID')
+                    ?: $request->header('x-hotel-id')
+                    ?: TenantContext::id();
+            }
+
+            // 4. Fallback to active hotel so items are NEVER mixed across hotels
+            if (!$hotelId) {
+                $hotelId = Hotel::where('status', 'active')->orderBy('created_at')->value('id');
             }
 
             if ($hotelId) {
@@ -231,12 +255,14 @@ class GuestOrderController extends Controller
                 return response()->json([
                     'success' => true,
                     'data' => $flatItems,
+                    'hotel_id' => $hotelId,
                 ]);
             }
 
             return response()->json([
                 'success' => true,
                 'data' => $categorized,
+                'hotel_id' => $hotelId,
             ]);
         } catch (Throwable $e) {
             Log::error('[GUEST ORDER] Error fetching all menu items: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
@@ -255,17 +281,36 @@ class GuestOrderController extends Controller
     {
         try {
             $forceRefresh = $request->boolean('refresh') || $request->header('X-Refresh') === 'true';
-            $hotelId = $request->header('X-Hotel-ID')
-                ?: $request->header('x-hotel-id')
-                ?: TenantContext::id()
-                ?: $request->query('hotel_id');
+            $hotelId = null;
 
+            // 1. If qr_token is passed in query or header, RESOLVE HOTEL FROM QR TOKEN FIRST!
             $qrToken = $request->query('qr_token') ?? $request->header('X-QR-Token');
-            if (!$hotelId && $qrToken) {
-                $resolution = QRResolutionService::resolveQRToken($qrToken);
+            if ($qrToken) {
+                $resolution = QRResolutionService::resolveQRToken($qrToken, $forceRefresh);
                 if (!empty($resolution['data']['hotel_id'])) {
                     $hotelId = $resolution['data']['hotel_id'];
+                } else {
+                    $room = Room::withoutGlobalScopes()->where('qr_token', $qrToken)->first();
+                    $table = RestaurantTable::withoutGlobalScopes()->where('qr_token', $qrToken)->first();
+                    $hotelId = $room?->hotel_id ?? $table?->hotel_id;
                 }
+            }
+
+            // 2. Query param hotel_id
+            if (!$hotelId && $request->filled('hotel_id')) {
+                $hotelId = $request->query('hotel_id');
+            }
+
+            // 3. Header or tenant context
+            if (!$hotelId) {
+                $hotelId = $request->header('X-Hotel-ID')
+                    ?: $request->header('x-hotel-id')
+                    ?: TenantContext::id();
+            }
+
+            // 4. Fallback to active hotel
+            if (!$hotelId) {
+                $hotelId = Hotel::where('status', 'active')->orderBy('created_at')->value('id');
             }
 
             if ($hotelId) {
@@ -277,6 +322,7 @@ class GuestOrderController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $categories,
+                'hotel_id' => $hotelId,
             ]);
         } catch (Throwable $e) {
             Log::error('[GUEST ORDER] Error fetching public categories: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);

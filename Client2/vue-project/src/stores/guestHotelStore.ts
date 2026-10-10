@@ -93,6 +93,9 @@ export const useGuestHotelStore = defineStore('guestHotel', {
       this.currentHotel = hotel
       this.isSelectorOpen = false
       localStorage.setItem('guest_current_hotel', JSON.stringify(hotel))
+      localStorage.setItem('guest_hotel_id', hotel.id)
+      localStorage.setItem('hotel_id', hotel.id)
+      localStorage.setItem('active_hotel_id', hotel.id)
       
       // Dynamically adapt platform brand theme to the selected hotel property
       try {
@@ -103,6 +106,30 @@ export const useGuestHotelStore = defineStore('guestHotel', {
       }
 
       window.dispatchEvent(new CustomEvent('guest-hotel-selected', { detail: { hotel } }))
+    },
+
+    async selectHotelById(hotelId: string) {
+      if (!hotelId) return
+      if (this.currentHotel?.id === hotelId) return
+
+      if (this.availableHotels.length === 0) {
+        await this.fetchAvailableHotels()
+      }
+
+      const matched = this.availableHotels.find(h => h.id === hotelId || h.slug === hotelId)
+      if (matched) {
+        this.selectHotel(matched)
+        return
+      }
+
+      try {
+        const response = await publicAxios.get(`/guest/hotels/${hotelId}`)
+        if (response.data?.success && response.data?.data) {
+          this.selectHotel(response.data.data)
+        }
+      } catch (e) {
+        console.warn('[guestHotelStore] Failed to fetch hotel by ID:', hotelId, e)
+      }
     },
 
     clearSelectedHotel() {
