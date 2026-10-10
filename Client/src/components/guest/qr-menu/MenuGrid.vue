@@ -129,23 +129,7 @@ import { useLanguageStore } from '@/stores/language'
 
 const languageStore = useLanguageStore()
 
-interface MenuItem {
-  id: string | number
-  name: string
-  description: string
-  price: number
-  image: string
-  image_url?: string
-  category: string
-  rating?: number
-  average_rating?: number | null
-  review_count?: number
-  badge?: string
-  dietary?: string[]
-  calories?: number
-  preparationTime?: number
-  is_available?: boolean
-}
+import type { MenuItem } from '@/types/menu'
 
 interface Props {
   items: MenuItem[]

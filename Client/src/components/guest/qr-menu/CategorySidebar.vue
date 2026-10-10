@@ -63,6 +63,7 @@ import {
 
 interface Category {
   id: string | null
+  slug?: string
   name: string
   icon?: string
   count?: number
@@ -71,11 +72,13 @@ interface Category {
 interface Props {
   categories?: Category[]
   selectedCategoryId?: string | null
+  totalItems?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   categories: () => [],
   selectedCategoryId: null,
+  totalItems: 0,
 })
 
 const languageStore = useLanguageStore()

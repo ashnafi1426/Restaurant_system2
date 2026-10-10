@@ -70,8 +70,11 @@ interface MenuItem {
   name: string
   description: string
   price: number
-  image: string
-  category: string
+  total_price?: number
+  base_price?: number
+  tax_amount?: number
+  image?: string | null
+  category?: string
 }
 
 interface Props {

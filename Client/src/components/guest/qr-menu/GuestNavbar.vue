@@ -12,7 +12,7 @@
           <div class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center flex-shrink-0">
             <img
               v-if="hotelLogoUrl && !imageLoadFailed"
-              :src="hotelLogoUrl"
+              :src="hotelLogoUrl || ''"
               :alt="guestHotelStore.hotelName"
               class="w-full h-full object-contain select-none"
               @error="imageLoadFailed = true"
@@ -395,7 +395,7 @@ watch(
   { immediate: true },
 )
 
-const hotelLogoUrl = computed(() => {
+const hotelLogoUrl = computed<string | null>(() => {
   if (imageLoadFailed.value) return null
   const logo = guestHotelStore.currentHotel?.logo
   if (logo && typeof logo === 'string' && logo.trim()) {
@@ -411,13 +411,16 @@ const hotelLogoUrl = computed(() => {
     if (trimmed.startsWith('/storage/')) {
       return `http://127.0.0.1:8000${trimmed}`
     }
-    if (trimmed.startsWith('storage/') || trimmed.startsWith('hotels/')) {
-      return `http:
+    if (trimmed.startsWith('storage/')) {
+      return `http://127.0.0.1:8000/${trimmed}`
+    }
+    if (trimmed.startsWith('hotels/')) {
+      return `http://127.0.0.1:8000/storage/${trimmed}`
     }
     if (trimmed.startsWith('images/')) {
       return `/${trimmed}`
     }
-    return `http:
+    return `http://127.0.0.1:8000/storage/${trimmed}`
   }
 
   const name = (guestHotelStore.hotelName || '').toLowerCase()

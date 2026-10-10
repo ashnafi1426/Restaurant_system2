@@ -4,11 +4,11 @@ export interface MenuCategory {
 }
 
 export interface MenuItem {
-  id: string
+  id: string | number
   name: string
   description: string
-  image?: string
-  image_url?: string
+  image?: string | null
+  image_url?: string | null
   price: number
   formatted_price?: string
   base_price?: number
@@ -16,18 +16,22 @@ export interface MenuItem {
   total_price?: number
   formatted_total_price?: string
   category: string
-  is_available: boolean
+  is_available?: boolean
   rating?: number | null
   average_rating?: number | null
   review_count?: number
+  badge?: string
+  dietary?: string[]
+  calories?: number
+  preparationTime?: number
   tax_rate_id?: string | null
   tax_included?: boolean
   tax_rate?: {
-    id: string
-    name: string
-    code: string
+    id?: string | number
+    name?: string
+    code?: string
     rate: number
-    type: string
+    type?: string
   } | null
   dietary_tags?: string[]
   status?: string

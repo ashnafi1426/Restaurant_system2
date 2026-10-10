@@ -33,13 +33,16 @@ const hotelLogoUrl = computed(() => {
     if (trimmed.startsWith('/storage/')) {
       return `http://127.0.0.1:8000${trimmed}`
     }
-    if (trimmed.startsWith('storage/') || trimmed.startsWith('hotels/')) {
-      return `http:
+    if (trimmed.startsWith('storage/')) {
+      return `http://127.0.0.1:8000/${trimmed}`
+    }
+    if (trimmed.startsWith('hotels/')) {
+      return `http://127.0.0.1:8000/storage/${trimmed}`
     }
     if (trimmed.startsWith('images/')) {
       return `/${trimmed}`
     }
-    return `http:
+    return `http://127.0.0.1:8000/storage/${trimmed}`
   }
 
   const name = (guestHotelStore.hotelName || '').toLowerCase()
