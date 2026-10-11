@@ -417,10 +417,7 @@
                 {{ languageStore.t('close', 'Close') }}
               </button>
               <button
-                @click="
-                  showViewReviewsModal = false
-                  showReviewModal = true
-                "
+                @click="switchToWriteReviewModal"
                 class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-xs sm:text-sm shadow hover:shadow-md transition text-center"
               >
                 ⭐ {{ languageStore.t('write_review', 'Write Review') }}
@@ -1071,6 +1068,11 @@ const handleWriteReview = (item: MenuItem) => {
 const handleViewReviews = (item: MenuItem) => {
   selectedMenuItemForReview.value = item
   showViewReviewsModal.value = true
+}
+
+const switchToWriteReviewModal = () => {
+  showViewReviewsModal.value = false
+  showReviewModal.value = true
 }
 
 const handleReviewSuccess = (_message: string) => {
