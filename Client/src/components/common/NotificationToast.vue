@@ -42,39 +42,39 @@ interface ToastColor {
 const getColors = (type: string): ToastColor => {
   const colors: Record<string, ToastColor> = {
     booking: {
-      bg: 'bg-blue-50',
-      border: 'border-blue-200',
-      text: 'text-blue-900',
-      icon: 'text-blue-600',
+      bg: 'bg-blue-50 dark:bg-slate-900',
+      border: 'border-blue-200 dark:border-blue-800',
+      text: 'text-blue-900 dark:text-blue-100',
+      icon: 'text-blue-600 dark:text-blue-400',
       dot: 'bg-blue-500',
     },
     check_in: {
-      bg: 'bg-green-50',
-      border: 'border-green-200',
-      text: 'text-green-900',
-      icon: 'text-green-600',
-      dot: 'bg-green-500',
+      bg: 'bg-emerald-50 dark:bg-slate-900',
+      border: 'border-emerald-200 dark:border-emerald-800',
+      text: 'text-emerald-900 dark:text-emerald-100',
+      icon: 'text-emerald-600 dark:text-emerald-400',
+      dot: 'bg-emerald-500',
     },
     check_out: {
-      bg: 'bg-yellow-50',
-      border: 'border-yellow-200',
-      text: 'text-yellow-900',
-      icon: 'text-yellow-600',
-      dot: 'bg-yellow-500',
+      bg: 'bg-amber-50 dark:bg-slate-900',
+      border: 'border-amber-200 dark:border-amber-800',
+      text: 'text-amber-900 dark:text-amber-100',
+      icon: 'text-amber-600 dark:text-amber-400',
+      dot: 'bg-amber-500',
     },
     cancellation: {
-      bg: 'bg-red-50',
-      border: 'border-red-200',
-      text: 'text-red-900',
-      icon: 'text-red-600',
-      dot: 'bg-red-500',
+      bg: 'bg-rose-50 dark:bg-slate-900',
+      border: 'border-rose-200 dark:border-rose-800',
+      text: 'text-rose-900 dark:text-rose-100',
+      icon: 'text-rose-600 dark:text-rose-400',
+      dot: 'bg-rose-500',
     },
     system: {
-      bg: 'bg-gray-50',
-      border: 'border-gray-200',
-      text: 'text-gray-900',
-      icon: 'text-gray-600',
-      dot: 'bg-gray-500',
+      bg: 'bg-slate-50 dark:bg-slate-900',
+      border: 'border-slate-200 dark:border-slate-800',
+      text: 'text-slate-900 dark:text-slate-100',
+      icon: 'text-slate-600 dark:text-slate-400',
+      dot: 'bg-slate-500',
     },
   }
   return colors[type] || colors.system
@@ -130,13 +130,13 @@ onMounted(() => {
           >
             <span
               v-if="notification.guest_name"
-              class="inline-flex items-center px-2 py-1 bg-white/50 rounded text-xs font-medium"
+              class="inline-flex items-center px-2 py-1 bg-white/70 dark:bg-slate-800/80 rounded text-xs font-medium border border-black/5 dark:border-white/10"
             >
               👤 {{ notification.guest_name }}
             </span>
             <span
               v-if="notification.room_number"
-              class="inline-flex items-center px-2 py-1 bg-white/50 rounded text-xs font-medium"
+              class="inline-flex items-center px-2 py-1 bg-white/70 dark:bg-slate-800/80 rounded text-xs font-medium border border-black/5 dark:border-white/10"
             >
               🚪 Room {{ notification.room_number }}
             </span>

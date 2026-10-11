@@ -33,7 +33,7 @@
           <span v-else class="theme-icon"></span>
         </button>
 
-        <button class="book-btn">BOOK NOW</button>
+        <button class="book-btn" @click="navigateToRooms">BOOK NOW</button>
       </div>
 
       <div class="hamburger" :class="{ active: menuOpen }" @click="toggleMenu">
@@ -292,22 +292,23 @@ const handleThemeToggle = () => {
 }
 
 .book-btn {
-  background-color: #1a1a1a;
-  color: white;
+  background-color: var(--color-primary, #f59e0b);
+  color: var(--color-primary-foreground, #111827);
   border: none;
   padding: 0.6rem 1.2rem;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: all 0.3s ease;
-  border-radius: 2px;
+  border-radius: 0.5rem;
   display: none;
+  box-shadow: 0 4px 14px -2px rgba(var(--color-primary-rgb, 245, 158, 11), 0.35);
 }
 
 :global(.dark) .book-btn {
-  background-color: #e5e7eb;
-  color: #1f2937;
+  background-color: var(--color-primary, #f59e0b);
+  color: var(--color-primary-foreground, #111827);
 }
 
 @media (min-width: 640px) {
@@ -335,14 +336,14 @@ const handleThemeToggle = () => {
 }
 
 .book-btn:hover {
-  background-color: #333;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background-color: var(--color-primary-hover, #d97706);
+  box-shadow: 0 6px 18px rgba(var(--color-primary-rgb, 245, 158, 11), 0.45);
   transform: translateY(-2px);
 }
 
 :global(.dark) .book-btn:hover {
-  background-color: #d1d5db;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  background-color: var(--color-primary-hover, #d97706);
+  box-shadow: 0 6px 18px rgba(var(--color-primary-rgb, 245, 158, 11), 0.45);
 }
 
 .hamburger {

@@ -1153,7 +1153,7 @@ onMounted(() => {
                     !isPastDate &&
                     isValidDateRange &&
                     !isCapacityExceeded
-                  ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 hover:from-blue-700 hover:via-blue-800 hover:to-blue-900 text-white shadow-blue-500/30 hover:scale-[1.02]'
+                  ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold shadow-amber-500/25 hover:scale-[1.02]'
                   : 'bg-slate-300 text-slate-500'
             "
           >
@@ -1163,7 +1163,7 @@ onMounted(() => {
             </template>
 
             <template v-else>
-              <Sparkles class="w-5 h-5" />
+              <Sparkles class="w-5 h-5 text-slate-950" />
               <span>💳 {{ languageStore.t('proceed_to_payment_btn', 'Proceed to Payment') }}</span>
             </template>
           </button>
@@ -1322,7 +1322,7 @@ onMounted(() => {
               class="flex justify-between text-base font-extrabold pt-2 border-t border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white"
             >
               <span>{{ languageStore.t('total_payable', 'Total Payable') }}:</span>
-              <span class="text-blue-600 dark:text-blue-400 text-lg"
+              <span class="text-amber-600 dark:text-amber-400 text-lg"
                 >ETB {{ getTotalAmount().toFixed(2) }}</span
               >
             </div>
@@ -1355,7 +1355,7 @@ onMounted(() => {
           <button
             @click="proceedWithPayment"
             :disabled="paymentLoading"
-            class="flex-1 px-4 py-2.5 text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition duration-200 disabled:opacity-50 flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 cursor-pointer"
+            class="flex-1 px-4 py-2.5 text-sm font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl transition duration-200 disabled:opacity-50 flex items-center justify-center gap-2 shadow-md shadow-amber-500/25 cursor-pointer"
           >
             <span v-if="paymentLoading" class="animate-spin">⌛</span>
             <span v-if="paymentLoading">{{ languageStore.t('processing', 'Processing...') }}</span>

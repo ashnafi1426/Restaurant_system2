@@ -38,25 +38,14 @@ const orderStats = computed(() => {
     </div>
 
     <div class="grid grid-cols-2 gap-3">
-      <div class="bg-purple-500/10 border border-purple-500/20 rounded-2xl p-4">
+      <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4">
         <p
-          class="text-[10px] font-extrabold uppercase text-purple-700 dark:text-purple-300 tracking-wider"
+          class="text-[10px] font-extrabold uppercase text-indigo-700 dark:text-indigo-300 tracking-wider"
         >
           {{ languageStore.t('total_orders', 'Total Orders') }}
         </p>
-        <h3 class="text-2xl font-black text-purple-900 dark:text-purple-200 mt-1">
+        <h3 class="text-2xl font-black text-indigo-900 dark:text-indigo-200 mt-1">
           {{ orderStats.total }}
-        </h3>
-      </div>
-
-      <div class="bg-rose-500/10 border border-rose-500/20 rounded-2xl p-4">
-        <p
-          class="text-[10px] font-extrabold uppercase text-rose-700 dark:text-rose-300 tracking-wider"
-        >
-          {{ languageStore.t('pending', 'Pending') }}
-        </p>
-        <h3 class="text-2xl font-black text-rose-900 dark:text-rose-200 mt-1">
-          {{ orderStats.pending }}
         </h3>
       </div>
 
@@ -64,9 +53,20 @@ const orderStats = computed(() => {
         <p
           class="text-[10px] font-extrabold uppercase text-amber-700 dark:text-amber-300 tracking-wider"
         >
-          {{ languageStore.t('preparing', 'Preparing') }}
+          {{ languageStore.t('pending', 'Pending') }}
         </p>
         <h3 class="text-2xl font-black text-amber-900 dark:text-amber-200 mt-1">
+          {{ orderStats.pending }}
+        </h3>
+      </div>
+
+      <div class="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4">
+        <p
+          class="text-[10px] font-extrabold uppercase text-blue-700 dark:text-blue-300 tracking-wider"
+        >
+          {{ languageStore.t('preparing', 'Preparing') }}
+        </p>
+        <h3 class="text-2xl font-black text-blue-900 dark:text-blue-200 mt-1">
           {{ orderStats.preparing }}
         </h3>
       </div>
@@ -97,11 +97,11 @@ const orderStats = computed(() => {
         class="flex gap-1.5 h-2 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 p-0.5"
       >
         <div
-          class="bg-rose-500 rounded-full transition-all duration-300"
+          class="bg-amber-500 rounded-full transition-all duration-300"
           :style="{ width: `${(orderStats.pending / (orderStats.total || 1)) * 100}%` }"
         ></div>
         <div
-          class="bg-amber-500 rounded-full transition-all duration-300"
+          class="bg-blue-500 rounded-full transition-all duration-300"
           :style="{ width: `${(orderStats.preparing / (orderStats.total || 1)) * 100}%` }"
         ></div>
         <div
@@ -111,10 +111,10 @@ const orderStats = computed(() => {
       </div>
 
       <div class="flex justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400">
-        <span class="text-rose-600 dark:text-rose-400">{{
+        <span class="text-amber-600 dark:text-amber-400">{{
           languageStore.t('pending', 'Pending')
         }}</span>
-        <span class="text-amber-600 dark:text-amber-400">{{
+        <span class="text-blue-600 dark:text-blue-400">{{
           languageStore.t('preparing', 'Preparing')
         }}</span>
         <span class="text-emerald-600 dark:text-emerald-400">{{
@@ -137,10 +137,10 @@ const orderStats = computed(() => {
           <div
             :class="[
               'w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-black shrink-0',
-              order.status === 'pending' && 'bg-rose-500 shadow-xs shadow-rose-500/30',
-              order.status === 'preparing' && 'bg-amber-500 shadow-xs shadow-amber-500/30',
+              order.status === 'pending' && 'bg-amber-500 shadow-xs shadow-amber-500/30',
+              order.status === 'preparing' && 'bg-blue-500 shadow-xs shadow-blue-500/30',
               order.status === 'ready' && 'bg-emerald-500 shadow-xs shadow-emerald-500/30',
-              order.status === 'served' && 'bg-blue-500 shadow-xs shadow-blue-500/30',
+              order.status === 'served' && 'bg-slate-600 shadow-xs shadow-slate-600/30',
             ]"
           >
             #{{ (order.orderNumber || '').split('-').pop() || '1' }}

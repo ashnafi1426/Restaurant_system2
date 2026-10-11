@@ -139,11 +139,11 @@ onUnmounted(() => {
 
             <span
               v-if="isItemActive(menu.route)"
-              class="absolute -bottom-1 inset-x-0 h-[2px] bg-[#E9A11A] rounded-full transition-all"
+              class="absolute -bottom-1 inset-x-0 h-[2px] bg-primary rounded-full transition-all"
             />
             <span
               v-else
-              class="absolute -bottom-1 left-1/2 right-1/2 h-[2px] bg-[#E9A11A]/40 rounded-full transition-all duration-200 group-hover:inset-x-0 opacity-0 group-hover:opacity-100"
+              class="absolute -bottom-1 left-1/2 right-1/2 h-[2px] bg-primary/40 rounded-full transition-all duration-200 group-hover:inset-x-0 opacity-0 group-hover:opacity-100"
             />
           </RouterLink>
         </nav>
@@ -186,7 +186,7 @@ onUnmounted(() => {
 
         <RouterLink
           to="/rooms"
-          class="h-10 px-6 flex items-center justify-center rounded-full bg-[#E9A11A] hover:bg-[#d69213] text-white font-medium text-[13px] tracking-wide shadow-md shadow-amber-500/25 hover:shadow-lg hover:shadow-amber-500/35 transition-all duration-200 whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E9A11A]"
+          class="h-10 px-6 flex items-center justify-center rounded-full bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-[13px] tracking-wide shadow-md shadow-amber-500/25 hover:shadow-lg hover:shadow-amber-500/35 transition-all duration-200 whitespace-nowrap active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           {{ languageStore.t('book_now', 'Book Now') }}
         </RouterLink>
@@ -272,7 +272,7 @@ onUnmounted(() => {
         <RouterLink
           to="/rooms"
           @click="closeMenu"
-          class="block w-full text-center py-3 rounded-full bg-[#E9A11A] hover:bg-[#d69213] text-white text-xs font-semibold shadow-md shadow-amber-500/25 transition-all"
+          class="block w-full text-center py-3 rounded-full bg-primary hover:bg-primary-hover text-primary-foreground text-xs font-bold shadow-md shadow-amber-500/25 transition-all"
         >
           {{ languageStore.t('book_now', 'Book Now') }}
         </RouterLink>

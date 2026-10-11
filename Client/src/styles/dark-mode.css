@@ -5,19 +5,19 @@ html {
 }
 
 html.dark {
-  background-color: #020617 !important;
-  color: #f1f5f9 !important;
+  background-color: var(--color-background, #0b1120) !important;
+  color: var(--color-text, #f8fafc) !important;
   background-image: none !important;
 }
 
 html:not(.dark) {
-  background-color: #ffffff !important;
-  color: #1f2937 !important;
+  background-color: var(--color-background, #f8fafc) !important;
+  color: var(--color-text, #0f172a) !important;
 }
 
 body {
-  background-color: #ffffff;
-  color: #1f2937;
+  background-color: var(--color-background, #f8fafc);
+  color: var(--color-text, #0f172a);
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
@@ -25,21 +25,21 @@ body {
 
 body.dark,
 html.dark body {
-  background-color: #020617 !important;
-  color: #f1f5f9;
+  background-color: var(--color-background, #0b1120) !important;
+  color: var(--color-text, #f8fafc);
 }
 
 #app {
-  background-color: #ffffff;
-  color: #1f2937;
+  background-color: var(--color-background, #f8fafc);
+  color: var(--color-text, #0f172a);
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
 }
 
 html.dark #app {
-  background-color: #020617 !important;
-  color: #f1f5f9;
+  background-color: var(--color-background, #0b1120) !important;
+  color: var(--color-text, #f8fafc);
 }
 
 h1,
@@ -107,34 +107,34 @@ html.dark .text-gray-400 {
 }
 
 .bg-white {
-  background-color: #ffffff;
+  background-color: var(--color-surface, #ffffff);
   transition: background-color 0.3s ease;
 }
 
 html.dark .bg-white:not([class*='dark:bg-']) {
-  background-color: #0f172a;
+  background-color: var(--color-surface, #111827);
 }
 
 .bg-gray-50,
 .bg-slate-50 {
-  background-color: #f9fafb;
+  background-color: var(--color-background, #f8fafc);
   transition: background-color 0.3s ease;
 }
 
 html.dark .bg-gray-50:not([class*='dark:bg-']),
 html.dark .bg-slate-50:not([class*='dark:bg-']) {
-  background-color: #1e293b;
+  background-color: var(--color-surface-secondary, #1e293b);
 }
 
 .bg-gray-100,
 .bg-slate-100 {
-  background-color: #f3f4f6;
+  background-color: var(--color-surface-secondary, #f1f5f9);
   transition: background-color 0.3s ease;
 }
 
 html.dark .bg-gray-100:not([class*='dark:bg-']),
 html.dark .bg-slate-100:not([class*='dark:bg-']) {
-  background-color: #334155;
+  background-color: var(--color-surface-secondary, #1e293b);
 }
 
 html.dark .bg-gradient-to-br {
@@ -146,19 +146,19 @@ html.dark .bg-gradient-to-r {
 }
 
 .border {
-  border-color: #e5e7eb;
+  border-color: var(--color-border, #e2e8f0);
   transition: border-color 0.3s ease;
 }
 
 html.dark .border {
-  border-color: #334155;
+  border-color: var(--color-border, #334155);
 }
 
 .border-t,
 .border-b,
 .border-l,
 .border-r {
-  border-color: #e5e7eb;
+  border-color: var(--color-border, #e2e8f0);
   transition: border-color 0.3s ease;
 }
 
@@ -166,17 +166,17 @@ html.dark .border-t,
 html.dark .border-b,
 html.dark .border-l,
 html.dark .border-r {
-  border-color: #334155;
+  border-color: var(--color-border, #334155);
 }
 
 html.dark .border-slate-200,
 html.dark .border-gray-200 {
-  border-color: #334155 !important;
+  border-color: var(--color-border, #334155) !important;
 }
 
 html.dark .border-slate-100,
 html.dark .border-gray-100 {
-  border-color: #1e293b !important;
+  border-color: var(--color-border-subtle, #1e293b) !important;
 }
 
 button {
@@ -436,12 +436,12 @@ html.dark a:hover {
 }
 
 *:focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--color-focus, #2563eb);
   outline-offset: 2px;
 }
 
 html.dark *:focus-visible {
-  outline: 2px solid #60a5fa;
+  outline: 2px solid var(--color-focus, #93c5fd);
   outline-offset: 2px;
 }
 

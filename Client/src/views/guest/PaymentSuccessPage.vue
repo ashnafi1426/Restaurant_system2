@@ -1,9 +1,9 @@
 <template>
-  <div class="min-h-screen bg-[#f5f0e8] p-4">
+  <div class="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 transition-colors">
     <div class="max-w-md mx-auto py-6">
-      <div class="bg-[#3d4f3d] rounded-2xl p-4 mb-6 shadow-lg flex items-center gap-3">
+      <div class="bg-emerald-600 dark:bg-emerald-700 rounded-2xl p-4 mb-6 shadow-lg flex items-center gap-3">
         <div
-          class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0"
+          class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0"
         >
           <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -17,17 +17,17 @@
         <span class="text-white font-semibold text-lg">Payment successful!</span>
       </div>
 
-      <div class="bg-white rounded-3xl shadow-lg overflow-hidden">
-        <div class="p-6 text-center border-b border-gray-200">
-          <h1 class="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
-          <p class="text-sm text-gray-600">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div class="p-6 text-center border-b border-slate-100 dark:border-slate-800">
+          <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Payment Successful!</h1>
+          <p class="text-sm text-slate-600 dark:text-slate-400">
             Thank you for your payment. Your order has been confirmed.
           </p>
         </div>
 
         <div class="p-6 space-y-6">
-          <div class="flex items-center gap-2 text-gray-700 mb-4">
-            <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+          <div class="flex items-center gap-2 text-slate-800 dark:text-slate-200 mb-4">
+            <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
               <path
                 fill-rule="evenodd"
@@ -39,33 +39,33 @@
           </div>
 
           <div class="space-y-3 text-sm">
-            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-              <span class="text-gray-500">Transaction ID</span>
-              <span class="font-mono text-gray-900 font-semibold">{{ transactionId || '—' }}</span>
+            <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 dark:text-slate-400">Transaction ID</span>
+              <span class="font-mono text-slate-900 dark:text-slate-100 font-semibold">{{ transactionId || '—' }}</span>
             </div>
 
-            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-              <span class="text-gray-500">Status</span>
-              <span class="font-semibold text-green-600">Paid</span>
+            <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 dark:text-slate-400">Status</span>
+              <span class="font-semibold text-emerald-600 dark:text-emerald-400">Paid</span>
             </div>
 
-            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-              <span class="text-gray-500">Order Number</span>
-              <span class="font-semibold text-gray-900">{{
+            <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 dark:text-slate-400">Order Number</span>
+              <span class="font-semibold text-slate-900 dark:text-slate-100">{{
                 orderNumber ? `#${orderNumber}` : '—'
               }}</span>
             </div>
 
-            <div class="flex justify-between items-center py-2 border-b border-gray-100">
-              <span class="text-gray-500">Table / Room</span>
-              <span class="font-semibold text-gray-900">{{
+            <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
+              <span class="text-slate-500 dark:text-slate-400">Table / Room</span>
+              <span class="font-semibold text-slate-900 dark:text-slate-100">{{
                 tableNumber || roomNumber || '—'
               }}</span>
             </div>
 
             <div class="flex justify-between items-center py-3">
-              <span class="text-gray-500">Amount Paid</span>
-              <span class="text-2xl font-bold text-red-600"
+              <span class="text-slate-500 dark:text-slate-400">Amount Paid</span>
+              <span class="text-2xl font-black text-slate-900 dark:text-white"
                 >ETB {{ (amount || 0).toFixed(2) }}</span
               >
             </div>
@@ -73,7 +73,7 @@
 
           <button
             @click="trackOrder"
-            class="w-full py-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-2xl font-bold text-lg shadow-lg transition-all flex items-center justify-center gap-2"
+            class="w-full py-4 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-2xl font-bold text-lg shadow-lg hover:shadow-amber-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             Track My Order
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,7 +88,7 @@
 
           <button
             @click="backToMenu"
-            class="w-full py-3.5 bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-300 rounded-2xl font-semibold text-base shadow-sm transition-all"
+            class="w-full py-3.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 border-2 border-slate-200 dark:border-slate-700 rounded-2xl font-semibold text-base shadow-sm transition-all cursor-pointer"
           >
             Back to Menu
           </button>
@@ -96,7 +96,7 @@
       </div>
 
       <div class="text-center mt-6 px-4">
-        <p class="text-sm text-gray-600">
+        <p class="text-sm text-slate-500 dark:text-slate-400">
           Thank you for ordering with us! Need assistance? Our team is always ready to serve you.
         </p>
       </div>

@@ -1,11 +1,11 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
     <div
-      class="bg-white border-b border-gray-200 px-4 py-4 flex items-center gap-3 sticky top-0 z-10 shadow-sm"
+      class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-4 flex items-center gap-3 sticky top-0 z-10 shadow-xs"
     >
       <button
         @click="goBack"
-        class="text-gray-600 hover:text-gray-900 p-1 rounded-lg hover:bg-gray-100 transition-colors"
+        class="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -17,8 +17,8 @@
         </svg>
       </button>
       <div class="flex-1">
-        <h1 class="text-lg font-bold text-gray-900">Order Status</h1>
-        <p class="text-xs text-gray-500 font-medium">
+        <h1 class="text-lg font-bold text-slate-900 dark:text-slate-100">Order Status</h1>
+        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
           {{
             orderData?.table_number
               ? 'Table ' + orderData.table_number
@@ -36,28 +36,28 @@
       <div class="flex items-center gap-1.5">
         <div
           class="w-2 h-2 rounded-full"
-          :class="isConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-400'"
+          :class="isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'"
         ></div>
-        <span class="text-xs" :class="isConnected ? 'text-green-600' : 'text-gray-400'">
+        <span class="text-xs" :class="isConnected ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-slate-400'">
           {{ isConnected ? 'Live' : 'Offline' }}
         </span>
       </div>
     </div>
 
     <div v-if="isLoading" class="flex flex-col items-center justify-center py-24 gap-3">
-      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-500"></div>
-      <p class="text-gray-500 text-sm">Loading your order...</p>
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+      <p class="text-slate-500 dark:text-slate-400 text-sm">Loading your order...</p>
     </div>
 
     <div v-else-if="error" class="p-4">
-      <div class="rounded-xl p-6 text-center bg-red-50 border border-red-200">
-        <h2 class="font-bold mb-1 text-red-800">Unable to Load Order</h2>
-        <p class="text-sm mb-4 text-red-600">
+      <div class="rounded-xl p-6 text-center bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">
+        <h2 class="font-bold mb-1 text-rose-800 dark:text-rose-200">Unable to Load Order</h2>
+        <p class="text-sm mb-4 text-rose-600 dark:text-rose-400">
           {{ error }}
         </p>
         <button
           @click="refresh"
-          class="px-5 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors cursor-pointer"
+          class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-medium transition-colors cursor-pointer"
         >
           Try Again
         </button>
@@ -66,22 +66,22 @@
 
     <div v-else-if="orderData" class="p-4 space-y-4 pb-8">
       <div
-        class="rounded-xl p-4 flex items-start gap-3 shadow-xs transition-all"
+        class="rounded-xl p-4 flex items-start gap-3 shadow-xs transition-all border"
         :class="{
-          'bg-amber-50 border border-amber-200': isPending,
-          'bg-orange-50 border border-orange-200': isPreparing,
-          'bg-blue-50 border border-blue-200': isReady,
-          'bg-emerald-50 border border-emerald-200': isServed,
-          'bg-rose-50 border border-rose-200': isCancelled,
+          'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50': isPending,
+          'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/50': isPreparing,
+          'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/50': isReady,
+          'bg-teal-50 dark:bg-teal-950/30 border-teal-200 dark:border-teal-800/50': isServed,
+          'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800/50': isCancelled,
         }"
       >
         <div
           class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 text-white shadow-xs"
           :class="{
             'bg-amber-500': isPending,
-            'bg-orange-500': isPreparing,
-            'bg-blue-600': isReady,
-            'bg-emerald-600': isServed,
+            'bg-blue-600': isPreparing,
+            'bg-emerald-600': isReady,
+            'bg-teal-600': isServed,
             'bg-rose-500': isCancelled,
           }"
         >
@@ -89,50 +89,50 @@
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2">
-            <h2 class="font-bold text-gray-900 text-base">{{ statusTitle }}</h2>
+            <h2 class="font-bold text-slate-900 dark:text-slate-100 text-base">{{ statusTitle }}</h2>
             <span
               v-if="isServed"
-              class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-600 text-white flex-shrink-0"
+              class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-teal-600 text-white flex-shrink-0"
             >
               Cleared
             </span>
           </div>
-          <p class="text-sm text-gray-600 mt-0.5">{{ statusMessage }}</p>
+          <p class="text-sm text-slate-600 dark:text-slate-300 mt-0.5">{{ statusMessage }}</p>
         </div>
       </div>
 
-      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-          <span class="font-semibold text-gray-800 text-sm"
+      <div class="bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+          <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm"
             >Order #{{ orderData.order_number || 'N/A' }}</span
           >
-          <span class="text-xs text-gray-500">{{
+          <span class="text-xs text-slate-500 dark:text-slate-400">{{
             formatTime(orderData.created_at || orderData.order_time)
           }}</span>
         </div>
 
-        <div class="divide-y divide-gray-50">
+        <div class="divide-y divide-slate-100 dark:divide-slate-800">
           <div
             v-for="(item, index) in orderData?.items || []"
             :key="item.id || index"
             class="flex items-center justify-between px-4 py-3"
           >
-            <span class="text-sm text-gray-800 flex-1"> {{ item.quantity }}x {{ item.name }} </span>
+            <span class="text-sm text-slate-800 dark:text-slate-200 flex-1"> {{ item.quantity }}x {{ item.name }} </span>
             <div class="flex items-center gap-2 ml-3">
-              <span class="text-sm font-semibold text-gray-900">
+              <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 ETB {{ getItemPrice(item) }}
               </span>
               <span
                 class="px-2 py-0.5 text-xs rounded-full font-bold inline-flex items-center gap-1"
                 :class="{
-                  'bg-amber-100 text-amber-800': isPending,
-                  'bg-orange-100 text-orange-800': isPreparing,
-                  'bg-blue-100 text-blue-800': isReady,
-                  'bg-emerald-100 text-emerald-800': isServed,
-                  'bg-rose-100 text-rose-800': isCancelled,
+                  'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300': isPending,
+                  'bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300': isPreparing,
+                  'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300': isReady,
+                  'bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300': isServed,
+                  'bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300': isCancelled,
                 }"
               >
-                <Check v-if="isServed" class="w-3 h-3 text-emerald-600" />
+                <Check v-if="isServed" class="w-3 h-3 text-teal-600 dark:text-teal-400" />
                 <span>{{
                   isServed
                     ? 'Cleared'
@@ -149,48 +149,48 @@
           </div>
         </div>
 
-        <div class="border-t-2 border-gray-100 px-4 py-3 bg-gray-50 space-y-1.5">
-          <div class="flex items-center justify-between text-sm text-gray-600">
+        <div class="border-t-2 border-slate-100 dark:border-slate-800 px-4 py-3 bg-slate-50 dark:bg-slate-900/50 space-y-1.5">
+          <div class="flex items-center justify-between text-sm text-slate-600 dark:text-slate-400">
             <span>Order Total</span>
-            <span class="font-semibold text-gray-900">
+            <span class="font-semibold text-slate-900 dark:text-slate-100">
               ETB {{ Number(orderData.total || orderData.order_total || 0).toFixed(2) }}
             </span>
           </div>
 
-          <div v-if="orderTip > 0" class="flex items-center justify-between text-sm text-amber-700">
+          <div v-if="orderTip > 0" class="flex items-center justify-between text-sm text-amber-600 dark:text-amber-400">
             <span class="flex items-center gap-1 font-medium">
               <span>★</span>
               <span>Tip</span>
             </span>
-            <span class="font-bold text-amber-800">
+            <span class="font-bold text-amber-700 dark:text-amber-300">
               + ETB {{ orderTip.toFixed(2) }}
             </span>
           </div>
 
-          <div class="flex items-center justify-between pt-2 border-t border-gray-200">
-            <span class="font-bold text-gray-900">Total</span>
-            <span class="text-xl font-bold text-red-600">
+          <div class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-800">
+            <span class="font-bold text-slate-900 dark:text-slate-100">Total</span>
+            <span class="text-xl font-bold text-slate-900 dark:text-white">
               ETB {{ orderTotalWithTip.toFixed(2) }}
             </span>
           </div>
         </div>
       </div>
 
-      <div class="bg-white rounded-xl shadow-sm px-4 py-3 space-y-2">
-        <h3 class="font-semibold text-gray-800 text-sm mb-1">Payment</h3>
+      <div class="bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 px-4 py-3 space-y-2">
+        <h3 class="font-semibold text-slate-800 dark:text-slate-200 text-sm mb-1">Payment</h3>
         <div class="flex items-center justify-between text-sm">
-          <span class="text-gray-500">Status</span>
+          <span class="text-slate-500 dark:text-slate-400">Status</span>
           <span
             class="font-medium inline-flex items-center gap-1"
-            :class="isPaymentPaid || isServed ? 'text-emerald-600' : 'text-amber-600'"
+            :class="isPaymentPaid || isServed ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'"
           >
-            <CheckCircle2 v-if="isPaymentPaid || isServed" class="w-4 h-4 text-emerald-600" />
+            <CheckCircle2 v-if="isPaymentPaid || isServed" class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span>{{ isPaymentPaid || isServed ? 'Paid & Settled' : '⏳ Pending' }}</span>
           </span>
         </div>
         <div class="flex items-center justify-between text-sm">
-          <span class="text-gray-500">Method</span>
-          <span class="font-medium text-gray-800 capitalize">
+          <span class="text-slate-500 dark:text-slate-400">Method</span>
+          <span class="font-medium text-slate-800 dark:text-slate-200 capitalize">
             {{
               orderData.payment_type === 'room_charge'
                 ? 'Room Charge'
@@ -199,17 +199,17 @@
           </span>
         </div>
         <div v-if="isPaymentPaid || isServed" class="flex items-center justify-between text-sm">
-          <span class="text-gray-500">Amount Paid</span>
-          <span class="font-bold text-emerald-600">
+          <span class="text-slate-500 dark:text-slate-400">Amount Paid</span>
+          <span class="font-bold text-emerald-600 dark:text-emerald-400">
             ETB {{ (Number(orderData.amount_paid) || orderTotalWithTip).toFixed(2) }}
           </span>
         </div>
         <div
           v-if="orderData.tx_ref"
-          class="flex items-center justify-between text-xs pt-2 border-t border-gray-100"
+          class="flex items-center justify-between text-xs pt-2 border-t border-slate-100 dark:border-slate-800"
         >
-          <span class="text-gray-400">Transaction ID</span>
-          <span class="font-mono text-gray-600 font-semibold">{{ orderData.tx_ref }}</span>
+          <span class="text-slate-400 dark:text-slate-500">Transaction ID</span>
+          <span class="font-mono text-slate-600 dark:text-slate-300 font-semibold">{{ orderData.tx_ref }}</span>
         </div>
       </div>
 
@@ -217,8 +217,7 @@
         v-if="isPaymentPending"
         @click="handlePayNow"
         :disabled="isProcessingPayment"
-        class="w-full py-4 rounded-xl font-bold text-white text-base shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)"
+        class="w-full py-4 rounded-xl font-bold text-slate-950 text-base shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover"
       >
         <span v-if="isProcessingPayment">Processing...</span>
         <template v-else>
@@ -237,7 +236,7 @@
 
       <div
         v-if="orderData.payment_type === 'room_charge'"
-        class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-700"
+        class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl px-4 py-3 text-sm text-blue-700 dark:text-blue-300"
       >
         <span class="font-medium">Room Charge</span> — This will be added to your room bill at
         checkout.
@@ -247,11 +246,11 @@
         <button
           @click="refresh"
           :disabled="isLoading"
-          class="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
+          class="text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors disabled:opacity-40"
         >
           Refresh
         </button>
-        <p v-if="lastUpdate" class="text-xs text-gray-400 mt-1">
+        <p v-if="lastUpdate" class="text-xs text-slate-400 dark:text-slate-500 mt-1">
           Last updated: {{ formatTime(lastUpdate) }}
         </p>
       </div>

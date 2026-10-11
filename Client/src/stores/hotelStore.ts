@@ -56,6 +56,9 @@ export const useHotelStore = defineStore('hotel', {
       localStorage.setItem('available_hotels', JSON.stringify(this.availableHotels))
       if (this.currentHotel) {
         localStorage.setItem('current_hotel', JSON.stringify(this.currentHotel))
+        import('./theme').then(({ useThemeStore }) => {
+          useThemeStore().syncWithHotel(this.currentHotel)
+        }).catch(() => {})
       } else {
         localStorage.removeItem('current_hotel')
       }
@@ -97,6 +100,14 @@ export const useHotelStore = defineStore('hotel', {
               await authStore.fetchCurrentUser()
             } catch (err: any) {
               console.error('[hotelStore] Failed to fetch current user after hotel switch:', err)
+            }
+
+            try {
+              const { useThemeStore } = await import('./theme')
+              const themeStore = useThemeStore()
+              themeStore.syncWithHotel(hotelData)
+            } catch (themeErr) {
+              console.warn('[hotelStore] Theme sync error on switch:', themeErr)
             }
 
             window.dispatchEvent(
@@ -141,6 +152,9 @@ export const useHotelStore = defineStore('hotel', {
       this.availableHotels = []
       localStorage.removeItem('current_hotel')
       localStorage.removeItem('available_hotels')
+      import('./theme').then(({ useThemeStore }) => {
+        useThemeStore().setHotelTheme('luxury-gold')
+      }).catch(() => {})
     },
 
     async loadHotels() {

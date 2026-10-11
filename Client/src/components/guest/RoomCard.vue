@@ -58,7 +58,7 @@ function reserveRoom() {
 
 <template>
   <div
-    class="group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-500 hover:-translate-y-0.5 hover:shadow-md border border-slate-100 h-[360px] md:h-[380px] flex flex-col"
+    class="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-sm transition-all duration-500 hover:-translate-y-0.5 hover:shadow-md border border-slate-100 dark:border-slate-800 h-[360px] md:h-[380px] flex flex-col text-slate-800 dark:text-slate-100"
   >
     <div class="relative overflow-hidden h-[160px] md:h-[180px] flex-shrink-0">
       <img
@@ -83,7 +83,7 @@ function reserveRoom() {
 
     <div class="p-3 flex flex-col flex-grow">
       <div class="mb-2">
-        <h3 class="text-sm font-medium text-slate-900 mb-1 leading-tight">
+        <h3 class="text-sm font-semibold text-slate-900 dark:text-white mb-1 leading-tight">
           {{ room.name }}
         </h3>
 
@@ -102,28 +102,28 @@ function reserveRoom() {
         </div>
       </div>
 
-      <div class="grid grid-cols-3 gap-1.5 mb-2 pb-2 border-b border-slate-100">
+      <div class="grid grid-cols-3 gap-1.5 mb-2 pb-2 border-b border-slate-100 dark:border-slate-800">
         <div class="text-center">
-          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">
+          <p class="text-[8px] uppercase tracking-wide text-slate-500 dark:text-slate-400 font-light mb-0.5">
             {{ languageStore.t('guests', 'Guests') }}
           </p>
-          <p class="text-[11px] font-medium text-slate-900">
+          <p class="text-[11px] font-medium text-slate-900 dark:text-slate-100">
             {{ room.capacity }}
           </p>
         </div>
 
-        <div class="text-center border-x border-slate-100">
-          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">
+        <div class="text-center border-x border-slate-100 dark:border-slate-800">
+          <p class="text-[8px] uppercase tracking-wide text-slate-500 dark:text-slate-400 font-light mb-0.5">
             {{ languageStore.t('size', 'Size') }}
           </p>
-          <p class="text-[11px] font-medium text-slate-900">{{ room.size }}m²</p>
+          <p class="text-[11px] font-medium text-slate-900 dark:text-slate-100">{{ room.size }}m²</p>
         </div>
 
         <div class="text-center">
-          <p class="text-[8px] uppercase tracking-wide text-slate-500 font-light mb-0.5">
+          <p class="text-[8px] uppercase tracking-wide text-slate-500 dark:text-slate-400 font-light mb-0.5">
             {{ languageStore.t('bed', 'Bed') }}
           </p>
-          <p class="text-[11px] font-medium text-slate-900">{{ room.bed_type }}</p>
+          <p class="text-[11px] font-medium text-slate-900 dark:text-slate-100">{{ room.bed_type }}</p>
         </div>
       </div>
 
@@ -151,14 +151,14 @@ function reserveRoom() {
       <div class="grid grid-cols-2 gap-1.5 mt-auto">
         <button
           @click="viewDetails"
-          class="rounded-xl border border-slate-300 py-2 text-[10px] font-light text-slate-700 transition-all hover:border-amber-500 hover:bg-amber-50 hover:text-amber-700 cursor-pointer"
+          class="rounded-xl border border-slate-300 dark:border-slate-700 py-2 text-[10px] font-semibold text-slate-700 dark:text-slate-200 transition-all hover:border-amber-500 dark:hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:text-amber-700 dark:hover:text-amber-300 cursor-pointer"
         >
           {{ languageStore.t('details', 'Details') }}
         </button>
 
         <button
           @click="reserveRoom"
-          class="rounded-xl bg-amber-500 py-2 text-[10px] font-light text-white transition-all hover:bg-amber-600 disabled:bg-slate-300 disabled:cursor-not-allowed shadow-sm cursor-pointer"
+          class="rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2 text-[10px] transition-all disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed shadow-sm cursor-pointer"
           :disabled="!room.available"
         >
           {{ languageStore.t('book_now', 'Book Now') }}

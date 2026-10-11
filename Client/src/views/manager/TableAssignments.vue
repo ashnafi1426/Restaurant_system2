@@ -39,7 +39,7 @@ const selectedEditAssignment = ref<any>(null)
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
 
-const filterDate = ref(new Date().toISOString().split('T')[0])
+const filterDate = ref('')
 const filterStatus = ref('')
 const searchQuery = ref('')
 
@@ -175,14 +175,18 @@ const paginationPages = computed(() => {
 })
 
 const loadData = async (dateVal?: string) => {
-  const d = dateVal || filterDate.value
+  const d = dateVal !== undefined ? dateVal : filterDate.value
+  const filters: any = {}
+  if (d && d !== 'all') {
+    filters.date = d
+  }
   try {
-    await tableAssignmentStore.loadAssignments({ date: d })
+    await tableAssignmentStore.loadAssignments(filters)
   } catch (e) {
     console.warn('[TableAssignments] Failed to load assignments:', e)
   }
   try {
-    await tableAssignmentStore.loadStats(d)
+    await tableAssignmentStore.loadStats(d && d !== 'all' ? d : undefined)
   } catch (e) {
     console.warn('[TableAssignments] Failed to load stats:', e)
   }
@@ -226,7 +230,7 @@ const handleRefresh = async () => {
 const handleResetFilters = () => {
   searchQuery.value = ''
   filterStatus.value = ''
-  filterDate.value = new Date().toISOString().split('T')[0]
+  filterDate.value = ''
   currentPage.value = 1
 }
 
@@ -339,7 +343,7 @@ const handleAssignSuccess = async () => {
               {{
                 languageStore.t(
                   'table_assignments_desc',
-                  'Assign waiters to dining tables, designate shifts, and monitor priority coverage.',
+                  'Assign waiters to dining tables persistently. Table assignments remain active and can be updated whenever necessary.',
                 )
               }}
             </p>
@@ -510,7 +514,7 @@ const handleAssignSuccess = async () => {
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
             <div>
               <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                {{ languageStore.t('assignment_date', 'Assignment Date') }}
+                {{ languageStore.t('filter_by_date_optional', 'Filter by Date (Optional)') }}
               </label>
               <input
                 v-model="filterDate"

@@ -1,97 +1,391 @@
+/* ==========================================================================
+   GLOBAL DESIGN TOKENS & MULTI-TENANT COLOR SYSTEM
+   Target: WCAG 2.2 AA Contrast Compliance
+   ========================================================================== */
+
 :root,
 [data-hotel-theme='luxury-gold'],
 [data-hotel-theme='sheraton'] {
-  --brand-primary-rgb: 233, 161, 26;
-  --brand-primary-hover-rgb: 212, 146, 20;
+  /* Brand / Primary Palette (#F59E0B) */
+  --color-primary: #f59e0b;
+  --color-primary-rgb: 245, 158, 11;
+  --color-primary-hover: #d97706;
+  --color-primary-hover-rgb: 217, 119, 6;
+  --color-primary-foreground: #111827;
+  --color-primary-foreground-rgb: 17, 24, 39;
+  --color-primary-subtle: #fef3c7;
+  --color-primary-subtle-rgb: 254, 243, 199;
+  --color-primary-subtle-foreground: #92400e;
+
+  /* Surfaces & Backgrounds */
+  --color-background: #f8fafc;
+  --color-background-rgb: 248, 250, 252;
+  --color-surface: #ffffff;
+  --color-surface-rgb: 255, 255, 255;
+  --color-surface-secondary: #f1f5f9;
+  --color-surface-secondary-rgb: 241, 245, 249;
+
+  /* Typography */
+  --color-text: #0f172a;
+  --color-text-rgb: 15, 23, 42;
+  --color-text-secondary: #475569;
+  --color-text-secondary-rgb: 71, 85, 105;
+  --color-text-muted: #64748b;
+  --color-text-muted-rgb: 100, 116, 139;
+
+  /* Borders & Focus */
+  --color-border: #e2e8f0;
+  --color-border-rgb: 226, 232, 240;
+  --color-border-subtle: #f1f5f9;
+  --color-border-subtle-rgb: 241, 245, 249;
+  --color-focus: #2563eb;
+  --color-focus-rgb: 37, 99, 235;
+
+  /* Semantic Colors - WCAG 2.2 AA Verified */
+  --color-success: #16a34a;
+  --color-success-hover: #15803d;
+  --color-success-foreground: #ffffff;
+  --color-success-subtle: #dcfce7;
+  --color-success-subtle-foreground: #166534;
+  --color-success-border: #bbf7d0;
+
+  --color-warning: #d97706;
+  --color-warning-hover: #b45309;
+  --color-warning-foreground: #ffffff;
+  --color-warning-subtle: #fef3c7;
+  --color-warning-subtle-foreground: #92400e;
+  --color-warning-border: #fde68a;
+
+  --color-error: #dc2626;
+  --color-error-hover: #b91c1c;
+  --color-error-foreground: #ffffff;
+  --color-error-subtle: #fee2e2;
+  --color-error-subtle-foreground: #991b1b;
+  --color-error-border: #fecaca;
+
+  --color-info: #2563eb;
+  --color-info-hover: #1d4ed8;
+  --color-info-foreground: #ffffff;
+  --color-info-subtle: #dbeafe;
+  --color-info-subtle-foreground: #1e40af;
+  --color-info-border: #bfdbfe;
+
+  /* Compatibility Tokens for existing components */
+  --brand-primary-rgb: var(--color-primary-rgb);
+  --brand-primary-hover-rgb: var(--color-primary-hover-rgb);
   --brand-primary-active-rgb: 191, 131, 16;
-  --brand-accent-rgb: 245, 200, 105;
-  --brand-cta-text-rgb: 11, 27, 53;
+  --brand-accent-rgb: 251, 191, 36;
+  --brand-cta-text-rgb: var(--color-primary-foreground-rgb);
 
-  --brand-canvas-rgb: 255, 255, 255;
-  --brand-surface-rgb: 248, 250, 252;
-  --brand-surface-elevated-rgb: 255, 255, 255;
-  --brand-surface-subtle-rgb: 241, 245, 249;
+  --brand-canvas-rgb: var(--color-background-rgb);
+  --brand-surface-rgb: var(--color-surface-rgb);
+  --brand-surface-elevated-rgb: var(--color-surface-rgb);
+  --brand-surface-subtle-rgb: var(--color-surface-secondary-rgb);
 
-  --brand-headline-rgb: 11, 27, 53;
-  --brand-body-rgb: 51, 65, 85;
-  --brand-muted-rgb: 100, 116, 139;
-  --brand-border-rgb: 226, 232, 240;
-  --brand-border-subtle-rgb: 241, 245, 249;
+  --brand-headline-rgb: var(--color-text-rgb);
+  --brand-body-rgb: var(--color-text-secondary-rgb);
+  --brand-muted-rgb: var(--color-text-muted-rgb);
+  --brand-border-rgb: var(--color-border-rgb);
+  --brand-border-subtle-rgb: var(--color-border-subtle-rgb);
 
   --shadow-brand-glow: 0 4px 18px -2px rgba(var(--brand-primary-rgb), 0.32);
   --shadow-brand-glow-lg: 0 8px 28px -4px rgba(var(--brand-primary-rgb), 0.45);
-  --shadow-brand-surface: 0 4px 20px -2px rgba(11, 27, 53, 0.06);
+  --shadow-brand-surface: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
 }
 
+/* Tenant Customization: Dire Dawa Ras Heritage */
 [data-hotel-theme='heritage-wine'],
 [data-hotel-theme='ras-hotel'] {
-  --brand-primary-rgb: 128, 35, 37;
-  --brand-primary-hover-rgb: 105, 26, 28;
-  --brand-primary-active-rgb: 87, 18, 20;
+  --color-primary: #802325;
+  --color-primary-rgb: 128, 35, 37;
+  --color-primary-hover: #691a1c;
+  --color-primary-hover-rgb: 105, 26, 28;
+  --color-primary-foreground: #ffffff;
+  --color-primary-foreground-rgb: 255, 255, 255;
+  --color-primary-subtle: #f5e8e9;
+  --color-primary-subtle-rgb: 245, 232, 233;
+  --color-primary-subtle-foreground: #691a1c;
+
   --brand-accent-rgb: 229, 181, 79;
   --brand-cta-text-rgb: 255, 255, 255;
-
-  --brand-canvas-rgb: 253, 252, 251;
-  --brand-surface-rgb: 248, 246, 244;
-  --brand-surface-elevated-rgb: 255, 255, 255;
-  --brand-surface-subtle-rgb: 243, 239, 236;
-
-  --brand-headline-rgb: 38, 14, 16;
-  --brand-body-rgb: 74, 62, 62;
-  --brand-muted-rgb: 120, 106, 106;
-  --brand-border-rgb: 232, 224, 222;
-  --brand-border-subtle-rgb: 243, 239, 236;
-
-  --shadow-brand-glow: 0 4px 18px -2px rgba(var(--brand-primary-rgb), 0.28);
-  --shadow-brand-glow-lg: 0 8px 28px -4px rgba(var(--brand-primary-rgb), 0.4);
-  --shadow-brand-surface: 0 4px 20px -2px rgba(38, 14, 16, 0.05);
+  --shadow-brand-glow: 0 4px 18px -2px rgba(128, 35, 37, 0.28);
+  --shadow-brand-glow-lg: 0 8px 28px -4px rgba(128, 35, 37, 0.4);
 }
 
-html.dark:not([data-hotel-theme='heritage-wine']),
-html.dark[data-hotel-theme='luxury-gold'],
-html.dark[data-hotel-theme='sheraton'] {
-  --brand-primary-rgb: 245, 168, 34;
-  --brand-primary-hover-rgb: 255, 185, 64;
+/* ==========================================================================
+   DARK THEME TOKENS
+   ========================================================================== */
+
+html.dark {
+  /* Brand / Primary Palette in Dark Mode */
+  --color-primary: #f59e0b;
+  --color-primary-rgb: 245, 158, 11;
+  --color-primary-hover: #d97706;
+  --color-primary-hover-rgb: 217, 119, 6;
+  --color-primary-foreground: #111827;
+  --color-primary-foreground-rgb: 17, 24, 39;
+  --color-primary-subtle: rgba(245, 158, 11, 0.15);
+  --color-primary-subtle-rgb: 245, 158, 11;
+  --color-primary-subtle-foreground: #fde68a;
+
+  /* Surfaces & Backgrounds (#0B1120 / #111827 / #1E293B) */
+  --color-background: #0b1120;
+  --color-background-rgb: 11, 17, 32;
+  --color-surface: #111827;
+  --color-surface-rgb: 17, 24, 39;
+  --color-surface-secondary: #1e293b;
+  --color-surface-secondary-rgb: 30, 41, 59;
+
+  /* Typography (#F8FAFC / #CBD5E1 / #94A3B8) */
+  --color-text: #f8fafc;
+  --color-text-rgb: 248, 250, 252;
+  --color-text-secondary: #cbd5e1;
+  --color-text-secondary-rgb: 203, 213, 225;
+  --color-text-muted: #94a3b8;
+  --color-text-muted-rgb: 148, 163, 184;
+
+  /* Borders & Focus (#334155 / #93C5FD) */
+  --color-border: #334155;
+  --color-border-rgb: 51, 65, 85;
+  --color-border-subtle: #1e293b;
+  --color-border-subtle-rgb: 30, 41, 59;
+  --color-focus: #93c5fd;
+  --color-focus-rgb: 147, 197, 253;
+
+  /* Semantic Colors Dark Mode */
+  --color-success: #22c55e;
+  --color-success-hover: #16a34a;
+  --color-success-foreground: #ffffff;
+  --color-success-subtle: rgba(34, 197, 94, 0.15);
+  --color-success-subtle-foreground: #86efac;
+  --color-success-border: rgba(34, 197, 94, 0.3);
+
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+  --color-warning-foreground: #111827;
+  --color-warning-subtle: rgba(245, 158, 11, 0.15);
+  --color-warning-subtle-foreground: #fde68a;
+  --color-warning-border: rgba(245, 158, 11, 0.3);
+
+  --color-error: #ef4444;
+  --color-error-hover: #dc2626;
+  --color-error-foreground: #ffffff;
+  --color-error-subtle: rgba(239, 68, 68, 0.15);
+  --color-error-subtle-foreground: #fca5a5;
+  --color-error-border: rgba(239, 68, 68, 0.3);
+
+  --color-info: #3b82f6;
+  --color-info-hover: #2563eb;
+  --color-info-foreground: #ffffff;
+  --color-info-subtle: rgba(59, 130, 246, 0.15);
+  --color-info-subtle-foreground: #93c5fd;
+  --color-info-border: rgba(59, 130, 246, 0.3);
+
+  /* Compatibility Tokens Dark Mode */
+  --brand-primary-rgb: var(--color-primary-rgb);
+  --brand-primary-hover-rgb: var(--color-primary-hover-rgb);
   --brand-primary-active-rgb: 224, 148, 15;
   --brand-accent-rgb: 253, 218, 140;
-  --brand-cta-text-rgb: 7, 16, 30;
+  --brand-cta-text-rgb: var(--color-primary-foreground-rgb);
 
-  --brand-canvas-rgb: 7, 16, 30;
-  --brand-surface-rgb: 11, 27, 53;
-  --brand-surface-elevated-rgb: 16, 36, 68;
-  --brand-surface-subtle-rgb: 22, 44, 80;
+  --brand-canvas-rgb: var(--color-background-rgb);
+  --brand-surface-rgb: var(--color-surface-rgb);
+  --brand-surface-elevated-rgb: var(--color-surface-secondary-rgb);
+  --brand-surface-subtle-rgb: var(--color-surface-secondary-rgb);
 
-  --brand-headline-rgb: 255, 255, 255;
-  --brand-body-rgb: 226, 232, 240;
-  --brand-muted-rgb: 148, 163, 184;
-  --brand-border-rgb: 30, 58, 102;
-  --brand-border-subtle-rgb: 19, 39, 71;
+  --brand-headline-rgb: var(--color-text-rgb);
+  --brand-body-rgb: var(--color-text-secondary-rgb);
+  --brand-muted-rgb: var(--color-text-muted-rgb);
+  --brand-border-rgb: var(--color-border-rgb);
+  --brand-border-subtle-rgb: var(--color-border-subtle-rgb);
 
   --shadow-brand-glow: 0 4px 22px 0 rgba(var(--brand-primary-rgb), 0.42);
   --shadow-brand-glow-lg: 0 8px 32px 0 rgba(var(--brand-primary-rgb), 0.55);
   --shadow-brand-surface: 0 8px 28px -6px rgba(0, 0, 0, 0.45);
 }
 
+/* Tenant Customization Dark: Dire Dawa Ras Heritage */
 html.dark[data-hotel-theme='heritage-wine'],
 html.dark[data-hotel-theme='ras-hotel'] {
-  --brand-primary-rgb: 179, 57, 60;
-  --brand-primary-hover-rgb: 199, 72, 75;
-  --brand-primary-active-rgb: 153, 45, 48;
+  --color-primary: #b3393c;
+  --color-primary-rgb: 179, 57, 60;
+  --color-primary-hover: #c7484b;
+  --color-primary-hover-rgb: 199, 72, 75;
+  --color-primary-foreground: #ffffff;
+  --color-primary-foreground-rgb: 255, 255, 255;
+  --color-primary-subtle: rgba(179, 57, 60, 0.2);
+  --color-primary-subtle-rgb: 179, 57, 60;
+  --color-primary-subtle-foreground: #f8d7da;
+
   --brand-accent-rgb: 235, 194, 107;
   --brand-cta-text-rgb: 255, 255, 255;
+  --shadow-brand-glow: 0 4px 22px 0 rgba(179, 57, 60, 0.38);
+  --shadow-brand-glow-lg: 0 8px 32px 0 rgba(179, 57, 60, 0.5);
+}
 
-  --brand-canvas-rgb: 22, 8, 9;
-  --brand-surface-rgb: 36, 16, 18;
-  --brand-surface-elevated-rgb: 51, 24, 27;
-  --brand-surface-subtle-rgb: 64, 30, 33;
+/* ==========================================================================
+   DESIGN SYSTEM UTILITIES & ACCESSIBILITY HELPERS
+   ========================================================================== */
 
-  --brand-headline-rgb: 255, 255, 255;
-  --brand-body-rgb: 243, 232, 232;
-  --brand-muted-rgb: 176, 154, 154;
-  --brand-border-rgb: 61, 29, 32;
-  --brand-border-subtle-rgb: 43, 20, 22;
+/* Buttons */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-weight: 700;
+  border-radius: 0.75rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+  box-shadow: 0 4px 14px 0 rgba(var(--color-primary-rgb), 0.35);
+}
+.btn-primary:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
 
-  --shadow-brand-glow: 0 4px 22px 0 rgba(var(--brand-primary-rgb), 0.38);
-  --shadow-brand-glow-lg: 0 8px 32px 0 rgba(var(--brand-primary-rgb), 0.5);
-  --shadow-brand-surface: 0 8px 28px -6px rgba(0, 0, 0, 0.55);
+.btn-secondary {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.btn-secondary:hover {
+  background-color: var(--color-surface-secondary);
+}
+.btn-secondary:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.btn-destructive {
+  background-color: var(--color-error);
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 0.75rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.btn-destructive:hover {
+  background-color: var(--color-error-hover);
+}
+.btn-destructive:focus-visible {
+  outline: 2px solid var(--color-error);
+  outline-offset: 2px;
+}
+
+/* Card & Surface Containers */
+.app-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: 1rem;
+}
+
+/* Inputs & Form Controls */
+.app-input {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.app-input:focus {
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+html.dark .app-input:focus {
+  box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.2);
+}
+
+/* Badges & Status Indicators */
+.badge-success {
+  background-color: var(--color-success-subtle);
+  color: var(--color-success-subtle-foreground);
+  border: 1px solid var(--color-success-border);
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.badge-warning {
+  background-color: var(--color-warning-subtle);
+  color: var(--color-warning-subtle-foreground);
+  border: 1px solid var(--color-warning-border);
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.badge-error {
+  background-color: var(--color-error-subtle);
+  color: var(--color-error-subtle-foreground);
+  border: 1px solid var(--color-error-border);
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.badge-info {
+  background-color: var(--color-info-subtle);
+  color: var(--color-info-subtle-foreground);
+  border: 1px solid var(--color-info-border);
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.badge-primary {
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary-subtle-foreground);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.3);
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }

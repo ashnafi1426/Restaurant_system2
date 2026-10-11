@@ -791,7 +791,7 @@ onUnmounted(() => {
             :class="[
               isSidebarExpanded ? 'px-4 py-3' : 'justify-center py-3',
               isActive(menu.path)
-                ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-semibold'
+                ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400 font-semibold'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50',
             ]"
             :title="!isSidebarExpanded ? languageStore.t(menu.name, menu.name) : ''"
@@ -801,7 +801,7 @@ onUnmounted(() => {
               class="flex-shrink-0 w-5 h-5"
               :class="
                 isActive(menu.path)
-                  ? 'text-blue-600 dark:text-blue-400'
+                  ? 'text-amber-600 dark:text-amber-400'
                   : 'text-slate-500 dark:text-slate-500'
               "
               :stroke-width="1.75"
@@ -827,7 +827,7 @@ onUnmounted(() => {
             :class="[
               isSidebarExpanded ? 'px-4 py-3' : 'justify-center py-3',
               isActive(items[0].path)
-                ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-semibold'
+                ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400 font-semibold'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50',
             ]"
             :title="!isSidebarExpanded ? languageStore.t(items[0].name, items[0].name) : ''"
@@ -837,7 +837,7 @@ onUnmounted(() => {
               class="flex-shrink-0 w-5 h-5"
               :class="
                 isActive(items[0].path)
-                  ? 'text-blue-600 dark:text-blue-400'
+                  ? 'text-amber-600 dark:text-amber-400'
                   : 'text-slate-500 dark:text-slate-500'
               "
               :stroke-width="1.75"
@@ -879,7 +879,7 @@ onUnmounted(() => {
               class="group relative flex items-center justify-center py-3 rounded-lg transition-all duration-200"
               :class="
                 isActive(menu.path)
-                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400'
+                  ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50'
               "
               :title="languageStore.t(menu.name, menu.name)"
@@ -889,7 +889,7 @@ onUnmounted(() => {
                 class="flex-shrink-0 w-5 h-5"
                 :class="
                   isActive(menu.path)
-                    ? 'text-blue-600 dark:text-blue-400'
+                    ? 'text-amber-600 dark:text-amber-400'
                     : 'text-slate-500 dark:text-slate-500'
                 "
                 :stroke-width="1.75"
@@ -938,7 +938,7 @@ onUnmounted(() => {
                 class="group relative flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
                 :class="
                   isActive(menu.path)
-                    ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-semibold'
+                    ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400 font-semibold'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50'
                 "
               >
@@ -947,7 +947,7 @@ onUnmounted(() => {
                   class="flex-shrink-0 w-4.5 h-4.5"
                   :class="
                     isActive(menu.path)
-                      ? 'text-blue-600 dark:text-blue-400'
+                      ? 'text-amber-600 dark:text-amber-400'
                       : 'text-slate-500 dark:text-slate-500'
                   "
                   :stroke-width="1.75"
@@ -965,7 +965,7 @@ onUnmounted(() => {
               class="group relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200"
               :class="
                 isActive(items[0].path)
-                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-semibold'
+                  ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400 font-semibold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50'
               "
             >
@@ -974,7 +974,7 @@ onUnmounted(() => {
                 class="flex-shrink-0 w-5 h-5"
                 :class="
                   isActive(items[0].path)
-                    ? 'text-blue-600 dark:text-blue-400'
+                    ? 'text-amber-600 dark:text-amber-400'
                     : 'text-slate-500 dark:text-slate-500'
                 "
                 :stroke-width="1.75"
@@ -993,7 +993,7 @@ onUnmounted(() => {
     >
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
         <div
-          class="w-8 h-8 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30 flex items-center justify-center font-black text-xs flex-shrink-0 shadow-xs"
+          class="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-amber-400/15 text-amber-600 dark:text-amber-400 border border-amber-500/20 dark:border-amber-400/30 flex items-center justify-center font-black text-xs flex-shrink-0 shadow-xs"
         >
           {{ (auth.user?.full_name || auth.user?.first_name || 'U').charAt(0).toUpperCase() }}
         </div>
@@ -1002,7 +1002,7 @@ onUnmounted(() => {
             {{ auth.user?.full_name || auth.user?.first_name || 'Administrator' }}
           </p>
           <p
-            class="text-[10px] text-blue-600 dark:text-blue-400 font-semibold capitalize truncate mt-0.5 leading-tight"
+            class="text-[10px] text-amber-600 dark:text-amber-400 font-semibold capitalize truncate mt-0.5 leading-tight"
           >
             {{ languageStore.t(auth.user?.role || 'Admin', auth.user?.role || 'Admin') }}
           </p>

@@ -69,6 +69,53 @@ export function getCompliantCtaTextColor(backgroundHex: string): {
   }
 }
 
+export const GLOBAL_DESIGN_TOKENS = {
+  brand: {
+    primary: '#F59E0B',
+    primaryHover: '#D97706',
+    primarySubtle: '#FEF3C7',
+    primaryForeground: '#111827',
+  },
+  light: {
+    background: '#F8FAFC',
+    surface: '#FFFFFF',
+    surfaceSecondary: '#F1F5F9',
+    text: '#0F172A',
+    textSecondary: '#475569',
+    textMuted: '#64748B',
+    border: '#E2E8F0',
+    focus: '#2563EB',
+  },
+  dark: {
+    background: '#0B1120',
+    surface: '#111827',
+    surfaceSecondary: '#1E293B',
+    text: '#F8FAFC',
+    textSecondary: '#CBD5E1',
+    textMuted: '#94A3B8',
+    border: '#334155',
+    focus: '#93C5FD',
+  },
+  semantic: {
+    success: '#16A34A',
+    successHover: '#15803D',
+    successSubtle: '#DCFCE7',
+    successForeground: '#FFFFFF',
+    warning: '#D97706',
+    warningHover: '#B45309',
+    warningSubtle: '#FEF3C7',
+    warningForeground: '#FFFFFF',
+    error: '#DC2626',
+    errorHover: '#B91C1C',
+    errorSubtle: '#FEE2E2',
+    errorForeground: '#FFFFFF',
+    info: '#2563EB',
+    infoHover: '#1D4ED8',
+    infoSubtle: '#DBEAFE',
+    infoForeground: '#FFFFFF',
+  },
+} as const
+
 /**
  * Built-in Property Themes
  */
@@ -76,11 +123,11 @@ export const HOTEL_PRESET_THEMES: Record<string, PropertyThemeTokens> = {
   'luxury-gold': {
     id: 'luxury-gold',
     name: 'Modern Luxury / Sheraton',
-    primaryHex: '#E9A11A',
-    primaryHoverHex: '#D49214',
-    accentHex: '#F5C869',
-    canvasLightHex: '#FFFFFF',
-    canvasDarkHex: '#07101E',
+    primaryHex: '#F59E0B',
+    primaryHoverHex: '#D97706',
+    accentHex: '#FBBF24',
+    canvasLightHex: '#F8FAFC',
+    canvasDarkHex: '#0B1120',
   },
   'heritage-wine': {
     id: 'heritage-wine',
