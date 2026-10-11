@@ -1,7 +1,9 @@
 <template>
-  <div class="min-h-screen bg-gray-900 text-white">
-    <div class="bg-gray-800 px-4 py-4 flex items-center gap-3 sticky top-0 z-10">
-      <button @click="goBack" class="text-white hover:text-gray-300 p-1">
+  <div class="min-h-screen bg-slate-900 text-white">
+    <div
+      class="bg-slate-900/95 backdrop-blur-md px-4 py-4 flex items-center gap-3 sticky top-0 z-10 border-b border-slate-800"
+    >
+      <button @click="goBack" class="text-slate-400 hover:text-white p-1 cursor-pointer">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
@@ -12,8 +14,8 @@
         </svg>
       </button>
       <div class="flex-1">
-        <h1 class="text-xl font-bold text-red-500">Pay Your Order</h1>
-        <p class="text-sm text-gray-400 flex items-center gap-1">
+        <h1 class="text-xl font-bold text-white">Pay Your Order</h1>
+        <p class="text-sm text-slate-400 flex items-center gap-1">
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path
               d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"
@@ -31,15 +33,17 @@
     </div>
 
     <div v-if="isLoading" class="flex justify-center items-center py-20">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
     </div>
 
     <div v-else-if="orderData" class="p-4 space-y-4 pb-8">
-      <div class="bg-gradient-to-r from-red-700 to-red-600 rounded-2xl p-5 shadow-xl">
+      <div class="bg-slate-800/90 rounded-2xl p-5 shadow-xl border border-slate-700">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-14 h-14 bg-red-800/50 rounded-xl flex items-center justify-center">
-              <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <div
+              class="w-14 h-14 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-center"
+            >
+              <svg class="w-8 h-8 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"
                 ></path>
@@ -47,7 +51,7 @@
             </div>
             <div>
               <h2 class="text-lg font-bold text-white">Your Order</h2>
-              <p class="text-white/90 text-sm">{{ orderData.items?.length || 0 }} items</p>
+              <p class="text-slate-400 text-sm">{{ orderData.items?.length || 0 }} items</p>
             </div>
           </div>
           <div class="text-right">
@@ -56,19 +60,19 @@
         </div>
       </div>
 
-      <div class="bg-gray-800 rounded-2xl overflow-hidden shadow-lg">
+      <div class="bg-slate-800/90 rounded-2xl overflow-hidden shadow-lg border border-slate-700">
         <div
           v-for="(item, index) in orderData.items"
           :key="item.id || index"
-          class="px-4 py-4 border-b border-gray-700 last:border-b-0"
+          class="px-4 py-4 border-b border-slate-700/60 last:border-b-0"
         >
           <div class="flex items-start justify-between">
             <div class="flex-1">
               <h3 class="font-semibold text-white text-base">{{ item.name }}</h3>
-              <p class="text-sm text-gray-400 mt-1">Qty: {{ item.quantity }}</p>
+              <p class="text-sm text-slate-400 mt-1">Qty: {{ item.quantity }}</p>
             </div>
             <div class="text-right ml-4">
-              <p class="text-lg font-bold text-red-500">
+              <p class="text-lg font-bold text-white">
                 ETB {{ ((item.price || 0) * item.quantity).toFixed(2) }}
               </p>
             </div>
@@ -76,7 +80,7 @@
         </div>
       </div>
 
-      <div class="bg-gray-800 rounded-2xl p-6 shadow-lg">
+      <div class="bg-slate-800/90 rounded-2xl p-6 shadow-lg border border-slate-700">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-white">🎁 Add Tip?</h3>
         </div>
@@ -87,10 +91,10 @@
             :key="tipOption"
             @click="selectTip(tipOption)"
             :class="[
-              'py-3 rounded-xl text-center transition-all',
+              'py-3 rounded-xl text-center transition-all cursor-pointer border',
               selectedTip === tipOption
-                ? 'bg-yellow-500 text-gray-900'
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600',
+                ? 'bg-amber-500 text-slate-950 font-bold border-amber-500'
+                : 'bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600',
             ]"
           >
             <div class="text-2xl mb-1">
@@ -105,10 +109,10 @@
           <button
             @click="selectTip(0)"
             :class="[
-              'py-3 rounded-xl text-center transition-all',
+              'py-3 rounded-xl text-center transition-all cursor-pointer border',
               selectedTip === 0
-                ? 'bg-red-500 text-white'
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600',
+                ? 'bg-slate-600 text-white border-slate-500 font-bold'
+                : 'bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600',
             ]"
           >
             <div class="text-sm font-semibold">No Tip</div>
@@ -117,7 +121,7 @@
 
         <button
           @click="showCustomTip = !showCustomTip"
-          class="w-full py-2 border-2 border-gray-600 rounded-xl text-gray-300 hover:border-red-500 transition-colors"
+          class="w-full py-2 border-2 border-slate-600 rounded-xl text-slate-300 hover:border-amber-400 transition-colors cursor-pointer"
         >
           Custom (ETB)
         </button>
@@ -127,38 +131,43 @@
             v-model.number="customTipAmount"
             type="number"
             placeholder="Enter custom tip amount"
-            class="w-full px-4 py-3 bg-gray-700 text-white rounded-xl border-2 border-gray-600 focus:border-red-500 outline-none"
+            class="w-full px-4 py-3 bg-slate-700 text-white rounded-xl border-2 border-slate-600 focus:border-amber-400 outline-none"
             @input="selectCustomTip"
           />
         </div>
       </div>
 
-      <div class="bg-gray-800 rounded-2xl p-6 shadow-lg space-y-3">
-        <div class="flex justify-between text-gray-300">
+      <div class="bg-slate-800/90 rounded-2xl p-6 shadow-lg border border-slate-700 space-y-3">
+        <div class="flex justify-between text-slate-300">
           <span>Order Total</span>
           <span class="font-semibold">ETB {{ (orderData.total || 0).toFixed(2) }}</span>
         </div>
 
-        <div v-if="tipAmount > 0" class="flex justify-between text-gray-300">
+        <div v-if="tipAmount > 0" class="flex justify-between text-amber-400">
           <span>Tip ({{ selectedTip }}%)</span>
           <span class="font-semibold">ETB {{ tipAmount.toFixed(2) }}</span>
         </div>
 
-        <div class="pt-3 border-t-2 border-gray-700 flex justify-between items-center">
+        <div class="pt-3 border-t-2 border-slate-700 flex justify-between items-center">
           <div>
             <p class="text-2xl font-bold text-white">Total</p>
-            <p class="text-sm text-gray-400">Secure with Chapa</p>
+            <p class="text-sm text-slate-400">Secure with Chapa</p>
           </div>
-          <p class="text-3xl font-bold text-red-500">ETB {{ finalTotal.toFixed(2) }}</p>
+          <p class="text-3xl font-black text-amber-400">ETB {{ finalTotal.toFixed(2) }}</p>
         </div>
       </div>
 
       <button
         @click="proceedToPayment"
         :disabled="isProcessing"
-        class="w-full py-5 bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl font-bold text-white text-lg shadow-xl hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        class="w-full py-5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-2xl font-black text-lg shadow-xl hover:shadow-amber-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
       >
-        <svg v-if="!isProcessing" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+        <svg
+          v-if="!isProcessing"
+          class="w-6 h-6 text-slate-950"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
           <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path>
           <path
             fill-rule="evenodd"
@@ -170,8 +179,8 @@
         <span v-else>Pay Now</span>
       </button>
 
-      <div class="flex items-center justify-center gap-2 text-sm text-gray-400">
-        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+      <div class="flex items-center justify-center gap-2 text-sm text-slate-400">
+        <svg class="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
           <path
             fill-rule="evenodd"
             d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"

@@ -991,7 +991,10 @@ const navigateToUserAssignments = () => {
                     @click.stop
                   >
                     <button
-                      @click="openEditModal(role); closeDropdown()"
+                      @click="
+                        openEditModal(role)
+                        closeDropdown()
+                      "
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
                       <Edit2 class="w-3.5 h-3.5 text-blue-500" />
@@ -999,7 +1002,10 @@ const navigateToUserAssignments = () => {
                     </button>
 
                     <button
-                      @click="openUsersModal(role); closeDropdown()"
+                      @click="
+                        openUsersModal(role)
+                        closeDropdown()
+                      "
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
                       <Users class="w-3.5 h-3.5 text-indigo-500" />
@@ -1007,7 +1013,10 @@ const navigateToUserAssignments = () => {
                     </button>
 
                     <button
-                      @click="openCloneModal(role); closeDropdown()"
+                      @click="
+                        openCloneModal(role)
+                        closeDropdown()
+                      "
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
                       <Copy class="w-3.5 h-3.5 text-amber-500" />
@@ -1016,7 +1025,10 @@ const navigateToUserAssignments = () => {
 
                     <button
                       v-if="role.slug !== 'admin'"
-                      @click="toggleRoleActive(role); closeDropdown()"
+                      @click="
+                        toggleRoleActive(role)
+                        closeDropdown()
+                      "
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
                       <Activity class="w-3.5 h-3.5 text-emerald-500" />
@@ -1034,7 +1046,10 @@ const navigateToUserAssignments = () => {
 
                     <button
                       v-if="!role.is_system"
-                      @click="triggerDeleteConfirmation(role); closeDropdown()"
+                      @click="
+                        triggerDeleteConfirmation(role)
+                        closeDropdown()
+                      "
                       class="w-full px-3.5 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center gap-2.5 transition text-left cursor-pointer font-medium"
                     >
                       <Trash2 class="w-3.5 h-3.5 text-rose-500" />

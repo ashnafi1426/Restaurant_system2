@@ -137,7 +137,9 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
 
             localStorage.removeItem('pending_order_data')
 
-            console.log('[useOrderStatus] Using stored order data for initial view, fetching latest...')
+            console.log(
+              '[useOrderStatus] Using stored order data for initial view, fetching latest...',
+            )
             isLoading.value = false
           } else {
             console.log('[useOrderStatus] ❌ Order ID mismatch - not using cached data')

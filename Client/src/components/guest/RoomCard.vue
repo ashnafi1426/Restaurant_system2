@@ -102,9 +102,13 @@ function reserveRoom() {
         </div>
       </div>
 
-      <div class="grid grid-cols-3 gap-1.5 mb-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+      <div
+        class="grid grid-cols-3 gap-1.5 mb-2 pb-2 border-b border-slate-100 dark:border-slate-800"
+      >
         <div class="text-center">
-          <p class="text-[8px] uppercase tracking-wide text-slate-500 dark:text-slate-400 font-light mb-0.5">
+          <p
+            class="text-[8px] uppercase tracking-wide text-slate-500 dark:text-slate-400 font-light mb-0.5"
+          >
             {{ languageStore.t('guests', 'Guests') }}
           </p>
           <p class="text-[11px] font-medium text-slate-900 dark:text-slate-100">
@@ -113,17 +117,25 @@ function reserveRoom() {
         </div>
 
         <div class="text-center border-x border-slate-100 dark:border-slate-800">
-          <p class="text-[8px] uppercase tracking-wide text-slate-500 dark:text-slate-400 font-light mb-0.5">
+          <p
+            class="text-[8px] uppercase tracking-wide text-slate-500 dark:text-slate-400 font-light mb-0.5"
+          >
             {{ languageStore.t('size', 'Size') }}
           </p>
-          <p class="text-[11px] font-medium text-slate-900 dark:text-slate-100">{{ room.size }}m²</p>
+          <p class="text-[11px] font-medium text-slate-900 dark:text-slate-100">
+            {{ room.size }}m²
+          </p>
         </div>
 
         <div class="text-center">
-          <p class="text-[8px] uppercase tracking-wide text-slate-500 dark:text-slate-400 font-light mb-0.5">
+          <p
+            class="text-[8px] uppercase tracking-wide text-slate-500 dark:text-slate-400 font-light mb-0.5"
+          >
             {{ languageStore.t('bed', 'Bed') }}
           </p>
-          <p class="text-[11px] font-medium text-slate-900 dark:text-slate-100">{{ room.bed_type }}</p>
+          <p class="text-[11px] font-medium text-slate-900 dark:text-slate-100">
+            {{ room.bed_type }}
+          </p>
         </div>
       </div>
 

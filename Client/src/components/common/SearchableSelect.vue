@@ -260,10 +260,7 @@ watch(searchQuery, () => {
   <div
     ref="containerRef"
     class="relative w-full select-none"
-    :class="[
-      { 'opacity-60 pointer-events-none': disabled },
-      isOpen ? 'z-30' : 'z-auto'
-    ]"
+    :class="[{ 'opacity-60 pointer-events-none': disabled }, isOpen ? 'z-30' : 'z-auto']"
   >
     <button
       ref="triggerRef"

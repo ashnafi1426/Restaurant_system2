@@ -104,7 +104,9 @@
                     <div class="flex items-start justify-between mb-2">
                       <div class="flex-1">
                         <h3 class="font-bold text-gray-900 text-base">{{ item.name }}</h3>
-                        <p v-if="item.description" class="text-xs text-gray-500 mt-0.5">{{ item.description }}</p>
+                        <p v-if="item.description" class="text-xs text-gray-500 mt-0.5">
+                          {{ item.description }}
+                        </p>
                         <p class="text-sm font-bold text-gray-900 mt-1">
                           {{ formatPrice(item.price) }}
                         </p>
@@ -150,9 +152,9 @@
                         </button>
                       </div>
 
-                      <span class="text-base font-bold text-gray-900"
-                        >{{ formatPrice(item.price * item.quantity) }}</span
-                      >
+                      <span class="text-base font-bold text-gray-900">{{
+                        formatPrice(item.price * item.quantity)
+                      }}</span>
                     </div>
                   </div>
                 </div>
@@ -169,14 +171,14 @@
                 class="flex items-center justify-between text-gray-900 text-lg font-bold pt-2 border-t border-gray-200"
               >
                 <span>{{ languageStore.t('total', 'Total') }}</span>
-                <span class="text-red-600">{{ formatPrice(cartTotal) }}</span>
+                <span class="text-slate-900 font-black">{{ formatPrice(cartTotal) }}</span>
               </div>
 
               <div class="flex flex-col gap-2 pt-3">
                 <button
                   @click="placeOrderWithRoomCharge"
                   :disabled="isPlacingOrder || cartItems.length === 0"
-                  class="w-full px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                  class="w-full px-4 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                 >
                   <svg
                     v-if="!isPlacingOrder"
@@ -212,11 +214,11 @@
                 <button
                   @click="openPaymentDialog"
                   :disabled="isPlacingOrder || cartItems.length === 0"
-                  class="w-full px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-bold text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer border-2 border-yellow-600"
+                  class="w-full px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-bold text-base shadow-lg hover:shadow-amber-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <svg
                     v-if="!isPlacingOrder"
-                    class="w-6 h-6"
+                    class="w-6 h-6 text-slate-950"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -421,7 +423,7 @@
               <button
                 @click="proceedToPayment"
                 :disabled="isPlacingOrder"
-                class="flex-1 px-4 py-2 text-sm font-medium bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                class="flex-1 px-4 py-2.5 text-sm font-bold bg-amber-500 text-slate-950 rounded-lg hover:bg-amber-600 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
                 <span v-if="isPlacingOrder"
                   >⌛ {{ languageStore.t('processing', 'Processing...') }}</span

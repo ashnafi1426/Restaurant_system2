@@ -620,16 +620,11 @@ const save = () => {
             class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
           />
         </div>
-        <p
-          v-if="serverErrors?.capacity"
-          class="text-red-500 text-xs mt-1 flex items-center gap-1"
-        >
+        <p v-if="serverErrors?.capacity" class="text-red-500 text-xs mt-1 flex items-center gap-1">
           <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
           <span>{{ serverErrors.capacity[0] }}</span>
         </p>
-        <p v-else class="text-slate-500 text-xs mt-1">
-          Max guests allowed in this room
-        </p>
+        <p v-else class="text-slate-500 text-xs mt-1">Max guests allowed in this room</p>
       </div>
 
       <div class="sm:col-span-2 md:col-span-1">

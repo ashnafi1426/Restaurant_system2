@@ -2,7 +2,9 @@
   <div class="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 transition-colors">
     <div class="max-w-md mx-auto py-6">
       <div v-if="isVerifying" class="min-h-[60vh] flex flex-col items-center justify-center">
-        <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800 p-8 text-center max-w-sm w-full">
+        <div
+          class="bg-white dark:bg-slate-900 rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800 p-8 text-center max-w-sm w-full"
+        >
           <div class="mb-6 flex justify-center">
             <div class="relative">
               <div
@@ -26,8 +28,12 @@
             </div>
           </div>
 
-          <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-3">Verifying payment...</h2>
-          <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">Please wait while we confirm your payment</p>
+          <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-3">
+            Verifying payment...
+          </h2>
+          <p class="text-slate-600 dark:text-slate-400 text-sm mb-4">
+            Please wait while we confirm your payment
+          </p>
 
           <div class="flex items-center justify-center gap-1">
             <div
@@ -47,7 +53,9 @@
       </div>
 
       <div v-else-if="orderData">
-        <div class="bg-emerald-600 dark:bg-emerald-700 rounded-2xl p-4 mb-6 shadow-lg flex items-center gap-3">
+        <div
+          class="bg-emerald-600 dark:bg-emerald-700 rounded-2xl p-4 mb-6 shadow-lg flex items-center gap-3"
+        >
           <div
             class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0"
           >
@@ -63,9 +71,13 @@
           <span class="text-white font-semibold text-lg">Payment successful!</span>
         </div>
 
-        <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div
+          class="bg-white dark:bg-slate-900 rounded-3xl shadow-lg border border-slate-200 dark:border-slate-800 overflow-hidden"
+        >
           <div class="p-6 text-center border-b border-slate-100 dark:border-slate-800">
-            <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Payment Successful!</h1>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+              Payment Successful!
+            </h1>
             <p class="text-sm text-slate-600 dark:text-slate-400">
               Thank you for your payment. Your order has been confirmed.
             </p>
@@ -73,7 +85,11 @@
 
           <div class="p-6 space-y-6">
             <div class="flex items-center gap-2 text-slate-800 dark:text-slate-200 mb-4">
-              <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+              <svg
+                class="w-5 h-5 text-emerald-600 dark:text-emerald-400"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
                 <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
                 <path
                   fill-rule="evenodd"
@@ -85,27 +101,37 @@
             </div>
 
             <div class="space-y-3 text-sm">
-              <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
+              <div
+                class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800"
+              >
                 <span class="text-slate-500 dark:text-slate-400">Transaction ID</span>
                 <span class="font-mono text-slate-900 dark:text-slate-100 font-semibold">{{
                   txRef || 'AP5AFGGSXZT9'
                 }}</span>
               </div>
 
-              <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
+              <div
+                class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800"
+              >
                 <span class="text-slate-500 dark:text-slate-400">Status</span>
                 <span class="font-semibold text-emerald-600 dark:text-emerald-400">Paid</span>
               </div>
 
-              <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
+              <div
+                class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800"
+              >
                 <span class="text-slate-500 dark:text-slate-400">Order Number</span>
                 <span class="font-semibold text-slate-900 dark:text-slate-100"
                   >#{{ orderData?.order_number || '160' }}</span
                 >
               </div>
 
-              <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
-                <span class="text-slate-500 dark:text-slate-400">{{ orderData?.is_walk_in ? 'Table' : 'Room' }}</span>
+              <div
+                class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800"
+              >
+                <span class="text-slate-500 dark:text-slate-400">{{
+                  orderData?.is_walk_in ? 'Table' : 'Room'
+                }}</span>
                 <span class="font-semibold text-slate-900 dark:text-slate-100">{{
                   orderData?.is_walk_in
                     ? orderData?.table_number || 'Table 11'
@@ -160,18 +186,6 @@
           </p>
         </div>
       </div>
-            >
-              Back to Menu
-            </button>
-          </div>
-        </div>
-
-        <div class="text-center mt-6 px-4">
-          <p class="text-sm text-gray-600">
-            Thank you for ordering with us! Need assistance? Our team is always ready to serve you.
-          </p>
-        </div>
-      </div>
 
       <div
         v-else
@@ -190,7 +204,7 @@
         <div class="pt-2">
           <button
             @click="backToMenu"
-            class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow transition cursor-pointer"
+            class="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl shadow-md hover:shadow-amber-500/20 transition cursor-pointer"
           >
             Return to Menu
           </button>
@@ -505,10 +519,7 @@ function trackOrder(): void {
     })
 
     const tipVal = Number(
-      orderData.value?.calculation?.tip ??
-        orderData.value?.tip ??
-        orderData.value?.tip_amount ??
-        0,
+      orderData.value?.calculation?.tip ?? orderData.value?.tip ?? orderData.value?.tip_amount ?? 0,
     )
     const amountPaidVal = Number(
       orderData.value?.calculation?.total ??

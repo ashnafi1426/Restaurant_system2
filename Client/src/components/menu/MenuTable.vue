@@ -76,7 +76,8 @@
                   <div
                     class="font-black text-slate-900 dark:text-white text-xs sm:text-sm tracking-wide"
                   >
-                    ETB {{
+                    ETB
+                    {{
                       (item.total_price !== undefined
                         ? item.total_price
                         : Number(item.price)
@@ -269,7 +270,8 @@
                     <div class="text-xs text-slate-400 font-medium truncate">
                       Total:
                       <span class="font-bold text-slate-900"
-                        >ETB {{
+                        >ETB
+                        {{
                           (item.total_price !== undefined
                             ? item.total_price
                             : Number(item.price)
@@ -462,7 +464,8 @@
                   </span>
                   <div class="flex flex-col items-end">
                     <span class="font-black text-slate-900 text-sm font-mono">
-                      ETB {{
+                      ETB
+                      {{
                         (item.total_price !== undefined
                           ? item.total_price
                           : Number(item.price)

@@ -709,8 +709,8 @@ onUnmounted(() => {
                           <button
                             type="button"
                             @click="
-                              openEditModal(waiter);
-                              activeMenuId = null;
+                              openEditModal(waiter)
+                              activeMenuId = null
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer text-left"
                           >
@@ -722,8 +722,8 @@ onUnmounted(() => {
                             v-if="waiter.status !== 'active'"
                             type="button"
                             @click="
-                              handleToggleStatus(waiter, 'active');
-                              activeMenuId = null;
+                              handleToggleStatus(waiter, 'active')
+                              activeMenuId = null
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer text-left"
                           >
@@ -735,8 +735,8 @@ onUnmounted(() => {
                             v-if="waiter.status === 'active'"
                             type="button"
                             @click="
-                              handleToggleStatus(waiter, 'on_break');
-                              activeMenuId = null;
+                              handleToggleStatus(waiter, 'on_break')
+                              activeMenuId = null
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-600 dark:hover:text-amber-400 transition cursor-pointer text-left"
                           >
@@ -749,8 +749,8 @@ onUnmounted(() => {
                           <button
                             type="button"
                             @click="
-                              handleDeleteWaiter(waiter.id);
-                              activeMenuId = null;
+                              handleDeleteWaiter(waiter.id)
+                              activeMenuId = null
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer text-left"
                           >

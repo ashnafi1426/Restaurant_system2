@@ -49,7 +49,7 @@
 
         <div class="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-1.5 overflow-hidden">
           <div
-            class="h-full bg-gradient-to-r from-red-600 to-red-800 dark:from-red-500 dark:to-red-700 rounded-full transition-all duration-300 ease-out"
+            class="h-full bg-gradient-to-r from-amber-500 to-amber-600 rounded-full transition-all duration-300 ease-out"
             :style="{ width: `${progress}%` }"
           ></div>
         </div>
@@ -59,7 +59,7 @@
         <span
           v-for="i in 3"
           :key="i"
-          class="w-2 h-2 bg-red-600 dark:bg-red-500 rounded-full animate-bounce"
+          class="w-2 h-2 bg-amber-500 rounded-full animate-bounce"
           :style="{ animationDelay: `${i * 0.15}s` }"
         ></span>
       </div>

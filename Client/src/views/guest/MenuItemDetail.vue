@@ -86,7 +86,8 @@
             <div class="mb-6">
               <div class="flex items-baseline gap-2">
                 <span class="text-3xl font-bold text-green-600">
-                  ETB {{
+                  ETB
+                  {{
                     (item?.total_price !== undefined && item?.total_price !== null
                       ? Number(item.total_price)
                       : Number(item?.price || 0)
@@ -103,8 +104,8 @@
                   Includes {{ item.tax_rate.rate }}% {{ item.tax_rate.name || 'VAT' }}
                 </span>
                 <span v-else>
-                  Base Price: ETB {{ Number(item.price).toFixed(2) }} + {{ item.tax_rate.rate }}% Tax
-                  (ETB {{ (item.tax_amount || 0).toFixed(2) }})
+                  Base Price: ETB {{ Number(item.price).toFixed(2) }} + {{ item.tax_rate.rate }}%
+                  Tax (ETB {{ (item.tax_amount || 0).toFixed(2) }})
                 </span>
               </div>
             </div>

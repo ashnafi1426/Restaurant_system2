@@ -137,13 +137,7 @@ html.dark .bg-slate-100:not([class*='dark:bg-']) {
   background-color: var(--color-surface-secondary, #1e293b);
 }
 
-html.dark .bg-gradient-to-br {
-  background-image: linear-gradient(135deg, #020617 0%, #0f172a 55%, #111827 100%) !important;
-}
-
-html.dark .bg-gradient-to-r {
-  background-image: linear-gradient(90deg, #0f172a 0%, #1e293b 100%) !important;
-}
+/* Let scoped gradients and dark: utilities control gradient styling */
 
 .border {
   border-color: var(--color-border, #e2e8f0);
@@ -363,9 +357,9 @@ html.dark [class*='menu'] {
   border-color: #334155;
 }
 
-.alert,
-.notification,
-[class*='toast'] {
+.alert:not([class*='bg-']),
+.notification:not([class*='bg-']),
+[class*='toast']:not([class*='bg-']) {
   background-color: #f9fafb;
   color: #1f2937;
   border-color: #e5e7eb;
@@ -375,9 +369,9 @@ html.dark [class*='menu'] {
     border-color 0.3s ease;
 }
 
-html.dark .alert,
-html.dark .notification,
-html.dark [class*='toast'] {
+html.dark .alert:not([class*='bg-']),
+html.dark .notification:not([class*='bg-']),
+html.dark [class*='toast']:not([class*='bg-']) {
   background-color: #1e293b;
   color: #f1f5f9;
   border-color: #334155;

@@ -38,7 +38,12 @@
           class="w-2 h-2 rounded-full"
           :class="isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'"
         ></div>
-        <span class="text-xs" :class="isConnected ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-slate-400'">
+        <span
+          class="text-xs"
+          :class="
+            isConnected ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-slate-400'
+          "
+        >
           {{ isConnected ? 'Live' : 'Offline' }}
         </span>
       </div>
@@ -50,7 +55,9 @@
     </div>
 
     <div v-else-if="error" class="p-4">
-      <div class="rounded-xl p-6 text-center bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">
+      <div
+        class="rounded-xl p-6 text-center bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800"
+      >
         <h2 class="font-bold mb-1 text-rose-800 dark:text-rose-200">Unable to Load Order</h2>
         <p class="text-sm mb-4 text-rose-600 dark:text-rose-400">
           {{ error }}
@@ -70,7 +77,8 @@
         :class="{
           'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/50': isPending,
           'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/50': isPreparing,
-          'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/50': isReady,
+          'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/50':
+            isReady,
           'bg-teal-50 dark:bg-teal-950/30 border-teal-200 dark:border-teal-800/50': isServed,
           'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800/50': isCancelled,
         }"
@@ -89,7 +97,9 @@
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2">
-            <h2 class="font-bold text-slate-900 dark:text-slate-100 text-base">{{ statusTitle }}</h2>
+            <h2 class="font-bold text-slate-900 dark:text-slate-100 text-base">
+              {{ statusTitle }}
+            </h2>
             <span
               v-if="isServed"
               class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-teal-600 text-white flex-shrink-0"
@@ -101,8 +111,12 @@
         </div>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 overflow-hidden">
-        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 overflow-hidden"
+      >
+        <div
+          class="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800"
+        >
           <span class="font-semibold text-slate-800 dark:text-slate-200 text-sm"
             >Order #{{ orderData.order_number || 'N/A' }}</span
           >
@@ -117,7 +131,9 @@
             :key="item.id || index"
             class="flex items-center justify-between px-4 py-3"
           >
-            <span class="text-sm text-slate-800 dark:text-slate-200 flex-1"> {{ item.quantity }}x {{ item.name }} </span>
+            <span class="text-sm text-slate-800 dark:text-slate-200 flex-1">
+              {{ item.quantity }}x {{ item.name }}
+            </span>
             <div class="flex items-center gap-2 ml-3">
               <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 ETB {{ getItemPrice(item) }}
@@ -127,7 +143,8 @@
                 :class="{
                   'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300': isPending,
                   'bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300': isPreparing,
-                  'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300': isReady,
+                  'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300':
+                    isReady,
                   'bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300': isServed,
                   'bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300': isCancelled,
                 }"
@@ -149,7 +166,9 @@
           </div>
         </div>
 
-        <div class="border-t-2 border-slate-100 dark:border-slate-800 px-4 py-3 bg-slate-50 dark:bg-slate-900/50 space-y-1.5">
+        <div
+          class="border-t-2 border-slate-100 dark:border-slate-800 px-4 py-3 bg-slate-50 dark:bg-slate-900/50 space-y-1.5"
+        >
           <div class="flex items-center justify-between text-sm text-slate-600 dark:text-slate-400">
             <span>Order Total</span>
             <span class="font-semibold text-slate-900 dark:text-slate-100">
@@ -157,7 +176,10 @@
             </span>
           </div>
 
-          <div v-if="orderTip > 0" class="flex items-center justify-between text-sm text-amber-600 dark:text-amber-400">
+          <div
+            v-if="orderTip > 0"
+            class="flex items-center justify-between text-sm text-amber-600 dark:text-amber-400"
+          >
             <span class="flex items-center gap-1 font-medium">
               <span>★</span>
               <span>Tip</span>
@@ -167,7 +189,9 @@
             </span>
           </div>
 
-          <div class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-800">
+          <div
+            class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-800"
+          >
             <span class="font-bold text-slate-900 dark:text-slate-100">Total</span>
             <span class="text-xl font-bold text-slate-900 dark:text-white">
               ETB {{ orderTotalWithTip.toFixed(2) }}
@@ -176,15 +200,24 @@
         </div>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 px-4 py-3 space-y-2">
+      <div
+        class="bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 px-4 py-3 space-y-2"
+      >
         <h3 class="font-semibold text-slate-800 dark:text-slate-200 text-sm mb-1">Payment</h3>
         <div class="flex items-center justify-between text-sm">
           <span class="text-slate-500 dark:text-slate-400">Status</span>
           <span
             class="font-medium inline-flex items-center gap-1"
-            :class="isPaymentPaid || isServed ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'"
+            :class="
+              isPaymentPaid || isServed
+                ? 'text-emerald-600 dark:text-emerald-400'
+                : 'text-amber-600 dark:text-amber-400'
+            "
           >
-            <CheckCircle2 v-if="isPaymentPaid || isServed" class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <CheckCircle2
+              v-if="isPaymentPaid || isServed"
+              class="w-4 h-4 text-emerald-600 dark:text-emerald-400"
+            />
             <span>{{ isPaymentPaid || isServed ? 'Paid & Settled' : '⏳ Pending' }}</span>
           </span>
         </div>
@@ -209,7 +242,9 @@
           class="flex items-center justify-between text-xs pt-2 border-t border-slate-100 dark:border-slate-800"
         >
           <span class="text-slate-400 dark:text-slate-500">Transaction ID</span>
-          <span class="font-mono text-slate-600 dark:text-slate-300 font-semibold">{{ orderData.tx_ref }}</span>
+          <span class="font-mono text-slate-600 dark:text-slate-300 font-semibold">{{
+            orderData.tx_ref
+          }}</span>
         </div>
       </div>
 

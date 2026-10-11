@@ -114,7 +114,9 @@ watch(
 
 <template>
   <GuestLayout>
-    <div class="bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-white transition-colors duration-300">
+    <div
+      class="bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-white transition-colors duration-300"
+    >
       <RoomHero />
 
       <section class="mx-auto -mt-14 max-w-6xl px-4 sm:px-6 relative z-20">

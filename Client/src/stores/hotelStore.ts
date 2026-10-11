@@ -56,9 +56,11 @@ export const useHotelStore = defineStore('hotel', {
       localStorage.setItem('available_hotels', JSON.stringify(this.availableHotels))
       if (this.currentHotel) {
         localStorage.setItem('current_hotel', JSON.stringify(this.currentHotel))
-        import('./theme').then(({ useThemeStore }) => {
-          useThemeStore().syncWithHotel(this.currentHotel)
-        }).catch(() => {})
+        import('./theme')
+          .then(({ useThemeStore }) => {
+            useThemeStore().syncWithHotel(this.currentHotel)
+          })
+          .catch(() => {})
       } else {
         localStorage.removeItem('current_hotel')
       }
@@ -152,9 +154,11 @@ export const useHotelStore = defineStore('hotel', {
       this.availableHotels = []
       localStorage.removeItem('current_hotel')
       localStorage.removeItem('available_hotels')
-      import('./theme').then(({ useThemeStore }) => {
-        useThemeStore().setHotelTheme('luxury-gold')
-      }).catch(() => {})
+      import('./theme')
+        .then(({ useThemeStore }) => {
+          useThemeStore().setHotelTheme('luxury-gold')
+        })
+        .catch(() => {})
     },
 
     async loadHotels() {

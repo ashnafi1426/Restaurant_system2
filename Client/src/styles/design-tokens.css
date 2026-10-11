@@ -314,7 +314,9 @@ html.dark[data-hotel-theme='ras-hotel'] {
   border-radius: 0.75rem;
   padding: 0.5rem 0.75rem;
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 .app-input:focus {
   border-color: var(--color-focus);

@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-    <header class="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md border-b border-slate-800/80">
+  <div class="min-h-screen bg-slate-900 text-white">
+    <header class="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md border-b border-slate-800">
       <div class="max-w-md mx-auto px-4 py-4 flex items-center gap-3">
         <button
           @click="goBack"
-          class="p-2 -ml-2 rounded-xl text-red-500 hover:text-red-400 hover:bg-slate-800 transition-colors flex items-center justify-center"
+          class="p-2 -ml-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors flex items-center justify-center cursor-pointer"
           title="Back"
           aria-label="Back"
         >
@@ -18,7 +18,7 @@
           </svg>
         </button>
         <div class="flex-1 min-w-0">
-          <h1 class="text-2xl font-black text-red-500 tracking-tight leading-tight">
+          <h1 class="text-2xl font-black text-white tracking-tight leading-tight">
             Pay Your Order
           </h1>
           <p class="text-xs text-slate-400 font-medium flex items-center gap-1.5 mt-0.5">
@@ -38,12 +38,12 @@
     </header>
 
     <div class="max-w-md mx-auto px-4 py-6 space-y-4">
-      <div class="bg-slate-800 rounded-2xl p-5 shadow-xl border border-slate-700">
+      <div class="bg-slate-800/90 rounded-2xl p-5 shadow-xl border border-slate-700/80">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-3">
-            <div class="bg-red-500/20 p-2.5 rounded-xl border border-red-500/20">
+            <div class="bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20">
               <svg
-                class="w-5 h-5 text-red-400"
+                class="w-5 h-5 text-amber-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -60,7 +60,7 @@
             </div>
           </div>
           <div class="text-right">
-            <p class="text-2xl font-black text-red-400">ETB {{ subtotal.toFixed(2) }}</p>
+            <p class="text-2xl font-black text-white">ETB {{ subtotal.toFixed(2) }}</p>
           </div>
         </div>
 
@@ -74,16 +74,16 @@
               <h3 class="text-white font-bold text-sm">{{ item.name }}</h3>
               <p class="text-slate-400 text-xs">Qty: {{ item.quantity }}</p>
             </div>
-            <p class="text-red-400 font-black text-sm whitespace-nowrap">
+            <p class="text-white font-bold text-sm whitespace-nowrap">
               ETB {{ (item.price * item.quantity).toFixed(2) }}
             </p>
           </div>
         </div>
       </div>
 
-      <div class="bg-slate-800 rounded-2xl p-5 shadow-xl border border-slate-700">
+      <div class="bg-slate-800/90 rounded-2xl p-5 shadow-xl border border-slate-700/80">
         <div class="flex items-center gap-2 mb-4">
-          <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+          <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
             <path
               d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
             />
@@ -97,15 +97,15 @@
             :key="tipOption.value"
             @click="selectTip(tipOption.value)"
             :class="[
-              'flex flex-col items-center justify-center py-3 rounded-xl font-bold text-xs transition-all border-2',
+              'flex flex-col items-center justify-center py-3 rounded-xl font-bold text-xs transition-all border-2 cursor-pointer',
               selectedTip === tipOption.value
-                ? 'bg-yellow-500/20 border-yellow-500 text-yellow-400'
+                ? 'bg-amber-500/20 border-amber-500 text-amber-400'
                 : 'bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-700 hover:border-slate-500',
             ]"
           >
             <svg
               v-if="tipOption.icon === 'thumbs-up'"
-              class="w-6 h-6 mb-1 text-yellow-400"
+              class="w-6 h-6 mb-1 text-amber-400"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
@@ -120,7 +120,7 @@
 
             <svg
               v-else-if="tipOption.icon === 'smile'"
-              class="w-6 h-6 mb-1 text-yellow-400"
+              class="w-6 h-6 mb-1 text-amber-400"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
@@ -136,7 +136,7 @@
 
             <svg
               v-else-if="tipOption.icon === 'sparkles'"
-              class="w-6 h-6 mb-1 text-yellow-400"
+              class="w-6 h-6 mb-1 text-amber-400"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
@@ -151,7 +151,7 @@
 
             <svg
               v-else-if="tipOption.icon === 'heart'"
-              class="w-6 h-6 mb-1 text-rose-500"
+              class="w-6 h-6 mb-1 text-rose-400"
               fill="currentColor"
               viewBox="0 0 24 24"
             >
@@ -171,9 +171,9 @@
           <button
             @click="openCustomTip"
             :class="[
-              'py-3 rounded-xl font-bold text-sm transition-all border-2 flex items-center justify-center gap-2',
+              'py-3 rounded-xl font-bold text-sm transition-all border-2 flex items-center justify-center gap-2 cursor-pointer',
               selectedTip === 'custom'
-                ? 'bg-yellow-500/20 border-yellow-500 text-yellow-400'
+                ? 'bg-amber-500/20 border-amber-500 text-amber-400'
                 : 'bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-700',
             ]"
           >
@@ -193,7 +193,7 @@
           <button
             @click="selectTip(0)"
             :class="[
-              'py-3 rounded-xl font-bold text-sm transition-all border-2 flex items-center justify-center gap-2',
+              'py-3 rounded-xl font-bold text-sm transition-all border-2 flex items-center justify-center gap-2 cursor-pointer',
               selectedTip === 0
                 ? 'bg-slate-600 border-slate-500 text-white'
                 : 'bg-slate-700/50 border-slate-600 text-slate-300 hover:bg-slate-700',
@@ -214,15 +214,13 @@
         </div>
       </div>
 
-      <div
-        class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 shadow-xl border-2 border-slate-700"
-      >
+      <div class="bg-slate-800/90 rounded-2xl p-5 shadow-xl border-2 border-slate-700">
         <div class="space-y-2 mb-4">
           <div class="flex justify-between text-slate-300 text-sm">
             <span>Order Total</span>
             <span class="font-bold">ETB {{ subtotal.toFixed(2) }}</span>
           </div>
-          <div v-if="tipAmount > 0" class="flex justify-between text-yellow-400 text-sm">
+          <div v-if="tipAmount > 0" class="flex justify-between text-amber-400 text-sm">
             <span
               >Tip ({{
                 typeof selectedTip === 'number' && selectedTip > 0 ? selectedTip + '%' : 'Custom'
@@ -232,10 +230,10 @@
           </div>
         </div>
 
-        <div class="border-t-2 border-slate-600 pt-4 mb-4">
+        <div class="border-t-2 border-slate-700 pt-4 mb-4">
           <div class="flex justify-between items-center">
             <h3 class="text-white text-2xl font-black">Total</h3>
-            <p class="text-red-400 text-3xl font-black">ETB {{ total.toFixed(2) }}</p>
+            <p class="text-amber-400 text-3xl font-black">ETB {{ total.toFixed(2) }}</p>
           </div>
           <p class="text-slate-400 text-xs mt-1">Secure with Chapa</p>
         </div>
@@ -243,11 +241,11 @@
         <button
           @click="proceedToPayment"
           :disabled="isProcessing"
-          class="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-black text-lg py-4 rounded-2xl shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-lg py-4 rounded-2xl shadow-lg hover:shadow-amber-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
         >
           <svg
             v-if="!isProcessing"
-            class="w-6 h-6"
+            class="w-6 h-6 text-slate-950"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -261,7 +259,7 @@
           </svg>
           <svg
             v-else
-            class="w-6 h-6 animate-spin"
+            class="w-6 h-6 animate-spin text-slate-950"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

@@ -164,7 +164,8 @@ const decrementQuantity = () => {
             <span
               class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight"
             >
-              ETB {{
+              ETB
+              {{
                 (item.total_price !== undefined && item.total_price !== null
                   ? Number(item.total_price)
                   : Number(item.price || 0)
@@ -182,8 +183,8 @@ const decrementQuantity = () => {
                 Incl. {{ item.tax_rate.rate }}% {{ item.tax_rate.name || 'VAT' }}
               </span>
               <span v-else>
-                ETB {{ Number(item.base_price || item.price).toFixed(2) }} + {{ item.tax_rate.rate }}%
-                tax
+                ETB {{ Number(item.base_price || item.price).toFixed(2) }} +
+                {{ item.tax_rate.rate }}% tax
               </span>
             </div>
           </div>

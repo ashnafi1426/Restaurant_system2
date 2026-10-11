@@ -9,14 +9,14 @@
       class="flex items-center justify-between text-gray-900 text-lg font-bold pt-2 border-t border-gray-200"
     >
       <span>{{ languageStore.t('total', 'Total') }}</span>
-      <span class="text-red-600">{{ formatPrice(total) }}</span>
+      <span class="text-slate-900 font-black">{{ formatPrice(total) }}</span>
     </div>
 
     <div class="flex flex-col gap-2 pt-3">
       <button
         @click="$emit('place-order-room-charge')"
         :disabled="isPlacingOrder || cartItemsCount === 0"
-        class="w-full px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+        class="w-full px-4 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer shadow-sm"
       >
         <svg
           v-if="!isPlacingOrder"
@@ -52,11 +52,11 @@
       <button
         @click="$emit('open-payment-dialog')"
         :disabled="isPlacingOrder || cartItemsCount === 0"
-        class="w-full px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-bold text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer border-2 border-yellow-600"
+        class="w-full px-4 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl font-bold text-base shadow-lg hover:shadow-amber-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
       >
         <svg
           v-if="!isPlacingOrder"
-          class="w-6 h-6"
+          class="w-6 h-6 text-slate-950"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
