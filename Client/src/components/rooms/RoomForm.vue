@@ -459,6 +459,7 @@ const save = () => {
           value-key="id"
           :icon="Layers"
           item-type="floor"
+          placement="bottom"
           :placeholder="
             loadingFloors
               ? 'Loading existing floors...'
@@ -526,6 +527,7 @@ const save = () => {
           value-key="id"
           :icon="BedDouble"
           item-type="room type"
+          placement="bottom"
           :placeholder="
             loadingRoomTypes
               ? 'Loading room types...'

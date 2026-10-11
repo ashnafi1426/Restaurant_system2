@@ -44,6 +44,11 @@ class StoreRoomRequest extends FormRequest
         if (!$this->has('is_active')) {
             $this->merge(['is_active' => true]);
         }
+
+        if (!$this->filled('capacity') && $this->filled('room_type_id')) {
+            $typeCapacity = \App\Models\RoomType::where('id', $this->room_type_id)->value('capacity');
+            $this->merge(['capacity' => $typeCapacity ?: 2]);
+        }
     }
 
     public function rules(): array
@@ -67,6 +72,7 @@ class StoreRoomRequest extends FormRequest
             'room_number' => ['required', 'string', 'max:50', $uniqueRoom],
             'floor_id' => ['required', $existsFloor],
             'room_type_id' => ['required', $existsRoomType],
+            'capacity' => ['nullable', 'integer', 'min:1', 'max:50'],
             'floor' => ['nullable', 'integer'],
             'description' => ['nullable', 'string'],
             'status' => [

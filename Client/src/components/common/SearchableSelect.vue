@@ -24,6 +24,7 @@ const props = withDefaults(
     hasError?: boolean
     triggerClass?: string
     dropdownClass?: string
+    placement?: 'bottom' | 'top' | 'auto'
     formatOptionLabel?: (option: SelectOption) => string
     searchFilter?: (option: SelectOption, query: string) => boolean
   }>(),
@@ -41,6 +42,7 @@ const props = withDefaults(
     hasError: false,
     triggerClass: '',
     dropdownClass: '',
+    placement: 'bottom',
   },
 )
 
@@ -139,11 +141,17 @@ const isSelected = (option: SelectOption): boolean => {
 const openDropdown = () => {
   if (props.disabled) return
 
-  if (triggerRef.value) {
+  if (props.placement === 'top') {
+    openUpwards.value = true
+  } else if (props.placement === 'auto' && triggerRef.value) {
     const rect = triggerRef.value.getBoundingClientRect()
     const spaceBelow = window.innerHeight - rect.bottom
     const spaceAbove = rect.top
-    openUpwards.value = spaceBelow < 260 && spaceAbove > spaceBelow
+    // Only flip upwards if space below is too small and there is ample room above
+    openUpwards.value = spaceBelow < 180 && spaceAbove > 320
+  } else {
+    // Default 'bottom'
+    openUpwards.value = false
   }
 
   isOpen.value = true
@@ -252,7 +260,10 @@ watch(searchQuery, () => {
   <div
     ref="containerRef"
     class="relative w-full select-none"
-    :class="{ 'opacity-60 pointer-events-none': disabled }"
+    :class="[
+      { 'opacity-60 pointer-events-none': disabled },
+      isOpen ? 'z-30' : 'z-auto'
+    ]"
   >
     <button
       ref="triggerRef"

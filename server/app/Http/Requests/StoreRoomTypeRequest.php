@@ -45,7 +45,7 @@ class StoreRoomTypeRequest extends FormRequest
                 'min:0',
             ],
             'capacity' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:1',
             ],

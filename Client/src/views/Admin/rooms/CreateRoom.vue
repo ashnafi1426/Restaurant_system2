@@ -122,10 +122,10 @@ const cancel = () => {
       </div>
 
       <div
-        class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden"
+        class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800"
       >
         <div
-          class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between"
+          class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between rounded-t-2xl"
         >
           <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">
             {{ languageStore.t('room_information', 'Room Information') }}

@@ -65,6 +65,7 @@ class RoomTypeController extends Controller
             $validated['hotel_id'] = $hotelId;
             $validated['amenities'] = $validated['amenities'] ?? [];
             $validated['is_active'] = $validated['is_active'] ?? true;
+            $validated['capacity'] = $validated['capacity'] ?? 2;
 
             $roomType = RoomType::create($validated);
 

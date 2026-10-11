@@ -195,9 +195,9 @@ watch(
         <p class="text-slate-600 font-medium text-sm">Loading room details...</p>
       </div>
 
-      <div v-else class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+      <div v-else class="bg-white rounded-2xl shadow-sm border border-slate-200/80">
         <div
-          class="bg-slate-900 px-6 py-4 border-b border-slate-800 flex items-center justify-between"
+          class="bg-slate-900 px-6 py-4 border-b border-slate-800 flex items-center justify-between rounded-t-2xl"
         >
           <h2 class="text-base font-bold text-white tracking-wide">
             Room Details (#{{ form.room_number }})

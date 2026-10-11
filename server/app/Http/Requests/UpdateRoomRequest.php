@@ -82,6 +82,7 @@ class UpdateRoomRequest extends FormRequest
                 $uniqueRoom,
             ],
             'room_type_id' => ['required', $existsRoomType],
+            'capacity' => ['nullable', 'integer', 'min:1', 'max:50'],
             'floor_id' => ['nullable', $existsFloor],
             'floor' => ['nullable', 'integer'],
             'description' => ['nullable', 'string'],

@@ -21,6 +21,7 @@ class Room extends Model
         'hotel_id',
         'room_number',
         'room_type_id',
+        'capacity',
         'floor',
         'floor_id',
         'description',
@@ -32,6 +33,7 @@ class Room extends Model
     ];
 
     protected $casts = [
+        'capacity' => 'integer',
         'is_active' => 'boolean',
         'qr_generated_at' => 'datetime',
         'floor' => 'integer',

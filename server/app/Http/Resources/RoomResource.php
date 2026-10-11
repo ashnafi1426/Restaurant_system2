@@ -24,6 +24,7 @@ class RoomResource extends JsonResource
             }),
             'room_number' => $this->room_number,
             'room_type_id' => $this->room_type_id,
+            'capacity' => (int) ($this->capacity ?? $this->roomType?->capacity ?? 2),
             'floor_id' => $this->floor_id,
             'floor' => $floorNumber,
             'floor_name' => $floorName,
