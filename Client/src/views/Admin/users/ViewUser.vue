@@ -261,11 +261,11 @@ const formatDate = (dateStr?: string | null): string => {
           </div>
         </div>
 
-        <div v-if="user" class="flex items-center gap-2 flex-wrap">
+        <div v-if="user" class="grid grid-cols-3 sm:flex sm:items-center gap-2 w-full sm:w-auto">
           <button
             @click="toggleStatus"
             :disabled="isTogglingStatus"
-            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition cursor-pointer disabled:opacity-50"
+            class="inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold border transition cursor-pointer disabled:opacity-50"
             :class="
               user.is_active
                 ? 'border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 hover:bg-amber-100'
@@ -275,24 +275,24 @@ const formatDate = (dateStr?: string | null): string => {
             <RefreshCw v-if="isTogglingStatus" class="w-3.5 h-3.5 animate-spin" />
             <UserX v-else-if="user.is_active" class="w-3.5 h-3.5" />
             <UserCheck v-else class="w-3.5 h-3.5" />
-            <span>{{ user.is_active ? 'Deactivate' : 'Activate' }}</span>
+            <span class="truncate">{{ user.is_active ? 'Deactivate' : 'Activate' }}</span>
           </button>
 
           <button
             @click="navigateEdit"
-            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition cursor-pointer"
+            class="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition cursor-pointer"
           >
             <Edit class="w-3.5 h-3.5" />
-            <span>{{ languageStore.t('Edit', 'Edit User') }}</span>
+            <span class="truncate">{{ languageStore.t('Edit', 'Edit') }}</span>
           </button>
 
           <button
             @click="deleteUser"
             :disabled="isDeleting"
-            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/40 transition cursor-pointer disabled:opacity-50"
+            class="inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl text-xs font-bold bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/40 transition cursor-pointer disabled:opacity-50"
           >
             <Trash2 class="w-3.5 h-3.5" />
-            <span>{{ languageStore.t('Delete', 'Delete') }}</span>
+            <span class="truncate">{{ languageStore.t('Delete', 'Delete') }}</span>
           </button>
         </div>
       </div>

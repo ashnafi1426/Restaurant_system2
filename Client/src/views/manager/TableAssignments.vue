@@ -691,8 +691,8 @@ const handleAssignSuccess = async () => {
                         >
                           <button
                             @click="
-                              handleEdit(assignment)
-                              closeMenu()
+                              handleEdit(assignment);
+                              closeMenu();
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#152744] hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer"
                           >
@@ -704,8 +704,8 @@ const handleAssignSuccess = async () => {
 
                           <button
                             @click="
-                              promptDeleteAssignment(assignment)
-                              closeMenu()
+                              promptDeleteAssignment(assignment);
+                              closeMenu();
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer"
                           >

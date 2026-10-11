@@ -973,6 +973,17 @@ label {
   .btn {
     width: 100%;
   }
+
+  .assignment-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .btn-remove {
+    width: 100%;
+    justify-content: center;
+    padding: 8px;
+  }
 }
 
 .modal-body::-webkit-scrollbar {

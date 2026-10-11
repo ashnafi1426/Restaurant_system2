@@ -19,6 +19,8 @@ import {
   ChevronRight,
   Shield,
   Loader2,
+  Phone,
+  Mail,
 } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -179,10 +181,10 @@ onBeforeUnmount(() => {
     :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
   >
     <div
-      class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+      class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
     >
-      <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-        <div class="relative flex-1">
+      <div class="flex items-center gap-2 flex-1 w-full min-w-0">
+        <div class="relative flex-1 min-w-0">
           <Search
             class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
           />
@@ -195,14 +197,14 @@ onBeforeUnmount(() => {
                 'Search staff by name, email, phone, role...',
               )
             "
-            class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
+            class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
           />
         </div>
 
         <button
           type="button"
           @click="toggleFilter"
-          class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+          class="inline-flex items-center gap-1.5 sm:gap-2 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer shrink-0"
           :class="[
             isFilterOpen
               ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
@@ -212,39 +214,41 @@ onBeforeUnmount(() => {
           <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
           <span>{{
             isFilterOpen
-              ? languageStore.t('hide_filter', 'Hide Filter')
+              ? languageStore.t('hide_filter', 'Filter')
               : languageStore.t('filter', 'Filter')
           }}</span>
         </button>
       </div>
 
-      <div class="flex items-center gap-2 sm:gap-2.5">
-        <button
-          type="button"
-          @click="emit('refresh')"
-          :disabled="loading"
-          :title="languageStore.t('refresh', 'Refresh')"
-          class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
-        >
-          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
-        </button>
+      <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0">
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <button
+            type="button"
+            @click="emit('refresh')"
+            :disabled="loading"
+            :title="languageStore.t('refresh', 'Refresh')"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer shrink-0"
+          >
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+          </button>
 
-        <button
-          type="button"
-          @click="toggleFullscreen"
-          :title="languageStore.t('fullscreen', 'Toggle Fullscreen')"
-          class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
-        >
-          <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
-        </button>
+          <button
+            type="button"
+            @click="toggleFullscreen"
+            :title="languageStore.t('fullscreen', 'Toggle Fullscreen')"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer shrink-0"
+          >
+            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+          </button>
+        </div>
 
         <button
           type="button"
           @click="emit('create')"
-          class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm shadow-blue-600/30 transition active:scale-98 cursor-pointer flex-shrink-0"
+          class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold !text-white shadow-sm shadow-blue-600/30 transition active:scale-98 cursor-pointer shrink-0"
         >
-          <Plus class="w-4 h-4" />
-          <span>{{ languageStore.t('create_user', 'Create User') }}</span>
+          <Plus class="w-4 h-4 !text-white" />
+          <span class="!text-white">{{ languageStore.t('create_user', 'Create Staff') }}</span>
         </button>
       </div>
     </div>
@@ -495,10 +499,11 @@ onBeforeUnmount(() => {
           </table>
         </div>
 
-        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+        <!-- Mobile Responsive Staff Cards -->
+        <div class="md:hidden p-3 sm:p-4 space-y-3 bg-slate-50/50 dark:bg-slate-950/30">
           <div
             v-if="paginatedUsers.length === 0"
-            class="p-8 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
+            class="p-8 text-center text-slate-500 dark:text-slate-400 text-xs font-bold bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800"
           >
             {{
               languageStore.t(
@@ -511,63 +516,121 @@ onBeforeUnmount(() => {
             v-else
             v-for="user in paginatedUsers"
             :key="user.id"
-            class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
+            class="p-4 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-3 transition"
           >
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-slate-900 dark:text-white text-sm">
-                {{ user.first_name }} {{ user.last_name }}
-              </span>
+            <!-- Top: Avatar + Name + Role Badge -->
+            <div class="flex items-start justify-between gap-2.5">
+              <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <div
+                  class="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-extrabold text-sm flex items-center justify-center shrink-0 border border-blue-200/50 dark:border-blue-700/50"
+                >
+                  {{ getUserInitial(user) }}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <h3 class="font-bold text-slate-900 dark:text-white text-sm truncate leading-tight">
+                    {{ user.first_name }} {{ user.last_name }}
+                  </h3>
+                  <div class="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">
+                    <Mail class="w-3 h-3 shrink-0" />
+                    <span class="truncate">{{ user.email }}</span>
+                  </div>
+                </div>
+              </div>
+
               <span
-                class="px-2 py-0.5 rounded-lg text-[10px] font-bold border uppercase"
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-extrabold border uppercase tracking-wide shrink-0"
                 :class="getRoleBadgeClass(user.role)"
               >
-                {{ languageStore.t(user.role, user.role) }}
+                <Shield class="w-2.5 h-2.5" />
+                {{ languageStore.t(user.role, user.role || 'Staff') }}
               </span>
             </div>
 
-            <div class="text-xs text-slate-500 dark:text-slate-400">
-              {{ user.email }}
+            <!-- Middle: Phone & Status Badge -->
+            <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+              <div class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-medium truncate text-[11px]">
+                <Phone class="w-3 h-3 text-slate-400 shrink-0" />
+                <span>{{ user.phone || 'No phone' }}</span>
+              </div>
+
+              <span
+                v-if="user.is_active"
+                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                {{ languageStore.t('Active', 'Active') }}
+              </span>
+              <span
+                v-else
+                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 shrink-0"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                {{ languageStore.t('Inactive', 'Inactive') }}
+              </span>
             </div>
 
-            <div class="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <!-- Bottom: Action Buttons -->
+            <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
               <button
                 @click="handleAction('view', user)"
-                class="flex-1 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-lg cursor-pointer"
+                type="button"
+                class="inline-flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200/50 dark:border-blue-800/40 transition cursor-pointer active:scale-98"
               >
-                {{ languageStore.t('View', 'View') }}
+                <Eye class="w-3.5 h-3.5" />
+                <span>{{ languageStore.t('View', 'View') }}</span>
               </button>
+
               <button
                 @click="handleAction('edit', user)"
-                class="flex-1 py-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 rounded-lg cursor-pointer"
+                type="button"
+                class="inline-flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/40 border border-amber-200/50 dark:border-amber-800/40 transition cursor-pointer active:scale-98"
               >
-                {{ languageStore.t('Edit', 'Edit') }}
+                <Edit class="w-3.5 h-3.5" />
+                <span>{{ languageStore.t('Edit', 'Edit') }}</span>
               </button>
+
               <button
                 @click="handleAction('delete', user)"
-                class="flex-1 py-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 rounded-lg cursor-pointer"
+                type="button"
+                class="inline-flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200/50 dark:border-rose-800/40 transition cursor-pointer active:scale-98"
               >
-                {{ languageStore.t('Delete', 'Delete') }}
+                <Trash2 class="w-3.5 h-3.5" />
+                <span>{{ languageStore.t('Delete', 'Delete') }}</span>
               </button>
             </div>
           </div>
         </div>
 
+        <!-- Fully Responsive Pagination Footer -->
         <div
           v-if="total > 0"
-          class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+          class="border-t border-slate-200 dark:border-slate-800/80 px-3.5 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 text-xs"
         >
-          <div class="text-slate-500 dark:text-slate-400 font-medium">
-            {{ languageStore.t('Showing', 'Showing') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
-            {{ languageStore.t('to', 'to') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span>
-            {{ languageStore.t('of', 'of') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span>
-            {{ languageStore.t('records', 'records') }}
+          <div class="flex items-center justify-between w-full sm:w-auto text-slate-500 dark:text-slate-400 font-medium text-[11px] sm:text-xs">
+            <div>
+              {{ languageStore.t('Showing', 'Showing') }}
+              <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
+              {{ languageStore.t('to', 'to') }}
+              <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span>
+              {{ languageStore.t('of', 'of') }}
+              <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span>
+            </div>
+
+            <div class="flex items-center gap-1.5 sm:hidden">
+              <span class="text-slate-400">{{ languageStore.t('per_page', 'Per page:') }}</span>
+              <select
+                v-model.number="perPage"
+                class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-0.5 text-xs outline-none cursor-pointer"
+              >
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
           </div>
 
-          <div class="flex items-center gap-2 sm:gap-3">
-            <div class="flex items-center gap-1.5">
+          <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-3">
+            <div class="hidden sm:flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{
                 languageStore.t('per_page', 'Per page:')
               }}</span>
@@ -581,34 +644,42 @@ onBeforeUnmount(() => {
               </select>
             </div>
 
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1 w-full sm:w-auto justify-between sm:justify-end">
               <button
                 @click="prevPage"
                 :disabled="currentPage === 1"
-                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 transition cursor-pointer text-xs font-semibold"
               >
                 <ChevronLeft class="w-4 h-4" />
+                <span class="sm:hidden">{{ languageStore.t('previous', 'Prev') }}</span>
               </button>
 
-              <button
-                v-for="page in paginationPages"
-                :key="page"
-                @click="goToPage(page)"
-                class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
-                :class="[
-                  currentPage === page
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
-                ]"
-              >
-                {{ page }}
-              </button>
+              <span class="sm:hidden text-xs font-bold text-slate-700 dark:text-slate-300">
+                {{ currentPage }} / {{ lastPage }}
+              </span>
+
+              <div class="hidden sm:flex items-center gap-1">
+                <button
+                  v-for="page in paginationPages"
+                  :key="page"
+                  @click="goToPage(page)"
+                  class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+                  :class="[
+                    currentPage === page
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
+                  ]"
+                >
+                  {{ page }}
+                </button>
+              </div>
 
               <button
                 @click="nextPage"
                 :disabled="currentPage === lastPage"
-                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 transition cursor-pointer text-xs font-semibold"
               >
+                <span class="sm:hidden">{{ languageStore.t('next', 'Next') }}</span>
                 <ChevronRight class="w-4 h-4" />
               </button>
             </div>

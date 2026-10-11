@@ -208,25 +208,26 @@ const getRoleBadgeClass = (role: string) => {
         <span>{{ errorMessage }}</span>
       </div>
 
+      <!-- Search & Filters Bar -->
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-xs flex flex-col md:flex-row items-center justify-between gap-3"
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-4 rounded-2xl shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3"
       >
-        <div class="relative w-full md:w-80">
+        <div class="relative w-full sm:w-80">
           <Search class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
           <input
             v-model="searchQuery"
             type="text"
             placeholder="Search by name, email..."
-            class="w-full pl-9 pr-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+            class="w-full pl-9 pr-3 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
           />
         </div>
 
-        <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
-          <div class="flex items-center gap-1.5">
-            <span class="text-xs font-bold text-slate-400">Role:</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full sm:w-auto">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="text-xs font-bold text-slate-400 shrink-0">Role:</span>
             <select
               v-model="selectedRole"
-              class="px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-medium focus:outline-none"
+              class="w-full sm:w-auto px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-medium focus:outline-none cursor-pointer"
             >
               <option v-for="role in roleOptions" :key="role.value" :value="role.value">
                 {{ role.label }}
@@ -234,9 +235,9 @@ const getRoleBadgeClass = (role: string) => {
             </select>
           </div>
 
-          <div class="flex items-center gap-1.5">
-            <span class="text-xs font-bold text-slate-400">Hotel:</span>
-            <div class="w-56">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="text-xs font-bold text-slate-400 shrink-0">Hotel:</span>
+            <div class="flex-1 sm:w-56 min-w-0">
               <SearchableSelect
                 v-model="selectedHotelId"
                 :options="hotelOptions"
@@ -252,10 +253,12 @@ const getRoleBadgeClass = (role: string) => {
         </div>
       </div>
 
+      <!-- Main Directory Container -->
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden"
       >
-        <div class="overflow-x-auto">
+        <!-- Desktop Table View -->
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left text-xs border-collapse">
             <thead
               class="bg-slate-100/70 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-700/80"
@@ -292,15 +295,15 @@ const getRoleBadgeClass = (role: string) => {
                 <td class="py-4 px-5">
                   <div class="flex items-center gap-3">
                     <div
-                      class="w-9 h-9 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-xs"
+                      class="w-9 h-9 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-xs shrink-0"
                     >
                       {{ getUserInitials(u) }}
                     </div>
-                    <div>
-                      <span class="font-bold text-slate-900 dark:text-white block">
+                    <div class="min-w-0">
+                      <span class="font-bold text-slate-900 dark:text-white block truncate">
                         {{ u.first_name }} {{ u.last_name }}
                       </span>
-                      <span class="text-[11px] font-mono text-slate-400 block">
+                      <span class="text-[11px] font-mono text-slate-400 block truncate">
                         {{ u.email }}
                       </span>
                     </div>
@@ -353,104 +356,156 @@ const getRoleBadgeClass = (role: string) => {
           </table>
         </div>
 
+        <!-- Mobile Card View -->
+        <div class="md:hidden p-3 sm:p-4 space-y-3 bg-slate-50/50 dark:bg-slate-950/30">
+          <div v-if="loading" class="p-12 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <RefreshCw class="w-6 h-6 text-indigo-500 animate-spin mx-auto mb-2" />
+            <span>Loading platform staff...</span>
+          </div>
+          <div v-else-if="users.length === 0" class="p-8 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <Users class="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+            <p class="font-bold">No users found.</p>
+          </div>
+          <div
+            v-else
+            v-for="u in users"
+            :key="u.id"
+            class="p-4 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-3"
+          >
+            <!-- User Header -->
+            <div class="flex items-start justify-between gap-2.5">
+              <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <div
+                  class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-black text-xs shrink-0"
+                >
+                  {{ getUserInitials(u) }}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <h3 class="font-bold text-slate-900 dark:text-white text-sm truncate leading-tight">
+                    {{ u.first_name }} {{ u.last_name }}
+                  </h3>
+                  <p class="text-[11px] font-mono text-slate-400 truncate mt-0.5">
+                    {{ u.email }}
+                  </p>
+                </div>
+              </div>
+
+              <span
+                :class="[
+                  'px-2 py-0.5 rounded-lg border font-black text-[10px] uppercase tracking-wide shrink-0',
+                  getRoleBadgeClass(u.role),
+                ]"
+              >
+                {{ u.role }}
+              </span>
+            </div>
+
+            <!-- Hotel Property & Status -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+              <div class="min-w-0 flex-1">
+                <div v-if="u.hotels && u.hotels.length > 0" class="flex flex-wrap gap-1">
+                  <span
+                    v-for="h in u.hotels"
+                    :key="h.id"
+                    class="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[11px] inline-flex items-center gap-1 truncate"
+                  >
+                    <Building2 class="w-3 h-3 text-indigo-500 shrink-0" />
+                    <span class="truncate">{{ h.name }}</span>
+                  </span>
+                </div>
+                <span v-else class="text-slate-400 italic text-[11px]">Platform Level</span>
+              </div>
+
+              <span
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border shrink-0"
+                :class="
+                  u.is_active
+                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                    : 'bg-slate-500/10 text-slate-500 border-slate-500/20'
+                "
+              >
+                {{ u.is_active ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+
+            <!-- Joined Date Footer -->
+            <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-slate-50 dark:border-slate-850">
+              <span>Joined:</span>
+              <span class="font-medium text-slate-600 dark:text-slate-300">{{ formatDate(u.created_at) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fully Responsive Pagination Footer -->
         <div
           v-if="lastPage > 1 || totalUsers > perPageOptions[0]"
-          class="p-4 border-t border-slate-200 dark:border-slate-800"
+          class="p-3.5 sm:p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-[#0c182c]"
         >
           <div
-            class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4"
+            class="flex flex-col sm:flex-row items-center justify-between gap-3"
           >
-            <div class="flex items-center gap-4">
-              <div class="flex items-center gap-2">
-                <label class="text-xs font-bold text-slate-600 dark:text-slate-400"
-                  >Per page:</label
-                >
+            <!-- Showing info and Per Page selector -->
+            <div class="flex items-center justify-between w-full sm:w-auto gap-3 text-xs text-slate-500 dark:text-slate-400">
+              <div>
+                Showing <strong class="text-slate-900 dark:text-white">{{ paginationInfo.start }}-{{ paginationInfo.end }}</strong> of
+                <strong class="text-slate-900 dark:text-white">{{ totalUsers }}</strong>
+              </div>
+
+              <div class="flex items-center gap-1.5">
+                <label class="text-[11px] font-bold text-slate-400">Per page:</label>
                 <select
                   v-model="perPage"
-                  class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  class="px-2 py-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-900 dark:text-white focus:outline-none cursor-pointer"
                 >
                   <option v-for="option in perPageOptions" :key="option" :value="option">
                     {{ option }}
                   </option>
                 </select>
               </div>
+            </div>
 
-              <div class="text-xs text-slate-500 dark:text-slate-400">
-                Showing {{ paginationInfo.start }}-{{ paginationInfo.end }} of
-                {{ totalUsers }} users
+            <!-- Page Navigation Controls -->
+            <div v-if="lastPage > 1" class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-1">
+              <button
+                :disabled="currentPage <= 1"
+                @click="goToPage(currentPage - 1)"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold"
+              >
+                <ChevronLeft class="w-4 h-4" />
+                <span class="sm:hidden">Prev</span>
+              </button>
+
+              <span class="sm:hidden text-xs font-bold text-slate-700 dark:text-slate-300">
+                Page {{ currentPage }} / {{ lastPage }}
+              </span>
+
+              <div class="hidden sm:flex items-center gap-1 mx-1">
+                <template v-for="(page, index) in visiblePages" :key="index">
+                  <button
+                    v-if="page !== 'ellipsis'"
+                    :class="[
+                      'px-2.5 py-1 rounded-lg text-xs font-bold transition',
+                      page === currentPage
+                        ? 'bg-indigo-500 text-white shadow-sm'
+                        : 'bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700',
+                    ]"
+                    @click="goToPage(Number(page))"
+                  >
+                    {{ page }}
+                  </button>
+                  <span v-else class="px-1 text-slate-400 text-xs">...</span>
+                </template>
               </div>
-            </div>
 
-            <div v-if="lastPage > 1" class="flex items-center gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-400"
-                >Go to page:</label
+              <button
+                :disabled="currentPage >= lastPage"
+                @click="goToPage(currentPage + 1)"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold"
               >
-              <select
-                :value="currentPage"
-                @change="goToPage(Number(($event.target as HTMLSelectElement).value))"
-                class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option v-for="page in lastPage" :key="page" :value="page">
-                  {{ page }}
-                </option>
-              </select>
+                <span class="sm:hidden">Next</span>
+                <ChevronRight class="w-4 h-4" />
+              </button>
             </div>
-          </div>
-
-          <div v-if="lastPage > 1" class="flex items-center justify-center gap-1">
-            <button
-              :disabled="currentPage <= 1"
-              @click="goToPage(1)"
-              class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-800"
-              title="First page"
-            >
-              <ChevronsLeft class="w-4 h-4" />
-            </button>
-
-            <button
-              :disabled="currentPage <= 1"
-              @click="goToPage(currentPage - 1)"
-              class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-800"
-              title="Previous page"
-            >
-              <ChevronLeft class="w-4 h-4" />
-            </button>
-
-            <div class="flex items-center gap-1 mx-2">
-              <template v-for="(page, index) in visiblePages" :key="index">
-                <button
-                  v-if="page !== 'ellipsis'"
-                  :class="[
-                    'px-3 py-2 rounded-lg text-xs font-bold transition',
-                    page === currentPage
-                      ? 'bg-indigo-500 text-white shadow-lg'
-                      : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300',
-                  ]"
-                  @click="goToPage(Number(page))"
-                >
-                  {{ page }}
-                </button>
-                <span v-else class="px-2 py-2 text-slate-400 text-xs"> ... </span>
-              </template>
-            </div>
-
-            <button
-              :disabled="currentPage >= lastPage"
-              @click="goToPage(currentPage + 1)"
-              class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-800"
-              title="Next page"
-            >
-              <ChevronRight class="w-4 h-4" />
-            </button>
-
-            <button
-              :disabled="currentPage >= lastPage"
-              @click="goToPage(lastPage)"
-              class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-100 dark:disabled:hover:bg-slate-800"
-              title="Last page"
-            >
-              <ChevronsRight class="w-4 h-4" />
-            </button>
           </div>
         </div>
       </div>

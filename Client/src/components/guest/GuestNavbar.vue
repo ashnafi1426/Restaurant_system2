@@ -88,15 +88,16 @@ onUnmounted(() => {
     class="fixed inset-x-0 top-0 z-50 transition-colors duration-200 bg-white/95 dark:bg-[#0B1B35]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 shadow-xs"
   >
     <div
-      class="mx-auto flex h-20 w-full max-w-[1600px] items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-10"
+      class="mx-auto flex h-16 sm:h-20 w-full max-w-[1600px] items-center justify-between px-3 sm:px-6 lg:px-8 xl:px-10"
     >
-      <div class="flex items-center gap-8 lg:gap-10 min-w-0">
+      <!-- Left: Logo & Brand + Desktop Navigation -->
+      <div class="flex items-center gap-4 lg:gap-10 min-w-0 flex-1 mr-2 sm:mr-4">
         <RouterLink
           to="/"
-          class="flex items-center gap-3 shrink-0 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E9A11A] rounded-lg group"
+          class="flex items-center gap-2.5 sm:gap-3 min-w-0 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E9A11A] rounded-lg group"
         >
           <div
-            class="relative w-11 h-11 flex items-center justify-center rounded-xl bg-white p-1 shadow-xs border border-slate-200/60 dark:border-slate-700/60 shrink-0 transition-transform duration-300 group-hover:scale-105"
+            class="relative w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl bg-white p-1 shadow-xs border border-slate-200/60 dark:border-slate-700/60 shrink-0 transition-transform duration-300 group-hover:scale-105"
           >
             <img
               src="/images/Hotel logo.png"
@@ -105,14 +106,14 @@ onUnmounted(() => {
             />
           </div>
 
-          <div class="flex flex-col min-w-0">
+          <div class="flex flex-col min-w-0 flex-1">
             <span
-              class="text-[16px] sm:text-[17px] font-bold tracking-tight text-[#0B1B35] dark:text-white leading-tight uppercase truncate"
+              class="text-[13px] xs:text-[15px] sm:text-[17px] font-bold tracking-tight text-[#0B1B35] dark:text-white leading-tight uppercase truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none"
             >
               {{ guestHotelStore.currentHotel?.name || 'SHERATON' }}
             </span>
             <span
-              class="text-[10px] font-semibold text-[#E9A11A] tracking-wider uppercase mt-0.5 leading-none"
+              class="text-[9px] sm:text-[10px] font-semibold text-[#E9A11A] tracking-wider uppercase mt-0.5 leading-none truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none"
             >
               {{
                 (guestHotelStore.currentHotel?.city || 'ADDIS ABABA')
@@ -123,7 +124,7 @@ onUnmounted(() => {
           </div>
         </RouterLink>
 
-        <nav class="hidden lg:flex items-center gap-6 xl:gap-8" aria-label="Main Navigation">
+        <nav class="hidden lg:flex items-center gap-6 xl:gap-8 shrink-0" aria-label="Main Navigation">
           <RouterLink
             v-for="menu in menus"
             :key="menu.route"
@@ -149,6 +150,7 @@ onUnmounted(() => {
         </nav>
       </div>
 
+      <!-- Desktop Right Actions -->
       <div class="hidden lg:flex items-center gap-2.5 xl:gap-3 shrink-0">
         <LanguageSelector variant="header" />
 
@@ -192,23 +194,25 @@ onUnmounted(() => {
         </RouterLink>
       </div>
 
-      <div class="flex items-center gap-2 lg:hidden">
+      <!-- Mobile & Tablet Right Actions -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0 lg:hidden">
         <LanguageSelector variant="header" />
 
         <button
           @click="handleThemeToggle"
           type="button"
-          class="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-transparent text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          class="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-transparent text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
           :aria-label="theme.isDark ? 'Switch to light mode' : 'Switch to dark mode'"
         >
           <Sun v-if="theme.isDark" class="w-4 h-4 text-[#E9A11A]" />
           <Moon v-else class="w-4 h-4" />
         </button>
 
+        <!-- Switch hotel button: shown on tablets/sm screens; on mobile phones accessible in the drawer -->
         <button
           @click.stop="openHotelModal"
           type="button"
-          class="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-transparent text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          class="hidden sm:flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-transparent text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
           title="Switch Hotel"
           aria-label="Switch Hotel"
         >
@@ -218,16 +222,17 @@ onUnmounted(() => {
         <button
           @click="toggleMenu"
           type="button"
-          class="h-10 w-10 flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-transparent text-[#0B1B35] dark:text-white transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E9A11A]"
+          class="h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-700 bg-transparent text-[#0B1B35] dark:text-white transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E9A11A] shrink-0"
           :aria-expanded="mobileMenu"
           aria-label="Toggle navigation"
         >
-          <MenuIcon v-if="!mobileMenu" class="w-5 h-5" />
-          <CloseIcon v-else class="w-5 h-5 text-[#E9A11A]" />
+          <MenuIcon v-if="!mobileMenu" class="w-4.5 h-4.5 sm:w-5 sm:h-5" />
+          <CloseIcon v-else class="w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#E9A11A]" />
         </button>
       </div>
     </div>
 
+    <!-- Mobile Drawer -->
     <Transition
       enter-active-class="transition duration-150 ease-out"
       enter-from-class="opacity-0 -translate-y-2"

@@ -47,25 +47,25 @@ onUnmounted(() => {
       @click.stop="toggleDropdown"
       type="button"
       :class="[
-        'flex items-center gap-2 transition-all duration-200 cursor-pointer select-none whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E9A11A] focus-visible:ring-offset-2',
+        'flex items-center gap-1.5 sm:gap-2 transition-all duration-200 cursor-pointer select-none whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E9A11A] focus-visible:ring-offset-2',
         variant === 'header'
-          ? 'h-10 px-3.5 rounded-full border border-slate-200 dark:border-slate-700 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-200 hover:text-[#0B1B35] dark:hover:text-white text-[12px] font-semibold'
+          ? 'h-9 sm:h-10 px-2 sm:px-3.5 rounded-full border border-slate-200 dark:border-slate-700 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-200 hover:text-[#0B1B35] dark:hover:text-white text-[11px] sm:text-[12px] font-semibold'
           : variant === 'pill'
-            ? 'h-10 px-3.5 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:border-[#E9A11A]'
+            ? 'h-9 sm:h-10 px-2.5 sm:px-3.5 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:border-[#E9A11A]'
             : variant === 'compact'
-              ? 'h-9 px-2.5 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#E9A11A] text-slate-700 dark:text-slate-200'
-              : 'h-10 p-2 rounded-full border border-transparent text-slate-600 dark:text-slate-300 hover:text-[#E9A11A]',
+              ? 'h-8 sm:h-9 px-2 sm:px-2.5 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#E9A11A] text-slate-700 dark:text-slate-200'
+              : 'h-9 sm:h-10 p-1.5 sm:p-2 rounded-full border border-transparent text-slate-600 dark:text-slate-300 hover:text-[#E9A11A]',
       ]"
       :title="`Current language: ${languageStore.currentOption.nativeName}. Click to change.`"
       aria-haspopup="true"
       :aria-expanded="isOpen"
     >
-      <Globe class="w-4 h-4 text-[#E9A11A] shrink-0" />
-      <span v-if="showLabel" class="text-[12px] font-semibold tracking-wider uppercase">
+      <Globe class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#E9A11A] shrink-0" />
+      <span v-if="showLabel" class="text-[11px] sm:text-[12px] font-semibold tracking-wider uppercase">
         {{ languageStore.currentLanguage === 'am' ? 'አማ' : 'EN' }}
       </span>
       <ChevronDown
-        class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0"
+        class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 hidden sm:inline-block"
         :class="{ 'rotate-180': isOpen }"
       />
     </button>

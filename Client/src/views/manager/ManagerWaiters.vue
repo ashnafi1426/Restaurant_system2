@@ -709,8 +709,8 @@ onUnmounted(() => {
                           <button
                             type="button"
                             @click="
-                              openEditModal(waiter)
-                              activeMenuId = null
+                              openEditModal(waiter);
+                              activeMenuId = null;
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer text-left"
                           >
@@ -722,8 +722,8 @@ onUnmounted(() => {
                             v-if="waiter.status !== 'active'"
                             type="button"
                             @click="
-                              handleToggleStatus(waiter, 'active')
-                              activeMenuId = null
+                              handleToggleStatus(waiter, 'active');
+                              activeMenuId = null;
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer text-left"
                           >
@@ -735,8 +735,8 @@ onUnmounted(() => {
                             v-if="waiter.status === 'active'"
                             type="button"
                             @click="
-                              handleToggleStatus(waiter, 'on_break')
-                              activeMenuId = null
+                              handleToggleStatus(waiter, 'on_break');
+                              activeMenuId = null;
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-600 dark:hover:text-amber-400 transition cursor-pointer text-left"
                           >
@@ -749,8 +749,8 @@ onUnmounted(() => {
                           <button
                             type="button"
                             @click="
-                              handleDeleteWaiter(waiter.id)
-                              activeMenuId = null
+                              handleDeleteWaiter(waiter.id);
+                              activeMenuId = null;
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer text-left"
                           >
@@ -790,14 +790,28 @@ onUnmounted(() => {
             <div
               v-for="waiter in paginatedWaiters"
               :key="waiter.id"
-              class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
+              class="p-4 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-3 transition"
             >
-              <div class="flex items-center justify-between">
-                <span class="font-bold text-slate-900 dark:text-white text-sm">
-                  {{ waiter.name }}
-                </span>
+              <!-- Top: Waiter Info + Status Badge -->
+              <div class="flex items-start justify-between gap-2.5">
+                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div
+                    class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-extrabold text-sm flex items-center justify-center shrink-0 border border-amber-500/20"
+                  >
+                    {{ (waiter.name || 'W').charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <h3 class="font-bold text-slate-900 dark:text-white text-sm truncate leading-tight">
+                      {{ waiter.name }}
+                    </h3>
+                    <p class="text-[11px] text-slate-400 dark:text-slate-500 truncate mt-0.5">
+                      {{ waiter.email || ('ID: ' + (waiter.id || '').substring(0, 8)) }}
+                    </p>
+                  </div>
+                </div>
+
                 <span
-                  class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
+                  class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider shrink-0"
                   :class="[
                     waiter.status === 'active'
                       ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
@@ -806,107 +820,109 @@ onUnmounted(() => {
                         : 'bg-slate-500/10 text-slate-600 border-slate-500/20',
                   ]"
                 >
+                  <span
+                    v-if="waiter.status === 'active'"
+                    class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse"
+                  ></span>
                   {{ waiter.status }}
                 </span>
               </div>
-              <div
-                class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60"
-              >
-                <span
-                  >Section:
-                  <strong class="text-slate-800 dark:text-slate-200">{{
-                    waiter.section || 'General'
-                  }}</strong></span
-                >
-                <div class="relative inline-block text-left">
-                  <button
-                    type="button"
-                    @click.stop="toggleMenu('mobile-' + waiter.id)"
-                    class="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-600 dark:text-slate-300 hover:text-blue-600 transition cursor-pointer"
-                    :class="{
-                      'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-400':
-                        activeMenuId === 'mobile-' + waiter.id,
-                    }"
-                  >
-                    <MoreVertical class="w-3.5 h-3.5" />
-                  </button>
 
-                  <div
-                    v-if="activeMenuId === 'mobile-' + waiter.id"
-                    class="absolute right-0 bottom-full mb-1.5 z-50 w-44 rounded-2xl bg-white dark:bg-[#0f1d32] border border-slate-200 dark:border-slate-800 shadow-xl py-1.5 focus:outline-none"
-                  >
-                    <button
-                      type="button"
-                      @click="
-                        openEditModal(waiter)
-                        activeMenuId = null
-                      "
-                      class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-left cursor-pointer"
-                    >
-                      <Edit3 class="w-4 h-4 text-blue-500" />
-                      <span>Edit Staff</span>
-                    </button>
-                    <button
-                      v-if="waiter.status !== 'active'"
-                      type="button"
-                      @click="
-                        handleToggleStatus(waiter, 'active')
-                        activeMenuId = null
-                      "
-                      class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-left cursor-pointer"
-                    >
-                      <CheckCircle2 class="w-4 h-4 text-emerald-500" />
-                      <span>Set Active</span>
-                    </button>
-                    <button
-                      v-if="waiter.status === 'active'"
-                      type="button"
-                      @click="
-                        handleToggleStatus(waiter, 'on_break')
-                        activeMenuId = null
-                      "
-                      class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-left cursor-pointer"
-                    >
-                      <Clock class="w-4 h-4 text-amber-500" />
-                      <span>Set On Break</span>
-                    </button>
-                    <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
-                    <button
-                      type="button"
-                      @click="
-                        handleDeleteWaiter(waiter.id)
-                        activeMenuId = null
-                      "
-                      class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-left cursor-pointer"
-                    >
-                      <Trash2 class="w-4 h-4 text-rose-500" />
-                      <span>Delete Staff</span>
-                    </button>
-                  </div>
+              <!-- Details: Section & Shift -->
+              <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-slate-400 text-[11px]">Section:</span>
+                  <span class="font-bold text-slate-800 dark:text-slate-200 text-xs">
+                    {{ waiter.section || 'General' }}
+                  </span>
                 </div>
+
+                <div v-if="waiter.shift" class="flex items-center gap-1.5">
+                  <span class="text-slate-400 text-[11px]">Shift:</span>
+                  <span class="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-300 capitalize">
+                    {{ waiter.shift }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Direct Touch-Friendly Actions -->
+              <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                <button
+                  type="button"
+                  @click="openEditModal(waiter)"
+                  class="inline-flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200/50 dark:border-blue-800/40 transition cursor-pointer active:scale-98"
+                >
+                  <Edit3 class="w-3.5 h-3.5" />
+                  <span>Edit</span>
+                </button>
+
+                <button
+                  v-if="waiter.status !== 'active'"
+                  type="button"
+                  @click="handleToggleStatus(waiter, 'active')"
+                  class="inline-flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 border border-emerald-200/50 dark:border-emerald-800/40 transition cursor-pointer active:scale-98"
+                >
+                  <CheckCircle2 class="w-3.5 h-3.5" />
+                  <span>Active</span>
+                </button>
+
+                <button
+                  v-else
+                  type="button"
+                  @click="handleToggleStatus(waiter, 'on_break')"
+                  class="inline-flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/40 border border-amber-200/50 dark:border-amber-800/40 transition cursor-pointer active:scale-98"
+                >
+                  <Clock class="w-3.5 h-3.5" />
+                  <span>Break</span>
+                </button>
+
+                <button
+                  type="button"
+                  @click="handleDeleteWaiter(waiter.id)"
+                  class="inline-flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200/50 dark:border-rose-800/40 transition cursor-pointer active:scale-98"
+                >
+                  <Trash2 class="w-3.5 h-3.5" />
+                  <span>Delete</span>
+                </button>
               </div>
             </div>
           </template>
         </div>
 
+        <!-- Fully Responsive Pagination Footer -->
         <div
           v-if="total > 0"
-          class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+          class="border-t border-slate-200 dark:border-slate-800/80 px-3.5 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 text-xs"
         >
-          <div class="text-slate-500 dark:text-slate-400 font-medium">
-            Showing
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> of
-            <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> staff
+          <div class="flex items-center justify-between w-full sm:w-auto text-slate-500 dark:text-slate-400 font-medium text-[11px] sm:text-xs">
+            <div>
+              Showing
+              <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
+              <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span> of
+              <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span> staff
+            </div>
+
+            <div class="flex items-center gap-1.5 sm:hidden">
+              <span class="text-slate-400">Per page:</span>
+              <select
+                :value="itemsPerPage"
+                @change="changeItemsPerPage"
+                class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-0.5 text-xs outline-none cursor-pointer"
+              >
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
           </div>
 
-          <div class="flex items-center gap-2 sm:gap-3">
-            <div class="flex items-center gap-1.5">
+          <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-3">
+            <div class="hidden sm:flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">Per page:</span>
               <select
                 :value="itemsPerPage"
                 @change="changeItemsPerPage"
-                class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none"
+                class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none cursor-pointer"
               >
                 <option :value="10">10</option>
                 <option :value="20">20</option>
@@ -914,34 +930,42 @@ onUnmounted(() => {
               </select>
             </div>
 
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1 w-full sm:w-auto justify-between sm:justify-end">
               <button
                 @click="prevPage"
                 :disabled="currentPage === 1"
-                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 transition cursor-pointer text-xs font-semibold"
               >
                 <ChevronLeft class="w-4 h-4" />
+                <span class="sm:hidden">Prev</span>
               </button>
 
-              <button
-                v-for="page in paginationPages"
-                :key="page"
-                @click="goToPage(page)"
-                class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
-                :class="[
-                  currentPage === page
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
-                ]"
-              >
-                {{ page }}
-              </button>
+              <span class="sm:hidden text-xs font-bold text-slate-700 dark:text-slate-300">
+                {{ currentPage }} / {{ totalPages }}
+              </span>
+
+              <div class="hidden sm:flex items-center gap-1">
+                <button
+                  v-for="page in paginationPages"
+                  :key="page"
+                  @click="goToPage(page)"
+                  class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+                  :class="[
+                    currentPage === page
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
+                  ]"
+                >
+                  {{ page }}
+                </button>
+              </div>
 
               <button
                 @click="nextPage"
                 :disabled="currentPage === totalPages"
-                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 transition cursor-pointer text-xs font-semibold"
               >
+                <span class="sm:hidden">Next</span>
                 <ChevronRight class="w-4 h-4" />
               </button>
             </div>

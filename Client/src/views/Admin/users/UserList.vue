@@ -80,22 +80,22 @@ const refresh = () => loadUsers(true)
       class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
     >
       <div
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-2xl shadow-xs"
       >
         <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+          <div class="flex flex-wrap items-center gap-2">
+            <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
               {{ languageStore.t('user_staff_management', 'User & Staff Management') }}
             </h1>
             <span
               v-if="hotelStore.hotelName"
-              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
+              class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
             >
               <Building2 class="w-3 h-3" />
               {{ hotelStore.hotelName }}
             </span>
           </div>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-1">
             {{
               languageStore.t(
                 'user_staff_desc',
@@ -106,52 +106,53 @@ const refresh = () => loadUsers(true)
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+      <!-- Compact 3-Column Responsive KPI Cards -->
+      <div class="grid grid-cols-3 gap-2 sm:gap-6">
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 p-3 sm:p-5 shadow-xs flex items-center justify-between min-w-0"
         >
-          <div>
-            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">
+          <div class="min-w-0">
+            <p class="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 truncate">
               {{ languageStore.t('total_staff', 'Total Staff') }}
             </p>
-            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mt-1">
+            <h2 class="text-lg sm:text-3xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1 truncate">
               {{ totalUsers }}
             </h2>
           </div>
-          <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
-            <Users class="w-6 h-6" />
+          <div class="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0 hidden xs:flex">
+            <Users class="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 p-3 sm:p-5 shadow-xs flex items-center justify-between min-w-0"
         >
-          <div>
-            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">
-              {{ languageStore.t('active_accounts', 'Active Accounts') }}
+          <div class="min-w-0">
+            <p class="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 truncate">
+              {{ languageStore.t('active_accounts', 'Active') }}
             </p>
-            <h2 class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+            <h2 class="text-lg sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1 truncate">
               {{ activeUsers }}
             </h2>
           </div>
-          <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-            <UserCheck class="w-6 h-6" />
+          <div class="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0 hidden xs:flex">
+            <UserCheck class="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-800 p-3 sm:p-5 shadow-xs flex items-center justify-between min-w-0"
         >
-          <div>
-            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">
-              {{ languageStore.t('inactive_accounts', 'Inactive Accounts') }}
+          <div class="min-w-0">
+            <p class="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 truncate">
+              {{ languageStore.t('inactive_accounts', 'Inactive') }}
             </p>
-            <h2 class="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400 mt-1">
+            <h2 class="text-lg sm:text-3xl font-black text-rose-600 dark:text-rose-400 mt-0.5 sm:mt-1 truncate">
               {{ inactiveUsers }}
             </h2>
           </div>
-          <div class="p-3 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
-            <UserX class="w-6 h-6" />
+          <div class="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0 hidden xs:flex">
+            <UserX class="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
         </div>
       </div>
