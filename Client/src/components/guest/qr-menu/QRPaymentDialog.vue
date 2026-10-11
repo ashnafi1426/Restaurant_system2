@@ -69,13 +69,13 @@
                 <span class="text-slate-600">{{ languageStore.t('subtotal', 'Subtotal') }}:</span>
                 <span class="font-medium">{{ formatPrice(subtotal) }}</span>
               </div>
-              <div class="flex justify-between text-xs">
-                <span class="text-slate-600">{{ languageStore.t('tax', 'Tax') }} (15%):</span>
+              <div v-if="tax > 0" class="flex justify-between text-xs">
+                <span class="text-slate-600">{{ languageStore.t('tax', 'Tax') }}:</span>
                 <span class="font-medium">{{ formatPrice(tax) }}</span>
               </div>
-              <div class="flex justify-between text-xs">
+              <div v-if="serviceCharge > 0" class="flex justify-between text-xs">
                 <span class="text-slate-600"
-                  >{{ languageStore.t('service_charge', 'Service Charge') }} (10%):</span
+                  >{{ languageStore.t('service_charge', 'Service Charge') }}:</span
                 >
                 <span class="font-medium">{{ formatPrice(serviceCharge) }}</span>
               </div>

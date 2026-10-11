@@ -147,7 +147,7 @@ watch(() => hotelStore.hotelId, loadRoom)
               {{ languageStore.t('capacity', 'Capacity') }}
             </p>
             <h3 class="mt-2 text-lg sm:text-xl font-semibold text-slate-900 dark:text-white">
-              {{ room.room_type?.capacity }} {{ languageStore.t('guests', 'Guests') }}
+              {{ room.capacity || room.room_type?.capacity || 2 }} {{ languageStore.t('guests', 'Guests') }}
             </h3>
           </div>
 

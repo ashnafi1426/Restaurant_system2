@@ -334,6 +334,26 @@ const copyToClipboard = (text: string) => {
     copied.value = false
   }, 3000)
 }
+
+const closeCreateModal = () => {
+  showCreateModal.value = false
+  createSuccessInfo.value = null
+}
+
+const triggerPasswordAction = (adm: AdminItem, action: 'reset' | 'resend') => {
+  activeMenu.value = null
+  handlePasswordAction(adm, action)
+}
+
+const triggerToggleStatus = (adm: AdminItem) => {
+  activeMenu.value = null
+  handleToggleStatus(adm)
+}
+
+const triggerCopyEmail = (email: string) => {
+  activeMenu.value = null
+  copyToClipboard(email)
+}
 </script>
 
 <template>
@@ -643,10 +663,7 @@ const copyToClipboard = (text: string) => {
                       >
                         <button
                           type="button"
-                          @click="
-                            handlePasswordAction(adm, 'resend')
-                            activeMenu = null
-                          "
+                          @click="triggerPasswordAction(adm, 'resend')"
                           class="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition cursor-pointer"
                         >
                           <Send class="w-3.5 h-3.5" />
@@ -655,10 +672,7 @@ const copyToClipboard = (text: string) => {
 
                         <button
                           type="button"
-                          @click="
-                            handlePasswordAction(adm, 'reset')
-                            activeMenu = null
-                          "
+                          @click="triggerPasswordAction(adm, 'reset')"
                           class="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                         >
                           <KeyRound class="w-3.5 h-3.5 text-amber-500" />
@@ -667,10 +681,7 @@ const copyToClipboard = (text: string) => {
 
                         <button
                           type="button"
-                          @click="
-                            handleToggleStatus(adm)
-                            activeMenu = null
-                          "
+                          @click="triggerToggleStatus(adm)"
                           class="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
                           :class="
                             adm.is_active
@@ -690,10 +701,7 @@ const copyToClipboard = (text: string) => {
                         <button
                           v-if="adm.user?.email"
                           type="button"
-                          @click="
-                            copyToClipboard(adm.user.email)
-                            activeMenu = null
-                          "
+                          @click="triggerCopyEmail(adm.user.email)"
                           class="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                         >
                           <Copy class="w-3.5 h-3.5 text-slate-400" />
@@ -928,10 +936,8 @@ const copyToClipboard = (text: string) => {
 
               <div class="flex items-center justify-end pt-1">
                 <button
-                  @click="
-                    showCreateModal = false
-                    createSuccessInfo = null
-                  "
+                  type="button"
+                  @click="closeCreateModal"
                   class="px-5 py-2 rounded-xl bg-indigo-600 text-white font-extrabold hover:bg-indigo-500 shadow-md transition cursor-pointer"
                 >
                   Done

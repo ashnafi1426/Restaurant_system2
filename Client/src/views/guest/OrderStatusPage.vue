@@ -120,7 +120,7 @@
             <span class="text-sm text-gray-800 flex-1"> {{ item.quantity }}x {{ item.name }} </span>
             <div class="flex items-center gap-2 ml-3">
               <span class="text-sm font-semibold text-gray-900">
-                ETB {{ ((item.price || 0) * item.quantity).toFixed(2) }}
+                ETB {{ getItemPrice(item) }}
               </span>
               <span
                 class="px-2 py-0.5 text-xs rounded-full font-bold inline-flex items-center gap-1"
@@ -149,13 +149,30 @@
           </div>
         </div>
 
-        <div
-          class="flex items-center justify-between px-4 py-3 border-t-2 border-gray-200 bg-gray-50"
-        >
-          <span class="font-bold text-gray-900">Total</span>
-          <span class="text-lg font-bold text-red-600"
-            >ETB {{ (orderData.total || 0).toFixed(2) }}</span
-          >
+        <div class="border-t-2 border-gray-100 px-4 py-3 bg-gray-50 space-y-1.5">
+          <div class="flex items-center justify-between text-sm text-gray-600">
+            <span>Order Total</span>
+            <span class="font-semibold text-gray-900">
+              ETB {{ Number(orderData.total || orderData.order_total || 0).toFixed(2) }}
+            </span>
+          </div>
+
+          <div v-if="orderTip > 0" class="flex items-center justify-between text-sm text-amber-700">
+            <span class="flex items-center gap-1 font-medium">
+              <span>★</span>
+              <span>Tip</span>
+            </span>
+            <span class="font-bold text-amber-800">
+              + ETB {{ orderTip.toFixed(2) }}
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between pt-2 border-t border-gray-200">
+            <span class="font-bold text-gray-900">Total</span>
+            <span class="text-xl font-bold text-red-600">
+              ETB {{ orderTotalWithTip.toFixed(2) }}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -177,9 +194,22 @@
             {{
               orderData.payment_type === 'room_charge'
                 ? 'Room Charge'
-                : orderData.payment_type || 'Cash'
+                : orderData.payment_method || orderData.payment_type || 'Cash'
             }}
           </span>
+        </div>
+        <div v-if="isPaymentPaid || isServed" class="flex items-center justify-between text-sm">
+          <span class="text-gray-500">Amount Paid</span>
+          <span class="font-bold text-emerald-600">
+            ETB {{ (Number(orderData.amount_paid) || orderTotalWithTip).toFixed(2) }}
+          </span>
+        </div>
+        <div
+          v-if="orderData.tx_ref"
+          class="flex items-center justify-between text-xs pt-2 border-t border-gray-100"
+        >
+          <span class="text-gray-400">Transaction ID</span>
+          <span class="font-mono text-gray-600 font-semibold">{{ orderData.tx_ref }}</span>
         </div>
       </div>
 
@@ -193,7 +223,7 @@
         <span v-if="isProcessingPayment">Processing...</span>
         <template v-else>
           <span>💳</span>
-          <span>Pay Now with Chapa - ETB {{ (orderData.total || 0).toFixed(2) }}</span>
+          <span>Pay Now with Chapa - ETB {{ orderTotalWithTip.toFixed(2) }}</span>
         </template>
       </button>
 
@@ -314,6 +344,55 @@ onMounted(async () => {
   }
 })
 
+// Format item price taking line total (including tax) into account
+const getItemPrice = (item: any): string => {
+  if (item.total != null && Number(item.total) > 0) {
+    return Number(item.total).toFixed(2)
+  }
+  const qty = Number(item.quantity) || 1
+  const price = Number(item.price ?? item.unit_price ?? item.item_price_at_order ?? 0)
+  return (price * qty).toFixed(2)
+}
+
+// Compute tip added by the customer
+const orderTip = computed(() => {
+  if (orderData.value?.tip != null && Number(orderData.value.tip) > 0) {
+    return Number(orderData.value.tip)
+  }
+  if (orderData.value?.tip_amount != null && Number(orderData.value.tip_amount) > 0) {
+    return Number(orderData.value.tip_amount)
+  }
+  try {
+    const walkInData =
+      localStorage.getItem('walk_in_payment_data') ||
+      sessionStorage.getItem('walk_in_payment_data') ||
+      localStorage.getItem('order_payment_data') ||
+      sessionStorage.getItem('order_payment_data')
+    if (walkInData) {
+      const parsed = JSON.parse(walkInData)
+      if (parsed.tip_amount && Number(parsed.tip_amount) > 0) {
+        return Number(parsed.tip_amount)
+      }
+      if (parsed.calculation?.tip && Number(parsed.calculation.tip) > 0) {
+        return Number(parsed.calculation.tip)
+      }
+    }
+  } catch (_) {}
+  return 0
+})
+
+// Compute final total including tip
+const orderTotalWithTip = computed(() => {
+  if (orderData.value?.final_total != null && Number(orderData.value.final_total) > 0) {
+    return Number(orderData.value.final_total)
+  }
+  if (orderData.value?.amount_paid != null && Number(orderData.value.amount_paid) > 0) {
+    return Number(orderData.value.amount_paid)
+  }
+  const base = Number(orderData.value?.total || orderData.value?.order_total || 0)
+  return base + orderTip.value
+})
+
 // Navigation
 const goBack = () => router.back()
 
@@ -323,12 +402,20 @@ const handlePayNow = () => {
 
   try {
     const rawItems = orderData.value.items || orderData.value.order_items || []
-    const formattedItems = rawItems.map((item: any, idx: number) => ({
-      id: item.id || item.menu_item_id || `item-${idx}`,
-      name: item.name || item.item_name || item.menu_item?.name || 'Item',
-      quantity: Number(item.quantity) || 1,
-      price: Number(item.price ?? item.item_price_at_order ?? item.unit_price ?? 0),
-    }))
+    const formattedItems = rawItems.map((item: any, idx: number) => {
+      const lineTotal = item.total != null ? Number(item.total) : null
+      const qty = Number(item.quantity) || 1
+      const effectiveUnitPrice = lineTotal
+        ? lineTotal / qty
+        : Number(item.price ?? item.item_price_at_order ?? item.unit_price ?? 0)
+      return {
+        id: item.id || item.menu_item_id || `item-${idx}`,
+        name: item.name || item.item_name || item.menu_item?.name || 'Item',
+        quantity: qty,
+        price: effectiveUnitPrice,
+        total: lineTotal ?? effectiveUnitPrice * qty,
+      }
+    })
 
     const isRoom =
       !orderData.value.table_number &&
@@ -366,9 +453,9 @@ const handlePayNow = () => {
         tax: Number(orderData.value.tax || 0),
         service_charge: Number(orderData.value.service_charge || 0),
         total: Number(orderData.value.total || 0),
-        tip: 0,
+        tip: orderTip.value || 0,
       },
-      amount: Number(orderData.value.total || 0),
+      amount: Number(orderData.value.total || 0) + (orderTip.value || 0),
     }
 
     // Persist payment data

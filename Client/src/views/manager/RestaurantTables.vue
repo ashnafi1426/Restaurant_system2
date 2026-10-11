@@ -28,6 +28,8 @@ import {
   ChevronRight,
   Download,
   Layers,
+  Sparkles,
+  Loader2,
 } from 'lucide-vue-next'
 
 const tableStore = useRestaurantTableStore()

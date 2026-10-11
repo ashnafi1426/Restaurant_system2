@@ -563,7 +563,7 @@ watch(
         </div>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
@@ -579,24 +579,6 @@ watch(
           </div>
           <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
             <Calendar class="w-5 h-5" />
-          </div>
-        </div>
-
-        <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
-        >
-          <div>
-            <p
-              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
-            >
-              {{ languageStore.t('pending', 'Pending') }}
-            </p>
-            <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
-              {{ pendingCount }}
-            </h3>
-          </div>
-          <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
-            <Clock class="w-5 h-5" />
           </div>
         </div>
 

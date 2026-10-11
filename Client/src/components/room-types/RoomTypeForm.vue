@@ -171,63 +171,35 @@ const submit = () => {
       />
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
-      <div>
-        <label
-          class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
-        >
-          Price Per Night ({{ hotelStore.currency || 'ETB' }}) <span class="text-red-500">*</span>
-        </label>
-        <div class="relative">
-          <input
-            type="number"
-            v-model.number="form.base_price_per_night"
-            placeholder="e.g., 2500"
-            class="w-full border rounded-xl px-3.5 py-2.5 text-xs sm:text-sm transition duration-200 bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
-            :class="[
-              serverErrors?.base_price_per_night
-                ? 'border-red-400 focus:ring-red-500'
-                : 'border-slate-300 dark:border-slate-800 focus:ring-blue-500',
-            ]"
-            min="0"
-            step="any"
-            required
-          />
-        </div>
-        <p
-          v-if="serverErrors?.base_price_per_night"
-          class="text-red-500 text-xs mt-1 flex items-center gap-1"
-        >
-          <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
-          <span>{{ serverErrors.base_price_per_night[0] }}</span>
-        </p>
-      </div>
-
-      <div>
-        <label
-          class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
-        >
-          Capacity (Guests) <span class="text-red-500">*</span>
-        </label>
+    <div>
+      <label
+        class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
+      >
+        Price Per Night ({{ hotelStore.currency || 'ETB' }}) <span class="text-red-500">*</span>
+      </label>
+      <div class="relative">
         <input
           type="number"
-          v-model.number="form.capacity"
-          placeholder="e.g., 2"
+          v-model.number="form.base_price_per_night"
+          placeholder="e.g., 2500"
           class="w-full border rounded-xl px-3.5 py-2.5 text-xs sm:text-sm transition duration-200 bg-white dark:bg-slate-950 text-slate-900 dark:text-white"
           :class="[
-            serverErrors?.capacity
+            serverErrors?.base_price_per_night
               ? 'border-red-400 focus:ring-red-500'
               : 'border-slate-300 dark:border-slate-800 focus:ring-blue-500',
           ]"
-          min="1"
-          max="20"
+          min="0"
+          step="any"
           required
         />
-        <p v-if="serverErrors?.capacity" class="text-red-500 text-xs mt-1 flex items-center gap-1">
-          <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
-          <span>{{ serverErrors.capacity[0] }}</span>
-        </p>
       </div>
+      <p
+        v-if="serverErrors?.base_price_per_night"
+        class="text-red-500 text-xs mt-1 flex items-center gap-1"
+      >
+        <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
+        <span>{{ serverErrors.base_price_per_night[0] }}</span>
+      </p>
     </div>
 
     <div>

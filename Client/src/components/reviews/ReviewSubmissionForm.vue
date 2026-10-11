@@ -134,7 +134,7 @@ const loading = ref(false)
 const errorMessage = ref('')
 
 const formatPrice = (price: number) => {
-  return `${price.toFixed(2)}`
+  return `ETB ${price.toFixed(2)}`
 }
 
 const submitReview = async () => {

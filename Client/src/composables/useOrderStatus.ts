@@ -43,7 +43,14 @@ export interface OrderData {
   tax: number
   service_charge: number
   total: number
+  order_total?: number
+  tip?: number
+  tip_amount?: number
+  amount_paid?: number
+  final_total?: number
+  tx_ref?: string
   payment_type?: string
+  payment_method?: string
   payment_status?: string
   chef_id?: string
   chef_name?: string
@@ -74,6 +81,7 @@ export interface PaymentStatusEvent {
   payment_method?: string
   payment_type?: string
   amount: number
+  tip?: number
   transaction_ref?: string
   updated_at: string
 }
@@ -129,9 +137,8 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
 
             localStorage.removeItem('pending_order_data')
 
-            console.log('[useOrderStatus]  Using stored order data from order creation')
+            console.log('[useOrderStatus] Using stored order data for initial view, fetching latest...')
             isLoading.value = false
-            return
           } else {
             console.log('[useOrderStatus] ❌ Order ID mismatch - not using cached data')
           }
@@ -356,6 +363,20 @@ export function useOrderStatus(orderId: string, initialHotelId: string, initialQ
         // Update order data payment status
         if (orderData.value) {
           orderData.value.payment_status = event.payment_status
+          if (event.payment_method || event.payment_type) {
+            orderData.value.payment_type = event.payment_method || event.payment_type
+            orderData.value.payment_method = event.payment_method || event.payment_type
+          }
+          if (event.amount != null) {
+            orderData.value.amount_paid = event.amount
+          }
+          if (event.tip != null) {
+            orderData.value.tip = event.tip
+            orderData.value.tip_amount = event.tip
+          }
+          if (event.transaction_ref) {
+            orderData.value.tx_ref = event.transaction_ref
+          }
           orderData.value.updated_at = event.updated_at
         }
       })

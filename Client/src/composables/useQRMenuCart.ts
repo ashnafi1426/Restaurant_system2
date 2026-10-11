@@ -9,15 +9,15 @@ export function useQRMenuCart() {
   })
 
   const tax: ComputedRef<number> = computed(() => {
-    return subtotal.value * 0.15
+    return 0
   })
 
   const serviceCharge: ComputedRef<number> = computed(() => {
-    return subtotal.value * 0.1
+    return 0
   })
 
   const cartTotal: ComputedRef<number> = computed(() => {
-    return subtotal.value + tax.value + serviceCharge.value
+    return subtotal.value
   })
 
   const addToCart = (item: MenuItem, quantity: number = 1) => {

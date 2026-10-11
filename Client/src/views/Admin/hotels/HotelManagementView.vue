@@ -226,6 +226,20 @@ watch([searchQuery, selectedStatus, selectedCity], () => {
   loadHotels()
 })
 
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+    loadHotels()
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < lastPage.value) {
+    currentPage.value++
+    loadHotels()
+  }
+}
+
 // Available Cities
 const availableCities = computed(() => {
   const cities = new Set<string>()
@@ -873,20 +887,14 @@ const handleConfirmPermanentDelete = confirmDelete
           <div class="flex items-center gap-2">
             <button
               :disabled="currentPage <= 1"
-              @click="
-                currentPage--
-                loadHotels()
-              "
+              @click="prevPage"
               class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-bold disabled:opacity-40"
             >
               {{ languageStore.t('previous', 'Previous') }}
             </button>
             <button
               :disabled="currentPage >= lastPage"
-              @click="
-                currentPage++
-                loadHotels()
-              "
+              @click="nextPage"
               class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-bold disabled:opacity-40"
             >
               {{ languageStore.t('next', 'Next') }}

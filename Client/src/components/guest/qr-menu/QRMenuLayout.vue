@@ -1110,7 +1110,7 @@ const handleViewSpecials = (categoryName?: string) => {
 }
 
 const formatPrice = (price: number): string => {
-  return `${price.toFixed(2)}`
+  return `ETB ${price.toFixed(2)}`
 }
 
 watch(

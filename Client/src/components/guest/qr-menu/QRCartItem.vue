@@ -10,7 +10,7 @@
       <div class="flex items-start justify-between mb-2">
         <div class="flex-1">
           <h3 class="font-bold text-gray-900 text-base">{{ item.name }}</h3>
-          <p class="text-xs text-gray-500 mt-0.5">{{ item.description || 'ETB' }}</p>
+          <p v-if="item.description" class="text-xs text-gray-500 mt-0.5">{{ item.description }}</p>
           <p class="text-sm font-bold text-gray-900 mt-1">{{ formatPrice(item.price) }}</p>
         </div>
 

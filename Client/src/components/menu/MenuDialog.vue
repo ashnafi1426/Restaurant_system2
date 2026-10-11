@@ -151,8 +151,8 @@ function validate(): boolean {
 
   if (form.value.price <= 0) {
     fieldErrors.value.price = ['Price must be greater than 0']
-  } else if (form.value.price > 9999.99) {
-    fieldErrors.value.price = ['Price cannot exceed $9,999.99']
+  } else if (form.value.price > 999999.99) {
+    fieldErrors.value.price = ['Price cannot exceed 999,999.99 ETB']
   }
 
   if (form.value.description.length > 500) {
@@ -277,7 +277,7 @@ function closeDialog() {
               <label
                 class="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2"
               >
-                Price ($) *
+                Price (ETB) *
               </label>
               <v-text-field
                 v-model.number="form.price"
@@ -364,10 +364,10 @@ function closeDialog() {
               v-if="form.price > 0"
               class="flex items-center justify-between text-xs pt-1 border-t border-slate-200/60 dark:border-zinc-700/60 text-slate-600 dark:text-slate-400"
             >
-              <span>Base: ${{ pricePreview.basePrice }}</span>
-              <span>Tax: ${{ pricePreview.taxAmount }}</span>
+              <span>Base: ETB {{ pricePreview.basePrice }}</span>
+              <span>Tax: ETB {{ pricePreview.taxAmount }}</span>
               <span class="font-bold text-emerald-600 dark:text-emerald-400"
-                >Total: ${{ pricePreview.totalPrice }}</span
+                >Total: ETB {{ pricePreview.totalPrice }}</span
               >
             </div>
           </div>

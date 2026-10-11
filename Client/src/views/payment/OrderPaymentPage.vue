@@ -430,8 +430,11 @@ const proceedToPayment = async () => {
       },
     }
 
-    // Update localStorage
+    // Update localStorage and sessionStorage
     localStorage.setItem('walk_in_payment_data', JSON.stringify(updatedPaymentData))
+    sessionStorage.setItem('walk_in_payment_data', JSON.stringify(updatedPaymentData))
+    localStorage.setItem('order_payment_data', JSON.stringify(updatedPaymentData))
+    sessionStorage.setItem('order_payment_data', JSON.stringify(updatedPaymentData))
 
     console.log('[OrderPayment] Proceeding to payment with tip:', {
       subtotal: subtotal.value,

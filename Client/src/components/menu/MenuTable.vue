@@ -76,7 +76,7 @@
                   <div
                     class="font-black text-slate-900 dark:text-white text-xs sm:text-sm tracking-wide"
                   >
-                    ${{
+                    ETB {{
                       (item.total_price !== undefined
                         ? item.total_price
                         : Number(item.price)
@@ -94,7 +94,7 @@
                       Incl. {{ item.tax_rate.rate }}% {{ item.tax_rate.name || 'VAT' }}
                     </span>
                     <span v-else>
-                      ${{ Number(item.price).toFixed(2) }} + {{ item.tax_rate.rate }}% tax
+                      ETB {{ Number(item.price).toFixed(2) }} + {{ item.tax_rate.rate }}% tax
                     </span>
                   </div>
                   <div v-else class="text-[10px] font-sans text-slate-400">No Tax</div>
@@ -269,7 +269,7 @@
                     <div class="text-xs text-slate-400 font-medium truncate">
                       Total:
                       <span class="font-bold text-slate-900"
-                        >${{
+                        >ETB {{
                           (item.total_price !== undefined
                             ? item.total_price
                             : Number(item.price)
@@ -283,7 +283,7 @@
                         ({{
                           item.tax_included
                             ? 'Tax Incl.'
-                            : `+$${(item.tax_amount || 0).toFixed(2)} tax`
+                            : `+ETB ${(item.tax_amount || 0).toFixed(2)} tax`
                         }})
                       </span>
                     </div>
@@ -462,7 +462,7 @@
                   </span>
                   <div class="flex flex-col items-end">
                     <span class="font-black text-slate-900 text-sm font-mono">
-                      ${{
+                      ETB {{
                         (item.total_price !== undefined
                           ? item.total_price
                           : Number(item.price)
@@ -476,7 +476,7 @@
                       {{
                         item.tax_included
                           ? 'Tax Incl.'
-                          : `+$${(item.tax_amount || 0).toFixed(2)} tax`
+                          : `+ETB ${(item.tax_amount || 0).toFixed(2)} tax`
                       }}
                     </span>
                   </div>

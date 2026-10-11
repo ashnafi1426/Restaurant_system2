@@ -16,6 +16,7 @@ import {
   Building2,
   Layers,
   BedDouble,
+  Users,
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -39,6 +40,7 @@ const successMessage = ref<string | null>(null)
 const form = reactive({
   room_number: '',
   room_type_id: '',
+  capacity: 2,
   floor_id: '',
   floor: null as number | null,
   description: '',
@@ -81,6 +83,10 @@ const loadData = async () => {
       form.room_number = roomData.room_number || ''
       form.room_type_id =
         roomData.room_type_id || (roomData.room_type?.id ? String(roomData.room_type.id) : '')
+      form.capacity =
+        roomData.capacity !== undefined && roomData.capacity !== null
+          ? Number(roomData.capacity)
+          : Number(roomData.room_type?.capacity || 2)
       form.floor_id = roomData.floor_id ? String(roomData.floor_id) : ''
       form.floor =
         roomData.floor !== undefined && roomData.floor !== null ? Number(roomData.floor) : null
@@ -113,6 +119,7 @@ const updateRoom = async () => {
     const payload = {
       room_number: form.room_number,
       room_type_id: form.room_type_id,
+      capacity: Number(form.capacity) || 2,
       floor_id: form.floor_id || null,
       floor: selectedFloor
         ? Number(selectedFloor.floor_number)
@@ -354,6 +361,30 @@ watch(
             </div>
 
             <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                Capacity (Guests) <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  v-model.number="form.capacity"
+                  type="number"
+                  min="1"
+                  max="50"
+                  required
+                  placeholder="e.g., 2"
+                  class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-semibold text-slate-900 transition"
+                  :class="{ 'border-red-400 bg-red-50/20': validationErrors?.capacity }"
+                />
+                <Users
+                  class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                />
+              </div>
+              <p v-if="validationErrors?.capacity" class="text-xs text-red-500 mt-1">
+                {{ validationErrors.capacity[0] }}
+              </p>
+            </div>
+
+            <div class="sm:col-span-2 md:col-span-1">
               <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 Status <span class="text-red-500">*</span>
               </label>

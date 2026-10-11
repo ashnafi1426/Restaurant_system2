@@ -119,7 +119,7 @@
           @click="showCustomTip = !showCustomTip"
           class="w-full py-2 border-2 border-gray-600 rounded-xl text-gray-300 hover:border-red-500 transition-colors"
         >
-          $ Custom
+          Custom (ETB)
         </button>
 
         <div v-if="showCustomTip" class="mt-3">
@@ -241,8 +241,28 @@ const proceedToPayment = async () => {
 
     const paymentPayload = {
       order_id: orderData.value.id || orderData.value.order_id,
+      tip: tipAmount.value,
       ...guestInfo,
     }
+
+    const updatedPayment = {
+      ...(orderData.value || {}),
+      id: orderData.value.id || orderData.value.order_id,
+      order_id: orderData.value.id || orderData.value.order_id,
+      tip: tipAmount.value,
+      tip_amount: tipAmount.value,
+      amount: finalTotal.value,
+      calculation: {
+        ...(orderData.value?.calculation || {}),
+        subtotal: orderData.value?.total || 0,
+        tip: tipAmount.value,
+        total: finalTotal.value,
+      },
+    }
+    localStorage.setItem('walk_in_payment_data', JSON.stringify(updatedPayment))
+    sessionStorage.setItem('walk_in_payment_data', JSON.stringify(updatedPayment))
+    localStorage.setItem('order_payment_data', JSON.stringify(updatedPayment))
+    sessionStorage.setItem('order_payment_data', JSON.stringify(updatedPayment))
 
     console.log('[PaymentSummary] Initializing payment:', paymentPayload)
 

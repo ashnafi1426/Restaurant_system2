@@ -16,6 +16,7 @@ import {
   Building2,
   Layers,
   BedDouble,
+  Users,
 } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -48,6 +49,7 @@ const floorCreateError = ref<string | null>(null)
 const form = reactive({
   room_number: '',
   room_type_id: '',
+  capacity: 2,
   floor_id: '',
   floor: null as number | null,
   description: '',
@@ -59,6 +61,7 @@ const populateInitial = (data: any) => {
   if (!data) return
   if (data.room_number) form.room_number = String(data.room_number)
   if (data.room_type_id) form.room_type_id = String(data.room_type_id)
+  if (data.capacity !== undefined && data.capacity !== null) form.capacity = Number(data.capacity)
   if (data.floor_id) form.floor_id = String(data.floor_id)
   if (data.floor !== undefined && data.floor !== null) form.floor = Number(data.floor)
   if (data.description) form.description = String(data.description)
@@ -264,6 +267,7 @@ const save = () => {
     floor_id: form.floor_id,
     floor: selectedFloor ? Number(selectedFloor.floor_number) : form.floor,
     room_type_id: form.room_type_id,
+    capacity: Number(form.capacity) || 2,
     status: form.status,
     description: form.description?.trim() || '',
     is_active: form.is_active,
@@ -541,6 +545,13 @@ const save = () => {
             (type) =>
               `${type.name} - ${parseFloat(type.base_price_per_night || 0).toLocaleString('en-US')} ${hotelStore.currency || 'ETB'}/night`
           "
+          @change="
+            (opt) => {
+              if (opt?.capacity && (!form.capacity || form.capacity === 2)) {
+                form.capacity = Number(opt.capacity)
+              }
+            }
+          "
         >
           <template #option="{ option }">
             <div class="flex items-center justify-between w-full min-w-0">
@@ -585,6 +596,43 @@ const save = () => {
       </div>
 
       <div>
+        <label
+          class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
+        >
+          {{ languageStore.t('capacity', 'Capacity (Guests)') }} <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <input
+            v-model.number="form.capacity"
+            type="number"
+            min="1"
+            max="50"
+            placeholder="e.g., 2"
+            class="w-full border rounded-lg pl-9 pr-3.5 py-2 sm:py-2.5 text-xs sm:text-sm transition duration-200 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+            :class="[
+              serverErrors?.capacity
+                ? 'border-red-400 bg-red-50/20 focus:ring-2 focus:ring-red-500'
+                : 'border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-blue-500',
+            ]"
+            required
+          />
+          <Users
+            class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+          />
+        </div>
+        <p
+          v-if="serverErrors?.capacity"
+          class="text-red-500 text-xs mt-1 flex items-center gap-1"
+        >
+          <AlertCircle class="w-3.5 h-3.5 flex-shrink-0" />
+          <span>{{ serverErrors.capacity[0] }}</span>
+        </p>
+        <p v-else class="text-slate-500 text-xs mt-1">
+          Max guests allowed in this room
+        </p>
+      </div>
+
+      <div class="sm:col-span-2 md:col-span-1">
         <label
           class="block mb-1.5 sm:mb-2 text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100"
         >

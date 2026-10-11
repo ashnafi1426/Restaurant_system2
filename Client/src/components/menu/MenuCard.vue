@@ -124,7 +124,7 @@ const renderStars = (rating: number | null) => {
       <div class="pt-2 sm:pt-3 border-t border-slate-200 flex items-center justify-between gap-2">
         <div>
           <p class="text-lg sm:text-xl md:text-2xl font-black text-purple-600">
-            ${{
+            ETB {{
               (item.total_price !== undefined && item.total_price !== null
                 ? Number(item.total_price)
                 : Number(item.price)
@@ -139,7 +139,7 @@ const renderStars = (rating: number | null) => {
               Incl. {{ item.tax_rate.rate }}% {{ item.tax_rate.name || 'VAT' }}
             </span>
             <span v-else>
-              ${{ Number(item.price).toFixed(2) }} + {{ item.tax_rate.rate }}% tax
+              ETB {{ Number(item.price).toFixed(2) }} + {{ item.tax_rate.rate }}% tax
             </span>
           </div>
         </div>

@@ -492,6 +492,36 @@ function trackOrder(): void {
       hotelId: hotelId ? hotelId.substring(0, 8) + '...' : 'none',
     })
 
+    const tipVal = Number(
+      orderData.value?.calculation?.tip ??
+        orderData.value?.tip ??
+        orderData.value?.tip_amount ??
+        0,
+    )
+    const amountPaidVal = Number(
+      orderData.value?.calculation?.total ??
+        orderData.value?.amount_paid ??
+        orderData.value?.final_total ??
+        orderData.value?.total ??
+        0,
+    )
+
+    const updatedPendingData = {
+      ...(orderData.value || {}),
+      id: orderId,
+      order_id: orderId,
+      status: orderData.value?.status || 'pending',
+      payment_status: 'paid',
+      payment_type: 'chapa',
+      payment_method: 'chapa',
+      tip: tipVal,
+      tip_amount: tipVal,
+      amount_paid: amountPaidVal,
+      final_total: amountPaidVal,
+      tx_ref: txRef.value || undefined,
+    }
+    localStorage.setItem('pending_order_data', JSON.stringify(updatedPendingData))
+
     router.push({
       name: 'order-status',
       params: { orderId },
@@ -499,6 +529,7 @@ function trackOrder(): void {
         qr_token: qrToken || undefined,
         hotel_id: hotelId || undefined,
         order_number: orderData.value?.order_number || undefined,
+        tx_ref: txRef.value || undefined,
       },
     })
   } else {

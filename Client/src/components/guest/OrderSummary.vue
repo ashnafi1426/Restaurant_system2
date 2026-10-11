@@ -10,8 +10,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  taxRate: 0.15,
-  serviceChargeRate: 0.1,
+  taxRate: 0,
+  serviceChargeRate: 0,
   discount: 0,
   currency: 'ETB',
 })
@@ -69,7 +69,7 @@ const formatCurrency = (value: number) => {
         </span>
       </div>
 
-      <div class="flex items-center justify-between">
+      <div v-if="tax > 0" class="flex items-center justify-between">
         <span class="text-slate-600"> VAT ({{ (taxRate * 100).toFixed(0) }}%) </span>
 
         <span class="font-semibold text-slate-900">
@@ -79,7 +79,7 @@ const formatCurrency = (value: number) => {
         </span>
       </div>
 
-      <div class="flex items-center justify-between">
+      <div v-if="serviceCharge > 0" class="flex items-center justify-between">
         <span class="text-slate-600">
           Service Charge ({{ (serviceChargeRate * 100).toFixed(0) }}%)
         </span>

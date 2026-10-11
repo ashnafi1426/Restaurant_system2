@@ -104,9 +104,9 @@
                     <div class="flex items-start justify-between mb-2">
                       <div class="flex-1">
                         <h3 class="font-bold text-gray-900 text-base">{{ item.name }}</h3>
-                        <p class="text-xs text-gray-500 mt-0.5">{{ item.description || 'ETB' }}</p>
+                        <p v-if="item.description" class="text-xs text-gray-500 mt-0.5">{{ item.description }}</p>
                         <p class="text-sm font-bold text-gray-900 mt-1">
-                          ${{ item.price.toFixed(2) }}
+                          {{ formatPrice(item.price) }}
                         </p>
                       </div>
 
@@ -151,7 +151,7 @@
                       </div>
 
                       <span class="text-base font-bold text-gray-900"
-                        >ETB ${{ (item.price * item.quantity).toFixed(2) }}</span
+                        >{{ formatPrice(item.price * item.quantity) }}</span
                       >
                     </div>
                   </div>
@@ -381,13 +381,13 @@
                   <span class="text-slate-600">{{ languageStore.t('subtotal', 'Subtotal') }}:</span>
                   <span class="font-medium">{{ formatPrice(subtotal) }}</span>
                 </div>
-                <div class="flex justify-between text-xs">
-                  <span class="text-slate-600">{{ languageStore.t('tax', 'Tax') }} (15%):</span>
+                <div v-if="tax > 0" class="flex justify-between text-xs">
+                  <span class="text-slate-600">{{ languageStore.t('tax', 'Tax') }}:</span>
                   <span class="font-medium">{{ formatPrice(tax) }}</span>
                 </div>
-                <div class="flex justify-between text-xs">
+                <div v-if="serviceCharge > 0" class="flex justify-between text-xs">
                   <span class="text-slate-600"
-                    >{{ languageStore.t('service_charge', 'Service Charge') }} (10%):</span
+                    >{{ languageStore.t('service_charge', 'Service Charge') }}:</span
                   >
                   <span class="font-medium">{{ formatPrice(serviceCharge) }}</span>
                 </div>
@@ -600,15 +600,15 @@ const subtotal = computed(() => {
 })
 
 const tax = computed(() => {
-  return subtotal.value * 0.15
+  return 0
 })
 
 const serviceCharge = computed(() => {
-  return subtotal.value * 0.1
+  return 0
 })
 
 const cartTotal = computed(() => {
-  return subtotal.value + tax.value + serviceCharge.value
+  return subtotal.value
 })
 
 const handleRoomSelected = (room: string | number) => {
@@ -678,7 +678,7 @@ const decrementQuantity = (itemId: string | number) => {
 }
 
 const formatPrice = (price: number): string => {
-  return `${price.toFixed(2)}`
+  return `ETB ${price.toFixed(2)}`
 }
 
 // New method for "Order Now (Pay After Meal)" - places order with room charge
@@ -731,9 +731,9 @@ const placeOrderWithRoomCharge = async () => {
           total: item.price * item.quantity,
         })),
         subtotal: subtotal.value,
-        tax: tax.value,
-        service_charge: serviceCharge.value,
-        total: cartTotal.value,
+        tax: 0,
+        service_charge: 0,
+        total: subtotal.value,
         status: 'pending',
         payment_status: 'pending',
         payment_type: 'room_charge',

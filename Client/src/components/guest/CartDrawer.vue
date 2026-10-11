@@ -43,15 +43,15 @@ const subtotal = computed(() => {
 })
 
 const tax = computed(() => {
-  return subtotal.value * taxRate
+  return 0
 })
 
 const serviceCharge = computed(() => {
-  return subtotal.value * serviceChargeRate
+  return 0
 })
 
 const grandTotal = computed(() => {
-  return subtotal.value + tax.value + serviceCharge.value
+  return subtotal.value
 })
 
 const totalItems = computed(() => {
@@ -367,14 +367,14 @@ const checkout = () => {
                       <span> {{ subtotal.toFixed(2) }} ETB </span>
                     </div>
 
-                    <div class="flex justify-between text-slate-600">
-                      <span>{{ languageStore.t('vat', 'VAT (15%)') }}</span>
+                    <div v-if="tax > 0" class="flex justify-between text-slate-600">
+                      <span>{{ languageStore.t('vat', 'VAT') }}</span>
 
                       <span> {{ tax.toFixed(2) }} ETB </span>
                     </div>
 
-                    <div class="flex justify-between text-slate-600">
-                      <span>{{ languageStore.t('service_charge', 'Service Charge (10%)') }}</span>
+                    <div v-if="serviceCharge > 0" class="flex justify-between text-slate-600">
+                      <span>{{ languageStore.t('service_charge', 'Service Charge') }}</span>
 
                       <span> {{ serviceCharge.toFixed(2) }} ETB </span>
                     </div>
