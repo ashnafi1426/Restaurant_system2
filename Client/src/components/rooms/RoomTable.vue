@@ -204,30 +204,30 @@ onBeforeUnmount(() => {
     :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
   >
     <div
-      class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+      class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
     >
-      <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-        <div class="relative flex-1">
-          <Search
-            class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
-          />
-          <input
-            v-model="search"
-            type="text"
-            :placeholder="
-              languageStore.t(
-                'search_rooms_placeholder',
-                'Search rooms by number, room type, floor...',
-              )
-            "
-            class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
-          />
-        </div>
+      <div class="relative flex-1 min-w-0 w-full">
+        <Search
+          class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+        />
+        <input
+          v-model="search"
+          type="text"
+          :placeholder="
+            languageStore.t(
+              'search_rooms_placeholder',
+              'Search rooms by number, room type, floor...',
+            )
+          "
+          class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
+        />
+      </div>
 
+      <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto">
         <button
           type="button"
           @click="toggleFilter"
-          class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+          class="inline-flex items-center gap-1.5 sm:gap-2 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
           :class="[
             isFilterOpen
               ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
@@ -237,39 +237,39 @@ onBeforeUnmount(() => {
           <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
           <span>{{
             isFilterOpen
-              ? languageStore.t('hide_filter', 'Hide Filter')
+              ? languageStore.t('hide_filter', 'Filter')
               : languageStore.t('filter', 'Filter')
           }}</span>
         </button>
-      </div>
 
-      <div class="flex items-center gap-2 sm:gap-2.5">
-        <button
-          type="button"
-          @click="emit('refresh')"
-          :disabled="loading"
-          :title="languageStore.t('refresh', 'Refresh')"
-          class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
-        >
-          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
-        </button>
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <button
+            type="button"
+            @click="emit('refresh')"
+            :disabled="loading"
+            :title="languageStore.t('refresh', 'Refresh')"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+          >
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+          </button>
 
-        <button
-          type="button"
-          @click="toggleFullscreen"
-          :title="languageStore.t('fullscreen', 'Toggle Fullscreen')"
-          class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
-        >
-          <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
-        </button>
+          <button
+            type="button"
+            @click="toggleFullscreen"
+            :title="languageStore.t('fullscreen', 'Toggle Fullscreen')"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+          >
+            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+          </button>
+        </div>
 
         <button
           type="button"
           @click="emit('create')"
-          class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm shadow-blue-600/30 transition active:scale-98 cursor-pointer flex-shrink-0"
+          class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold !text-white shadow-sm shadow-blue-600/30 transition active:scale-98 cursor-pointer flex-shrink-0"
         >
-          <Plus class="w-4 h-4" />
-          <span>{{ languageStore.t('add_room', 'Add Room') }}</span>
+          <Plus class="w-4 h-4 !text-white" />
+          <span class="!text-white">{{ languageStore.t('add_room', 'Add Room') }}</span>
         </button>
       </div>
     </div>
@@ -356,8 +356,20 @@ onBeforeUnmount(() => {
     <div
       class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
     >
-      <div class="hidden md:block overflow-x-auto w-full">
-        <table class="w-full text-left border-collapse">
+      <!-- Mobile Horizontal Scroll Hint -->
+      <div
+        class="md:hidden flex items-center justify-between px-3.5 py-2 bg-slate-50/90 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 select-none"
+      >
+        <span class="flex items-center gap-1.5 font-semibold">
+          <span>👈</span>
+          <span>{{ languageStore.t('scroll_horizontal', 'Swipe table horizontally to see all columns') }}</span>
+          <span>👉</span>
+        </span>
+        <span class="font-bold text-blue-600 dark:text-blue-400">{{ total }} {{ languageStore.t('rooms', 'rooms') }}</span>
+      </div>
+
+      <div class="overflow-x-auto w-full min-h-[300px]" style="-webkit-overflow-scrolling: touch;">
+        <table class="w-full min-w-[700px] text-left border-collapse">
           <thead
             class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
           >
@@ -407,7 +419,7 @@ onBeforeUnmount(() => {
 
             <template v-else>
               <tr
-                v-for="room in paginatedRooms"
+                v-for="(room, index) in paginatedRooms"
                 :key="room.id"
                 class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
               >
@@ -487,7 +499,12 @@ onBeforeUnmount(() => {
                     >
                       <div
                         v-if="openMenu === String(room.id)"
-                        class="absolute right-0 top-8 z-50 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 text-left"
+                        class="absolute right-0 z-50 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 text-left"
+                        :class="[
+                          index >= paginatedRooms.length - 2 && paginatedRooms.length > 2
+                            ? 'bottom-full mb-1'
+                            : 'top-8',
+                        ]"
                       >
                         <button
                           @click="handleView(room)"
@@ -538,79 +555,11 @@ onBeforeUnmount(() => {
         </table>
       </div>
 
-      <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-        <div
-          v-if="loading"
-          class="py-16 text-center flex flex-col items-center justify-center gap-3"
-        >
-          <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-          <span class="text-xs font-extrabold text-slate-700 dark:text-slate-300">{{
-            languageStore.t('loading_rooms', 'Loading rooms...')
-          }}</span>
-        </div>
-        <template v-else>
-          <div
-            v-for="room in paginatedRooms"
-            :key="room.id"
-            class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
-          >
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <BedDouble class="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <span class="font-bold text-slate-900 dark:text-white text-sm">
-                  {{ languageStore.t('room', 'Room') }} {{ room.room_number }}
-                </span>
-              </div>
-              <RoomStatusBadge :status="room.status" />
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-400">
-              <div>
-                {{ languageStore.t('type', 'Type') }}: {{ room.room_type?.name || 'Standard' }}
-              </div>
-              <div>{{ languageStore.t('floor', 'Floor') }}: {{ room.floor || 1 }}</div>
-            </div>
-
-            <div class="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <button
-                @click="handleView(room)"
-                class="flex-1 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-lg cursor-pointer"
-              >
-                {{ languageStore.t('view', 'View') }}
-              </button>
-              <button
-                @click="handleEdit(room)"
-                class="flex-1 py-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 rounded-lg cursor-pointer"
-              >
-                {{ languageStore.t('edit', 'Edit') }}
-              </button>
-              <button
-                @click="handleDelete(room)"
-                class="flex-1 py-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 rounded-lg cursor-pointer"
-              >
-                {{ languageStore.t('delete', 'Delete') }}
-              </button>
-            </div>
-          </div>
-          <div
-            v-if="paginatedRooms.length === 0"
-            class="p-8 text-center text-slate-500 text-xs font-bold"
-          >
-            {{
-              languageStore.t(
-                'no_rooms_match',
-                'No rooms match your current search or filter criteria.',
-              )
-            }}
-          </div>
-        </template>
-      </div>
-
       <div
         v-if="total > 0"
-        class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+        class="border-t border-slate-200 dark:border-slate-800/80 px-3.5 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
       >
-        <div class="text-slate-500 dark:text-slate-400 font-medium">
+        <div class="text-slate-500 dark:text-slate-400 font-medium text-center sm:text-left">
           {{ languageStore.t('showing', 'Showing') }}
           <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
           {{ languageStore.t('to', 'to') }}
@@ -620,7 +569,7 @@ onBeforeUnmount(() => {
           {{ languageStore.t('rooms', 'rooms') }}
         </div>
 
-        <div class="flex items-center gap-2 sm:gap-3">
+        <div class="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto">
           <div class="flex items-center gap-1.5">
             <span class="text-slate-500 dark:text-slate-400 font-medium"
               >{{ languageStore.t('per_page', 'Per page') }}:</span
@@ -645,19 +594,26 @@ onBeforeUnmount(() => {
               <ChevronLeft class="w-4 h-4" />
             </button>
 
-            <button
-              v-for="page in paginationPages"
-              :key="page"
-              @click="goToPage(page)"
-              class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
-              :class="[
-                currentPage === page
-                  ? 'bg-blue-600 text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
-              ]"
-            >
-              {{ page }}
-            </button>
+            <!-- On mobile show concise 'Page X of Y', on desktop show page buttons -->
+            <div class="sm:hidden px-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
+              {{ currentPage }} / {{ lastPage }}
+            </div>
+
+            <div class="hidden sm:flex items-center gap-1">
+              <button
+                v-for="page in paginationPages"
+                :key="page"
+                @click="goToPage(page)"
+                class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+                :class="[
+                  currentPage === page
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
+                ]"
+              >
+                {{ page }}
+              </button>
+            </div>
 
             <button
               @click="nextPage"
