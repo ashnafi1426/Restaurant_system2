@@ -183,24 +183,24 @@ onBeforeUnmount(() => {
     <div
       class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
     >
-      <div class="flex items-center gap-2 flex-1 w-full min-w-0">
-        <div class="relative flex-1 min-w-0">
-          <Search
-            class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
-          />
-          <input
-            v-model="search"
-            type="text"
-            :placeholder="
-              languageStore.t(
-                'search_users_placeholder',
-                'Search staff by name, email, phone, role...',
-              )
-            "
-            class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
-          />
-        </div>
+      <div class="relative flex-1 min-w-0 w-full">
+        <Search
+          class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+        />
+        <input
+          v-model="search"
+          type="text"
+          :placeholder="
+            languageStore.t(
+              'search_users_placeholder',
+              'Search staff by name, email, phone, role...',
+            )
+          "
+          class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
+        />
+      </div>
 
+      <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto">
         <button
           type="button"
           @click="toggleFilter"
@@ -218,9 +218,7 @@ onBeforeUnmount(() => {
               : languageStore.t('filter', 'Filter')
           }}</span>
         </button>
-      </div>
 
-      <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0">
         <div class="flex items-center gap-1.5 sm:gap-2">
           <button
             type="button"
@@ -341,44 +339,57 @@ onBeforeUnmount(() => {
       </div>
 
       <template v-else>
-        <div class="hidden md:block overflow-x-auto w-full">
-          <table class="w-full text-left border-collapse">
+        <!-- Mobile Horizontal Scroll Hint -->
+        <div
+          class="md:hidden flex items-center justify-between px-3.5 py-1.5 bg-slate-50/80 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455] text-[11px] text-slate-500 dark:text-slate-400 select-none"
+        >
+          <span class="flex items-center gap-1.5 font-semibold">
+            <span>👈</span>
+            <span>{{ languageStore.t('scroll_horizontal', 'Scroll horizontally for all columns') }}</span>
+            <span>👉</span>
+          </span>
+          <span class="font-bold text-blue-600 dark:text-blue-400">{{ total }} {{ languageStore.t('staff', 'staff') }}</span>
+        </div>
+
+        <!-- Fully Responsive Table with Horizontal Touch Scroll & Three Dots Actions -->
+        <div class="w-full overflow-x-auto relative" style="-webkit-overflow-scrolling: touch;">
+          <table class="w-full min-w-[720px] text-left border-collapse">
             <thead
               class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
             >
               <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-                <th class="px-3 py-3 pl-5 whitespace-nowrap">
+                <th class="px-3.5 py-3 pl-5 whitespace-nowrap min-w-[170px]">
                   {{ languageStore.t('full_name', 'Staff Name') }}
                 </th>
-                <th class="px-3 py-3 whitespace-nowrap">
+                <th class="px-3.5 py-3 whitespace-nowrap min-w-[170px]">
                   {{ languageStore.t('email_address', 'Email') }}
                 </th>
-                <th class="px-3 py-3 whitespace-nowrap">
+                <th class="px-3.5 py-3 whitespace-nowrap min-w-[130px]">
                   {{ languageStore.t('phone_number', 'Phone') }}
                 </th>
-                <th class="px-3 py-3 whitespace-nowrap">{{ languageStore.t('Role', 'Role') }}</th>
-                <th class="px-3 py-3 text-center whitespace-nowrap">
+                <th class="px-3.5 py-3 whitespace-nowrap min-w-[120px]">{{ languageStore.t('Role', 'Role') }}</th>
+                <th class="px-3.5 py-3 text-center whitespace-nowrap min-w-[110px]">
                   {{ languageStore.t('Status', 'Status') }}
                 </th>
-                <th class="px-3 py-3 text-right pr-5 whitespace-nowrap">
+                <th class="px-3.5 py-3 text-right pr-5 whitespace-nowrap w-20 min-w-[80px]">
                   {{ languageStore.t('Actions', 'Actions') }}
                 </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
               <tr
-                v-for="user in paginatedUsers"
+                v-for="(user, index) in paginatedUsers"
                 :key="user.id"
                 class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
               >
-                <td class="px-3 py-3 pl-5 whitespace-nowrap">
-                  <div class="flex items-center gap-2 max-w-[180px]">
+                <td class="px-3.5 py-3.5 pl-5 whitespace-nowrap">
+                  <div class="flex items-center gap-2.5">
                     <div
-                      class="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold text-xs flex items-center justify-center flex-shrink-0"
+                      class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-bold text-xs flex items-center justify-center flex-shrink-0 border border-blue-200/50 dark:border-blue-700/50"
                     >
                       {{ getUserInitial(user) }}
                     </div>
-                    <div class="min-w-0 flex-1">
+                    <div class="min-w-0">
                       <div
                         class="font-bold text-slate-900 dark:text-white truncate text-xs sm:text-sm"
                       >
@@ -389,16 +400,16 @@ onBeforeUnmount(() => {
                 </td>
 
                 <td
-                  class="px-3 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 font-medium"
+                  class="px-3.5 py-3.5 whitespace-nowrap text-slate-600 dark:text-slate-300 font-medium"
                 >
                   {{ user.email }}
                 </td>
 
-                <td class="px-3 py-3 whitespace-nowrap text-slate-600 dark:text-slate-400">
+                <td class="px-3.5 py-3.5 whitespace-nowrap text-slate-600 dark:text-slate-400">
                   {{ user.phone || '-' }}
                 </td>
 
-                <td class="px-3 py-3 whitespace-nowrap">
+                <td class="px-3.5 py-3.5 whitespace-nowrap">
                   <span
                     class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold border uppercase tracking-wider"
                     :class="getRoleBadgeClass(user.role)"
@@ -408,7 +419,7 @@ onBeforeUnmount(() => {
                   </span>
                 </td>
 
-                <td class="px-3 py-3 text-center whitespace-nowrap">
+                <td class="px-3.5 py-3.5 text-center whitespace-nowrap">
                   <span
                     v-if="user.is_active"
                     class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
@@ -425,18 +436,20 @@ onBeforeUnmount(() => {
                   </span>
                 </td>
 
-                <td class="px-3 py-3 text-right whitespace-nowrap pr-5 relative" @click.stop>
+                <!-- Three Dot Action Menu -->
+                <td class="px-3.5 py-3.5 text-right whitespace-nowrap pr-5 relative" @click.stop>
                   <div class="relative inline-block text-left">
                     <button
+                      type="button"
                       @click="toggleMenu(String(user.id), $event)"
-                      class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                      class="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                       :class="{
                         'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white':
                           activeMenu === String(user.id),
                       }"
                       :title="languageStore.t('Actions', 'Actions')"
                     >
-                      <MoreVertical class="w-4 h-4" />
+                      <MoreVertical class="w-4 h-4 stroke-[2.2]" />
                     </button>
 
                     <transition
@@ -449,9 +462,15 @@ onBeforeUnmount(() => {
                     >
                       <div
                         v-if="activeMenu === String(user.id)"
-                        class="absolute right-0 top-8 z-50 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 text-left"
+                        class="absolute right-0 z-50 w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 text-left"
+                        :class="[
+                          index >= paginatedUsers.length - 2 && paginatedUsers.length > 2
+                            ? 'bottom-full mb-1'
+                            : 'top-full mt-1',
+                        ]"
                       >
                         <button
+                          type="button"
                           @click="handleAction('view', user)"
                           class="flex w-full items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                         >
@@ -460,6 +479,7 @@ onBeforeUnmount(() => {
                         </button>
 
                         <button
+                          type="button"
                           @click="handleAction('edit', user)"
                           class="flex w-full items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition cursor-pointer"
                         >
@@ -470,6 +490,7 @@ onBeforeUnmount(() => {
                         <div class="border-t border-slate-100 dark:border-slate-800 my-0.5"></div>
 
                         <button
+                          type="button"
                           @click="handleAction('delete', user)"
                           class="flex w-full items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition cursor-pointer"
                         >
@@ -497,108 +518,6 @@ onBeforeUnmount(() => {
               </tr>
             </tbody>
           </table>
-        </div>
-
-        <!-- Mobile Responsive Staff Cards -->
-        <div class="md:hidden p-3 sm:p-4 space-y-3 bg-slate-50/50 dark:bg-slate-950/30">
-          <div
-            v-if="paginatedUsers.length === 0"
-            class="p-8 text-center text-slate-500 dark:text-slate-400 text-xs font-bold bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800"
-          >
-            {{
-              languageStore.t(
-                'no_users_match',
-                'No users match your current search or filter criteria.',
-              )
-            }}
-          </div>
-          <div
-            v-else
-            v-for="user in paginatedUsers"
-            :key="user.id"
-            class="p-4 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs space-y-3 transition"
-          >
-            <!-- Top: Avatar + Name + Role Badge -->
-            <div class="flex items-start justify-between gap-2.5">
-              <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                <div
-                  class="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-extrabold text-sm flex items-center justify-center shrink-0 border border-blue-200/50 dark:border-blue-700/50"
-                >
-                  {{ getUserInitial(user) }}
-                </div>
-                <div class="min-w-0 flex-1">
-                  <h3 class="font-bold text-slate-900 dark:text-white text-sm truncate leading-tight">
-                    {{ user.first_name }} {{ user.last_name }}
-                  </h3>
-                  <div class="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">
-                    <Mail class="w-3 h-3 shrink-0" />
-                    <span class="truncate">{{ user.email }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <span
-                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-extrabold border uppercase tracking-wide shrink-0"
-                :class="getRoleBadgeClass(user.role)"
-              >
-                <Shield class="w-2.5 h-2.5" />
-                {{ languageStore.t(user.role, user.role || 'Staff') }}
-              </span>
-            </div>
-
-            <!-- Middle: Phone & Status Badge -->
-            <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
-              <div class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-medium truncate text-[11px]">
-                <Phone class="w-3 h-3 text-slate-400 shrink-0" />
-                <span>{{ user.phone || 'No phone' }}</span>
-              </div>
-
-              <span
-                v-if="user.is_active"
-                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0"
-              >
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                {{ languageStore.t('Active', 'Active') }}
-              </span>
-              <span
-                v-else
-                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 shrink-0"
-              >
-                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                {{ languageStore.t('Inactive', 'Inactive') }}
-              </span>
-            </div>
-
-            <!-- Bottom: Action Buttons -->
-            <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <button
-                @click="handleAction('view', user)"
-                type="button"
-                class="inline-flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200/50 dark:border-blue-800/40 transition cursor-pointer active:scale-98"
-              >
-                <Eye class="w-3.5 h-3.5" />
-                <span>{{ languageStore.t('View', 'View') }}</span>
-              </button>
-
-              <button
-                @click="handleAction('edit', user)"
-                type="button"
-                class="inline-flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/40 border border-amber-200/50 dark:border-amber-800/40 transition cursor-pointer active:scale-98"
-              >
-                <Edit class="w-3.5 h-3.5" />
-                <span>{{ languageStore.t('Edit', 'Edit') }}</span>
-              </button>
-
-              <button
-                @click="handleAction('delete', user)"
-                type="button"
-                class="inline-flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200/50 dark:border-rose-800/40 transition cursor-pointer active:scale-98"
-              >
-                <Trash2 class="w-3.5 h-3.5" />
-                <span>{{ languageStore.t('Delete', 'Delete') }}</span>
-              </button>
-            </div>
-          </div>
         </div>
 
         <!-- Fully Responsive Pagination Footer -->

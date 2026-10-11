@@ -835,4 +835,21 @@ router.beforeEach(async (to) => {
   return true
 })
 
+// Auto-recover from dynamic import failures (e.g. stale Vite cache or updated chunks)
+router.onError((error, to) => {
+  const isChunkError =
+    error?.message?.includes('Failed to fetch dynamically imported module') ||
+    error?.message?.includes('Importing a module script failed') ||
+    error?.message?.includes('error loading dynamically imported module')
+  if (isChunkError) {
+    const targetUrl = to?.fullPath || window.location.pathname
+    // Prevent infinite reload loop
+    const reloadKey = `chunk_reload_${targetUrl}`
+    if (!sessionStorage.getItem(reloadKey)) {
+      sessionStorage.setItem(reloadKey, '1')
+      window.location.href = targetUrl
+    }
+  }
+})
+
 export default router
