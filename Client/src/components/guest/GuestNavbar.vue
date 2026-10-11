@@ -57,6 +57,11 @@ function closeMenu() {
   mobileMenu.value = false
 }
 
+function handleMobileHotelSwitch() {
+  openHotelModal()
+  closeMenu()
+}
+
 function handleScroll() {
   scrolled.value = window.scrollY > 20
 }
@@ -236,10 +241,7 @@ onUnmounted(() => {
         class="lg:hidden bg-white dark:bg-[#0B1B35] border-b border-slate-200 dark:border-slate-800 px-4 py-4 space-y-3 shadow-lg"
       >
         <button
-          @click.stop="
-            openHotelModal()
-            closeMenu()
-          "
+          @click.stop="handleMobileHotelSwitch"
           type="button"
           class="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
         >
