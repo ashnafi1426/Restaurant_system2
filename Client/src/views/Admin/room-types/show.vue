@@ -55,21 +55,21 @@ const confirmDelete = async () => {
 
 <template>
   <DashboardLayout>
-    <div class="space-y-6">
-      <div class="flex justify-between items-center">
-        <div class="flex items-center gap-2">
-          <h1 class="text-3xl font-bold">Room Types</h1>
+    <div class="space-y-4 sm:space-y-6">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex flex-wrap items-center gap-2">
+          <h1 class="text-2xl sm:text-3xl font-bold">Room Types</h1>
           <span
             v-if="hotelStore.hotelName"
-            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
+            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50 flex-shrink-0"
           >
             <Building2 class="w-3 h-3" />
-            {{ hotelStore.hotelName }}
+            <span class="truncate">{{ hotelStore.hotelName }}</span>
           </span>
         </div>
 
         <button
-          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center gap-1.5 font-bold text-sm cursor-pointer"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center gap-1.5 font-bold text-sm cursor-pointer min-h-[44px] w-full sm:w-auto justify-center"
           @click="router.push('/admin/room-types/create')"
         >
           <Plus class="w-4 h-4 stroke-[3]" />

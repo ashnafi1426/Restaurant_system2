@@ -212,9 +212,9 @@ onBeforeUnmount(() => {
     :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
   >
     <div
-      class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+      class="flex flex-col xs:flex-row flex-wrap items-start xs:items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
     >
-      <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
+      <div class="flex flex-1 items-center gap-2.5 min-w-0 max-w-2xl w-full xs:w-auto">
         <div class="relative flex-1">
           <Search
             class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
@@ -235,7 +235,7 @@ onBeforeUnmount(() => {
         <button
           type="button"
           @click="toggleFilter"
-          class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+          class="inline-flex items-center gap-2 rounded-xl px-3 xs:px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
           :class="[
             isFilterOpen
               ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
@@ -243,7 +243,7 @@ onBeforeUnmount(() => {
           ]"
         >
           <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-          <span>{{
+          <span class="hidden xs:inline">{{
             isFilterOpen
               ? languageStore.t('hide_filters', 'Hide Filter')
               : languageStore.t('filter', 'Filter')
@@ -251,13 +251,13 @@ onBeforeUnmount(() => {
         </button>
       </div>
 
-      <div class="flex items-center gap-2 sm:gap-2.5">
+      <div class="flex items-center gap-2 sm:gap-2.5 w-full xs:w-auto justify-end xs:justify-start">
         <button
           type="button"
           @click="emit('refresh')"
           :disabled="loading"
           :title="languageStore.t('refresh', 'Refresh')"
-          class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+          class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
         >
           <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
         </button>
@@ -266,7 +266,7 @@ onBeforeUnmount(() => {
           type="button"
           @click="toggleFullscreen"
           :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
-          class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+          class="hidden sm:inline-flex items-center justify-center min-h-[44px] min-w-[44px] h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
         >
           <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
         </button>
@@ -274,10 +274,11 @@ onBeforeUnmount(() => {
         <button
           type="button"
           @click="emit('create')"
-          class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm shadow-blue-600/30 transition active:scale-98 cursor-pointer flex-shrink-0"
+          class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm shadow-blue-600/30 transition active:scale-98 cursor-pointer flex-shrink-0 min-h-[44px] justify-center"
         >
           <Plus class="w-4 h-4" />
-          <span>{{ languageStore.t('add_room_type', 'Add Room Type') }}</span>
+          <span class="hidden sm:inline">{{ languageStore.t('add_room_type', 'Add Room Type') }}</span>
+          <span class="sr-only sm:hidden">{{ languageStore.t('add_room_type', 'Add Room Type') }}</span>
         </button>
       </div>
     </div>
@@ -592,19 +593,19 @@ onBeforeUnmount(() => {
             <div class="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
               <button
                 @click="handleView(rt)"
-                class="flex-1 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-lg cursor-pointer"
+                class="flex-1 min-h-[44px] py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-lg cursor-pointer flex items-center justify-center"
               >
                 {{ languageStore.t('view', 'View') }}
               </button>
               <button
                 @click="handleEdit(rt)"
-                class="flex-1 py-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 rounded-lg cursor-pointer"
+                class="flex-1 min-h-[44px] py-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 rounded-lg cursor-pointer flex items-center justify-center"
               >
                 {{ languageStore.t('edit', 'Edit') }}
               </button>
               <button
                 @click="handleDelete(rt)"
-                class="flex-1 py-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 rounded-lg cursor-pointer"
+                class="flex-1 min-h-[44px] py-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 rounded-lg cursor-pointer flex items-center justify-center"
               >
                 {{ languageStore.t('delete', 'Delete') }}
               </button>
@@ -658,7 +659,7 @@ onBeforeUnmount(() => {
             <button
               @click="prevPage"
               :disabled="currentPage === 1"
-              class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              class="flex items-center justify-center min-w-[36px] min-h-[36px] p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
             >
               <ChevronLeft class="w-4 h-4" />
             </button>
@@ -667,7 +668,7 @@ onBeforeUnmount(() => {
               v-for="page in paginationPages"
               :key="page"
               @click="goToPage(page)"
-              class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+              class="flex items-center justify-center min-w-[36px] min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
               :class="[
                 currentPage === page
                   ? 'bg-blue-600 text-white'
@@ -680,7 +681,7 @@ onBeforeUnmount(() => {
             <button
               @click="nextPage"
               :disabled="currentPage === lastPage"
-              class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              class="flex items-center justify-center min-w-[36px] min-h-[36px] p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
             >
               <ChevronRight class="w-4 h-4" />
             </button>
