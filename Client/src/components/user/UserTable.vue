@@ -345,14 +345,18 @@ onBeforeUnmount(() => {
         >
           <span class="flex items-center gap-1.5 font-semibold">
             <span>👈</span>
-            <span>{{ languageStore.t('scroll_horizontal', 'Scroll horizontally for all columns') }}</span>
+            <span>{{
+              languageStore.t('scroll_horizontal', 'Scroll horizontally for all columns')
+            }}</span>
             <span>👉</span>
           </span>
-          <span class="font-bold text-blue-600 dark:text-blue-400">{{ total }} {{ languageStore.t('staff', 'staff') }}</span>
+          <span class="font-bold text-blue-600 dark:text-blue-400"
+            >{{ total }} {{ languageStore.t('staff', 'staff') }}</span
+          >
         </div>
 
         <!-- Fully Responsive Table with Horizontal Touch Scroll & Three Dots Actions -->
-        <div class="w-full overflow-x-auto relative" style="-webkit-overflow-scrolling: touch;">
+        <div class="w-full overflow-x-auto relative" style="-webkit-overflow-scrolling: touch">
           <table class="w-full min-w-[720px] text-left border-collapse">
             <thead
               class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
@@ -367,7 +371,9 @@ onBeforeUnmount(() => {
                 <th class="px-3.5 py-3 whitespace-nowrap min-w-[130px]">
                   {{ languageStore.t('phone_number', 'Phone') }}
                 </th>
-                <th class="px-3.5 py-3 whitespace-nowrap min-w-[120px]">{{ languageStore.t('Role', 'Role') }}</th>
+                <th class="px-3.5 py-3 whitespace-nowrap min-w-[120px]">
+                  {{ languageStore.t('Role', 'Role') }}
+                </th>
                 <th class="px-3.5 py-3 text-center whitespace-nowrap min-w-[110px]">
                   {{ languageStore.t('Status', 'Status') }}
                 </th>
@@ -525,7 +531,9 @@ onBeforeUnmount(() => {
           v-if="total > 0"
           class="border-t border-slate-200 dark:border-slate-800/80 px-3.5 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 text-xs"
         >
-          <div class="flex items-center justify-between w-full sm:w-auto text-slate-500 dark:text-slate-400 font-medium text-[11px] sm:text-xs">
+          <div
+            class="flex items-center justify-between w-full sm:w-auto text-slate-500 dark:text-slate-400 font-medium text-[11px] sm:text-xs"
+          >
             <div>
               {{ languageStore.t('Showing', 'Showing') }}
               <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
@@ -548,7 +556,9 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-3">
+          <div
+            class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-3"
+          >
             <div class="hidden sm:flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{
                 languageStore.t('per_page', 'Per page:')

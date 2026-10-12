@@ -124,7 +124,10 @@ onUnmounted(() => {
           </div>
         </RouterLink>
 
-        <nav class="hidden lg:flex items-center gap-6 xl:gap-8 shrink-0" aria-label="Main Navigation">
+        <nav
+          class="hidden lg:flex items-center gap-6 xl:gap-8 shrink-0"
+          aria-label="Main Navigation"
+        >
           <RouterLink
             v-for="menu in menus"
             :key="menu.route"

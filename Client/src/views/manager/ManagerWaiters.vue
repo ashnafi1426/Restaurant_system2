@@ -709,8 +709,8 @@ onUnmounted(() => {
                           <button
                             type="button"
                             @click="
-                              openEditModal(waiter);
-                              activeMenuId = null;
+                              openEditModal(waiter)
+                              activeMenuId = null
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer text-left"
                           >
@@ -722,8 +722,8 @@ onUnmounted(() => {
                             v-if="waiter.status !== 'active'"
                             type="button"
                             @click="
-                              handleToggleStatus(waiter, 'active');
-                              activeMenuId = null;
+                              handleToggleStatus(waiter, 'active')
+                              activeMenuId = null
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer text-left"
                           >
@@ -735,8 +735,8 @@ onUnmounted(() => {
                             v-if="waiter.status === 'active'"
                             type="button"
                             @click="
-                              handleToggleStatus(waiter, 'on_break');
-                              activeMenuId = null;
+                              handleToggleStatus(waiter, 'on_break')
+                              activeMenuId = null
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-600 dark:hover:text-amber-400 transition cursor-pointer text-left"
                           >
@@ -749,8 +749,8 @@ onUnmounted(() => {
                           <button
                             type="button"
                             @click="
-                              handleDeleteWaiter(waiter.id);
-                              activeMenuId = null;
+                              handleDeleteWaiter(waiter.id)
+                              activeMenuId = null
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer text-left"
                           >
@@ -801,11 +801,13 @@ onUnmounted(() => {
                     {{ (waiter.name || 'W').charAt(0).toUpperCase() }}
                   </div>
                   <div class="min-w-0 flex-1">
-                    <h3 class="font-bold text-slate-900 dark:text-white text-sm truncate leading-tight">
+                    <h3
+                      class="font-bold text-slate-900 dark:text-white text-sm truncate leading-tight"
+                    >
                       {{ waiter.name }}
                     </h3>
                     <p class="text-[11px] text-slate-400 dark:text-slate-500 truncate mt-0.5">
-                      {{ waiter.email|| ('ID: ' + (waiter.id || '').substring(0, 8)) }}
+                      {{ waiter.email || 'ID: ' + (waiter.id || '').substring(0, 8) }}
                     </p>
                   </div>
                 </div>
@@ -829,24 +831,29 @@ onUnmounted(() => {
               </div>
 
               <!-- Details: Section & Shift -->
-              <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+              <div
+                class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-slate-800/80"
+              >
                 <div class="flex items-center gap-1.5">
                   <span class="text-slate-400 text-[11px]">Section:</span>
                   <span class="font-bold text-slate-800 dark:text-slate-200 text-xs">
                     {{ waiter.section || 'General' }}
                   </span>
                 </div>
-
                 <div v-if="waiter.shift" class="flex items-center gap-1.5">
                   <span class="text-slate-400 text-[11px]">Shift:</span>
-                  <span class="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-300 capitalize">
+                  <span
+                    class="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-300 capitalize"
+                  >
                     {{ waiter.shift }}
                   </span>
                 </div>
               </div>
 
               <!-- Direct Touch-Friendly Actions -->
-              <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+              <div
+                class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80"
+              >
                 <button
                   type="button"
                   @click="openEditModal(waiter)"
@@ -894,7 +901,9 @@ onUnmounted(() => {
           v-if="total > 0"
           class="border-t border-slate-200 dark:border-slate-800/80 px-3.5 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 text-xs"
         >
-          <div class="flex items-center justify-between w-full sm:w-auto text-slate-500 dark:text-slate-400 font-medium text-[11px] sm:text-xs">
+          <div
+            class="flex items-center justify-between w-full sm:w-auto text-slate-500 dark:text-slate-400 font-medium text-[11px] sm:text-xs"
+          >
             <div>
               Showing
               <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span> to
@@ -916,7 +925,9 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-3">
+          <div
+            class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-3"
+          >
             <div class="hidden sm:flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">Per page:</span>
               <select

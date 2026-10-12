@@ -84,7 +84,9 @@ const refresh = () => loadUsers(true)
       >
         <div>
           <div class="flex flex-wrap items-center gap-2">
-            <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            <h1
+              class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight"
+            >
               {{ languageStore.t('user_staff_management', 'User & Staff Management') }}
             </h1>
             <span
@@ -115,11 +117,15 @@ const refresh = () => loadUsers(true)
             <p class="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 truncate">
               {{ languageStore.t('total_staff', 'Total Staff') }}
             </p>
-            <h2 class="text-lg sm:text-3xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1 truncate">
+            <h2
+              class="text-lg sm:text-3xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1 truncate"
+            >
               {{ totalUsers }}
             </h2>
           </div>
-          <div class="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0 hidden xs:flex">
+          <div
+            class="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0 hidden xs:flex"
+          >
             <Users class="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
         </div>
@@ -131,11 +137,15 @@ const refresh = () => loadUsers(true)
             <p class="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 truncate">
               {{ languageStore.t('active_accounts', 'Active') }}
             </p>
-            <h2 class="text-lg sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1 truncate">
+            <h2
+              class="text-lg sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1 truncate"
+            >
               {{ activeUsers }}
             </h2>
           </div>
-          <div class="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0 hidden xs:flex">
+          <div
+            class="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0 hidden xs:flex"
+          >
             <UserCheck class="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
         </div>
@@ -147,11 +157,15 @@ const refresh = () => loadUsers(true)
             <p class="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 truncate">
               {{ languageStore.t('inactive_accounts', 'Inactive') }}
             </p>
-            <h2 class="text-lg sm:text-3xl font-black text-rose-600 dark:text-rose-400 mt-0.5 sm:mt-1 truncate">
+            <h2
+              class="text-lg sm:text-3xl font-black text-rose-600 dark:text-rose-400 mt-0.5 sm:mt-1 truncate"
+            >
               {{ inactiveUsers }}
             </h2>
           </div>
-          <div class="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0 hidden xs:flex">
+          <div
+            class="p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0 hidden xs:flex"
+          >
             <UserX class="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
         </div>

@@ -61,7 +61,10 @@ onUnmounted(() => {
       :aria-expanded="isOpen"
     >
       <Globe class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#E9A11A] shrink-0" />
-      <span v-if="showLabel" class="text-[11px] sm:text-[12px] font-semibold tracking-wider uppercase">
+      <span
+        v-if="showLabel"
+        class="text-[11px] sm:text-[12px] font-semibold tracking-wider uppercase"
+      >
         {{ languageStore.currentLanguage === 'am' ? 'አማ' : 'EN' }}
       </span>
       <ChevronDown

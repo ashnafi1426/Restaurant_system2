@@ -358,11 +358,17 @@ const getRoleBadgeClass = (role: string) => {
 
         <!-- Mobile Card View -->
         <div class="md:hidden p-3 sm:p-4 space-y-3 bg-slate-50/50 dark:bg-slate-950/30">
-          <div v-if="loading" class="p-12 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+          <div
+            v-if="loading"
+            class="p-12 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800"
+          >
             <RefreshCw class="w-6 h-6 text-indigo-500 animate-spin mx-auto mb-2" />
             <span>Loading platform staff...</span>
           </div>
-          <div v-else-if="users.length === 0" class="p-8 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+          <div
+            v-else-if="users.length === 0"
+            class="p-8 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800"
+          >
             <Users class="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
             <p class="font-bold">No users found.</p>
           </div>
@@ -381,7 +387,9 @@ const getRoleBadgeClass = (role: string) => {
                   {{ getUserInitials(u) }}
                 </div>
                 <div class="min-w-0 flex-1">
-                  <h3 class="font-bold text-slate-900 dark:text-white text-sm truncate leading-tight">
+                  <h3
+                    class="font-bold text-slate-900 dark:text-white text-sm truncate leading-tight"
+                  >
                     {{ u.first_name }} {{ u.last_name }}
                   </h3>
                   <p class="text-[11px] font-mono text-slate-400 truncate mt-0.5">
@@ -401,7 +409,9 @@ const getRoleBadgeClass = (role: string) => {
             </div>
 
             <!-- Hotel Property & Status -->
-            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+            <div
+              class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs"
+            >
               <div class="min-w-0 flex-1">
                 <div v-if="u.hotels && u.hotels.length > 0" class="flex flex-wrap gap-1">
                   <span
@@ -429,9 +439,13 @@ const getRoleBadgeClass = (role: string) => {
             </div>
 
             <!-- Joined Date Footer -->
-            <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-slate-50 dark:border-slate-850">
+            <div
+              class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-slate-50 dark:border-slate-850"
+            >
               <span>Joined:</span>
-              <span class="font-medium text-slate-600 dark:text-slate-300">{{ formatDate(u.created_at) }}</span>
+              <span class="font-medium text-slate-600 dark:text-slate-300">{{
+                formatDate(u.created_at)
+              }}</span>
             </div>
           </div>
         </div>
@@ -441,13 +455,17 @@ const getRoleBadgeClass = (role: string) => {
           v-if="lastPage > 1 || totalUsers > perPageOptions[0]"
           class="p-3.5 sm:p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-[#0c182c]"
         >
-          <div
-            class="flex flex-col sm:flex-row items-center justify-between gap-3"
-          >
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
             <!-- Showing info and Per Page selector -->
-            <div class="flex items-center justify-between w-full sm:w-auto gap-3 text-xs text-slate-500 dark:text-slate-400">
+            <div
+              class="flex items-center justify-between w-full sm:w-auto gap-3 text-xs text-slate-500 dark:text-slate-400"
+            >
               <div>
-                Showing <strong class="text-slate-900 dark:text-white">{{ paginationInfo.start }}-{{ paginationInfo.end }}</strong> of
+                Showing
+                <strong class="text-slate-900 dark:text-white"
+                  >{{ paginationInfo.start }}-{{ paginationInfo.end }}</strong
+                >
+                of
                 <strong class="text-slate-900 dark:text-white">{{ totalUsers }}</strong>
               </div>
 
@@ -465,7 +483,10 @@ const getRoleBadgeClass = (role: string) => {
             </div>
 
             <!-- Page Navigation Controls -->
-            <div v-if="lastPage > 1" class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-1">
+            <div
+              v-if="lastPage > 1"
+              class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-1"
+            >
               <button
                 :disabled="currentPage <= 1"
                 @click="goToPage(currentPage - 1)"

@@ -362,13 +362,17 @@ onBeforeUnmount(() => {
       >
         <span class="flex items-center gap-1.5 font-semibold">
           <span>👈</span>
-          <span>{{ languageStore.t('scroll_horizontal', 'Swipe table horizontally to see all columns') }}</span>
+          <span>{{
+            languageStore.t('scroll_horizontal', 'Swipe table horizontally to see all columns')
+          }}</span>
           <span>👉</span>
         </span>
-        <span class="font-bold text-blue-600 dark:text-blue-400">{{ total }} {{ languageStore.t('rooms', 'rooms') }}</span>
+        <span class="font-bold text-blue-600 dark:text-blue-400"
+          >{{ total }} {{ languageStore.t('rooms', 'rooms') }}</span
+        >
       </div>
 
-      <div class="overflow-x-auto w-full min-h-[300px]" style="-webkit-overflow-scrolling: touch;">
+      <div class="overflow-x-auto w-full min-h-[300px]" style="-webkit-overflow-scrolling: touch">
         <table class="w-full min-w-[700px] text-left border-collapse">
           <thead
             class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
@@ -569,7 +573,9 @@ onBeforeUnmount(() => {
           {{ languageStore.t('rooms', 'rooms') }}
         </div>
 
-        <div class="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto">
+        <div
+          class="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto"
+        >
           <div class="flex items-center gap-1.5">
             <span class="text-slate-500 dark:text-slate-400 font-medium"
               >{{ languageStore.t('per_page', 'Per page') }}:</span

@@ -506,7 +506,9 @@ const navigateToUserAssignments = () => {
             >
               {{ languageStore.t('all_roles', 'All Roles') }}
             </p>
-            <h3 class="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight truncate">
+            <h3
+              class="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight truncate"
+            >
               {{ allRolesCount }}
             </h3>
           </div>
@@ -526,7 +528,9 @@ const navigateToUserAssignments = () => {
             >
               {{ languageStore.t('active_roles', 'Active Roles') }}
             </p>
-            <h3 class="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight truncate">
+            <h3
+              class="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight truncate"
+            >
               {{ activeRolesCount }}
             </h3>
           </div>
@@ -546,7 +550,9 @@ const navigateToUserAssignments = () => {
             >
               {{ languageStore.t('assigned_users', 'Assigned Users') }}
             </p>
-            <h3 class="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight truncate">
+            <h3
+              class="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight truncate"
+            >
               {{ totalAssignedUsersCount }}
             </h3>
           </div>
@@ -566,7 +572,9 @@ const navigateToUserAssignments = () => {
             >
               {{ languageStore.t('unassigned_roles', 'Unassigned Roles') }}
             </p>
-            <h3 class="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight truncate">
+            <h3
+              class="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight truncate"
+            >
               {{ unassignedRolesCount }}
             </h3>
           </div>
@@ -656,7 +664,9 @@ const navigateToUserAssignments = () => {
           />
         </div>
 
-        <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto">
+        <div
+          class="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto"
+        >
           <button
             type="button"
             @click="toggleFilter"
@@ -831,13 +841,17 @@ const navigateToUserAssignments = () => {
         >
           <span class="flex items-center gap-1.5 font-semibold">
             <span>👈</span>
-            <span>{{ languageStore.t('scroll_horizontal', 'Swipe table horizontally to see all columns') }}</span>
+            <span>{{
+              languageStore.t('scroll_horizontal', 'Swipe table horizontally to see all columns')
+            }}</span>
             <span>👉</span>
           </span>
-          <span class="font-bold text-blue-600 dark:text-blue-400">{{ filteredRoles.length }} {{ languageStore.t('roles', 'roles') }}</span>
+          <span class="font-bold text-blue-600 dark:text-blue-400"
+            >{{ filteredRoles.length }} {{ languageStore.t('roles', 'roles') }}</span
+          >
         </div>
 
-        <div class="overflow-x-auto min-h-[350px]" style="-webkit-overflow-scrolling: touch;">
+        <div class="overflow-x-auto min-h-[350px]" style="-webkit-overflow-scrolling: touch">
           <table class="w-full min-w-[780px] text-left border-collapse text-xs">
             <thead>
               <tr
@@ -1011,8 +1025,8 @@ const navigateToUserAssignments = () => {
                     <button
                       type="button"
                       @click="
-                        openEditModal(role);
-                        closeDropdown();
+                        openEditModal(role)
+                        closeDropdown()
                       "
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
@@ -1023,8 +1037,8 @@ const navigateToUserAssignments = () => {
                     <button
                       type="button"
                       @click="
-                        openUsersModal(role);
-                        closeDropdown();
+                        openUsersModal(role)
+                        closeDropdown()
                       "
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
@@ -1035,8 +1049,8 @@ const navigateToUserAssignments = () => {
                     <button
                       type="button"
                       @click="
-                        openCloneModal(role);
-                        closeDropdown();
+                        openCloneModal(role)
+                        closeDropdown()
                       "
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
@@ -1048,8 +1062,8 @@ const navigateToUserAssignments = () => {
                       v-if="role.slug !== 'admin'"
                       type="button"
                       @click="
-                        toggleRoleActive(role);
-                        closeDropdown();
+                        toggleRoleActive(role)
+                        closeDropdown()
                       "
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
@@ -1070,8 +1084,8 @@ const navigateToUserAssignments = () => {
                       v-if="!role.is_system"
                       type="button"
                       @click="
-                        triggerDeleteConfirmation(role);
-                        closeDropdown();
+                        triggerDeleteConfirmation(role)
+                        closeDropdown()
                       "
                       class="w-full px-3.5 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center gap-2.5 transition text-left cursor-pointer font-medium"
                     >
