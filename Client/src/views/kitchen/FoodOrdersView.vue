@@ -265,11 +265,12 @@ const getFoodIcon = (itemName: string, category?: string) => {
 <template>
   <DashboardLayout>
     <div
-      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
+      class="space-y-4 sm:space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-3 sm:p-6 max-w-full font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
+      <!-- Header Card -->
       <div
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-2xl shadow-xs"
       >
         <div class="flex items-center gap-3">
           <div
@@ -278,16 +279,16 @@ const getFoodIcon = (itemName: string, category?: string) => {
             <UtensilsCrossed class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                 {{ languageStore.t('all_food_orders', 'All Food Orders') }}
               </h1>
               <span
                 v-if="hotelStore.hotelName"
-                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50 flex-shrink-0"
               >
                 <Building2 class="w-3 h-3" />
-                {{ hotelStore.hotelName }}
+                <span class="truncate">{{ hotelStore.hotelName }}</span>
               </span>
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -311,31 +312,32 @@ const getFoodIcon = (itemName: string, category?: string) => {
         </div>
       </div>
 
+      <!-- Responsive Toolbar -->
       <div
-        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+        class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <div class="relative flex-1">
-            <Search
-              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
-            />
-            <input
-              v-model="searchQuery"
-              type="text"
-              :placeholder="
-                languageStore.t(
-                  'search_food_orders_placeholder',
-                  'Search by order #, room, guest, or food items...',
-                )
-              "
-              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 dark:focus:border-amber-400 transition outline-none"
-            />
-          </div>
+        <div class="relative flex-1 min-w-0">
+          <Search
+            class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+          />
+          <input
+            v-model="searchQuery"
+            type="text"
+            :placeholder="
+              languageStore.t(
+                'search_food_orders_placeholder',
+                'Search by order #, room, guest, or food items...',
+              )
+            "
+            class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 dark:focus:border-amber-400 transition outline-none"
+          />
+        </div>
 
+        <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto">
           <button
             type="button"
             @click="toggleFilter"
-            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            class="inline-flex items-center gap-1.5 sm:gap-2 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
             :class="[
               isFilterOpen
                 ? 'bg-amber-600/10 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-500/40'
@@ -345,34 +347,35 @@ const getFoodIcon = (itemName: string, category?: string) => {
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
             <span>{{
               isFilterOpen
-                ? languageStore.t('hide_filter', 'Hide Filter')
+                ? languageStore.t('hide_filter', 'Filter')
                 : languageStore.t('filter', 'Filter')
             }}</span>
           </button>
-        </div>
 
-        <div class="flex items-center gap-2 sm:gap-2.5">
-          <button
-            type="button"
-            @click="refresh"
-            :disabled="loading"
-            :title="languageStore.t('refresh', 'Refresh')"
-            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
-          >
-            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
-          </button>
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              @click="refresh"
+              :disabled="loading"
+              :title="languageStore.t('refresh', 'Refresh')"
+              class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+            >
+              <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+            </button>
 
-          <button
-            type="button"
-            @click="toggleFullscreen"
-            :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
-            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
-          >
-            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
-          </button>
+            <button
+              type="button"
+              @click="toggleFullscreen"
+              :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
+              class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+            >
+              <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
+      <!-- Filter Drawer -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -424,7 +427,7 @@ const getFoodIcon = (itemName: string, category?: string) => {
               <button
                 type="button"
                 @click="resetFilters"
-                class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer"
+                class="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer h-[38px]"
               >
                 <RotateCcw class="w-3.5 h-3.5" />
                 <span>{{ languageStore.t('reset_filters', 'Reset Filters') }}</span>
@@ -434,11 +437,28 @@ const getFoodIcon = (itemName: string, category?: string) => {
         </div>
       </Transition>
 
+      <!-- Unified Scrollable Table Card -->
       <div
         class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
       >
-        <div class="hidden md:block overflow-x-auto w-full">
-          <table class="w-full text-left border-collapse">
+        <!-- Mobile Horizontal Scroll Hint -->
+        <div
+          class="md:hidden flex items-center justify-between px-3.5 py-2 bg-slate-50/90 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 select-none"
+        >
+          <span class="flex items-center gap-1.5 font-semibold">
+            <span>👈</span>
+            <span>{{
+              languageStore.t('scroll_horizontal', 'Swipe table horizontally to see all columns')
+            }}</span>
+            <span>👉</span>
+          </span>
+          <span class="font-bold text-amber-600 dark:text-amber-400">
+            {{ total }} {{ languageStore.t('orders', 'orders') }}
+          </span>
+        </div>
+
+        <div class="overflow-x-auto w-full min-h-[360px]" style="-webkit-overflow-scrolling: touch">
+          <table class="w-full min-w-[850px] text-left border-collapse">
             <thead
               class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
             >
@@ -585,64 +605,12 @@ const getFoodIcon = (itemName: string, category?: string) => {
           </table>
         </div>
 
-        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-          <div
-            v-if="loading"
-            class="py-16 text-center flex flex-col items-center justify-center gap-3"
-          >
-            <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{
-              languageStore.t('loading_food_orders', 'Loading food orders...')
-            }}</span>
-          </div>
-          <template v-else>
-            <div
-              v-for="order in paginatedOrders"
-              :key="order.id"
-              class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
-            >
-              <div class="flex items-center justify-between">
-                <span class="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs">
-                  {{ order.order_number }}
-                </span>
-                <span
-                  class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
-                  :class="getStatusBadgeColor(order.status)"
-                >
-                  {{ languageStore.t(order.status, order.status) }}
-                </span>
-              </div>
-
-              <div
-                class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400"
-              >
-                <span>{{
-                  order.guest?.full_name || languageStore.t('walk_in_guest', 'Walk-in Guest')
-                }}</span>
-                <span class="font-extrabold text-slate-900 dark:text-white"
-                  >${{ parseFloat(String(order.total || 0)).toFixed(2) }}</span
-                >
-              </div>
-            </div>
-            <div
-              v-if="paginatedOrders.length === 0"
-              class="p-8 text-center text-slate-500 text-xs font-bold"
-            >
-              {{
-                languageStore.t(
-                  'no_food_orders_found',
-                  'No food orders match your current search or filter criteria.',
-                )
-              }}
-            </div>
-          </template>
-        </div>
-
+        <!-- Responsive Pagination -->
         <div
           v-if="total > 0"
-          class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+          class="border-t border-slate-200 dark:border-slate-800/80 px-3.5 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
-          <div class="text-slate-500 dark:text-slate-400 font-medium">
+          <div class="text-slate-500 dark:text-slate-400 font-medium text-center sm:text-left">
             {{ languageStore.t('showing', 'Showing') }}
             <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
             {{ languageStore.t('to', 'to') }}
@@ -652,7 +620,9 @@ const getFoodIcon = (itemName: string, category?: string) => {
             {{ languageStore.t('orders', 'orders') }}
           </div>
 
-          <div class="flex items-center gap-2 sm:gap-3">
+          <div
+            class="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto"
+          >
             <div class="flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{
                 languageStore.t('per_page', 'Per page:')
@@ -677,19 +647,27 @@ const getFoodIcon = (itemName: string, category?: string) => {
                 <ChevronLeft class="w-4 h-4" />
               </button>
 
-              <button
-                v-for="page in paginationPages"
-                :key="page"
-                @click="goToPage(page)"
-                class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
-                :class="[
-                  currentPage === page
-                    ? 'bg-amber-600 text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
-                ]"
-              >
-                {{ page }}
-              </button>
+              <!-- Mobile concise page display -->
+              <div class="sm:hidden px-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                {{ currentPage }} / {{ totalPages }}
+              </div>
+
+              <!-- Desktop page buttons -->
+              <div class="hidden sm:flex items-center gap-1">
+                <button
+                  v-for="page in paginationPages"
+                  :key="page"
+                  @click="goToPage(page)"
+                  class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+                  :class="[
+                    currentPage === page
+                      ? 'bg-amber-600 text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
+                  ]"
+                >
+                  {{ page }}
+                </button>
+              </div>
 
               <button
                 @click="nextPage"

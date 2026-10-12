@@ -337,7 +337,7 @@ watch(
 <template>
   <DashboardLayout>
     <div
-      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
+      class="space-y-4 sm:space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-3 sm:p-6 max-w-full font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
       <div
@@ -348,8 +348,9 @@ watch(
         <span>{{ toastMessage }}</span>
       </div>
 
+      <!-- Header Card -->
       <div
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-2xl shadow-xs"
       >
         <div class="flex items-center gap-3">
           <div
@@ -358,16 +359,16 @@ watch(
             <LogOut class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                 {{ languageStore.t('guest_checkout_mgmt', 'Guest Check-Out Management') }}
               </h1>
               <span
                 v-if="hotelStore.hotelName"
-                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50 flex-shrink-0"
               >
                 <Building2 class="w-3 h-3" />
-                {{ hotelStore.hotelName }}
+                <span class="truncate">{{ hotelStore.hotelName }}</span>
               </span>
               <span
                 class="text-[10px] uppercase font-black bg-purple-500/10 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-md border border-purple-500/20"
@@ -387,9 +388,10 @@ watch(
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <!-- 3 Metrics Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
@@ -397,7 +399,7 @@ watch(
             >
               {{ languageStore.t('active_in_house_guests', 'Active In-House Guests') }}
             </p>
-            <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">
               {{ activeCheckIns.length }}
             </h3>
           </div>
@@ -407,7 +409,7 @@ watch(
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
@@ -415,7 +417,7 @@ watch(
             >
               {{ languageStore.t('due_today', 'Due Today') }}
             </p>
-            <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
               {{ dueTodayCount }}
             </h3>
           </div>
@@ -425,7 +427,7 @@ watch(
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
@@ -433,7 +435,7 @@ watch(
             >
               {{ languageStore.t('overdue_checkouts', 'Overdue Checkouts') }}
             </p>
-            <h3 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
               {{ overdueCount }}
             </h3>
           </div>
@@ -443,31 +445,32 @@ watch(
         </div>
       </div>
 
+      <!-- Responsive Toolbar -->
       <div
-        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+        class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <div class="relative flex-1">
-            <Search
-              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
-            />
-            <input
-              v-model="searchQuery"
-              type="text"
-              :placeholder="
-                languageStore.t(
-                  'search_checkout_ph',
-                  'Search active guests by name, room #, booking reference, phone...',
-                )
-              "
-              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 dark:focus:border-purple-400 transition outline-none"
-            />
-          </div>
+        <div class="relative flex-1 min-w-0">
+          <Search
+            class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+          />
+          <input
+            v-model="searchQuery"
+            type="text"
+            :placeholder="
+              languageStore.t(
+                'search_checkout_ph',
+                'Search active guests by name, room #, booking reference, phone...',
+              )
+            "
+            class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 dark:focus:border-purple-400 transition outline-none"
+          />
+        </div>
 
+        <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto">
           <button
             type="button"
             @click="toggleFilter"
-            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            class="inline-flex items-center gap-1.5 sm:gap-2 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
             :class="[
               isFilterOpen
                 ? 'bg-purple-600/10 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 border border-purple-500/40'
@@ -477,34 +480,35 @@ watch(
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
             <span>{{
               isFilterOpen
-                ? languageStore.t('hide_filter', 'Hide Filter')
+                ? languageStore.t('hide_filter', 'Filter')
                 : languageStore.t('filter', 'Filter')
             }}</span>
           </button>
-        </div>
 
-        <div class="flex items-center gap-2 sm:gap-2.5">
-          <button
-            type="button"
-            @click="handleRefresh"
-            :disabled="loading"
-            :title="languageStore.t('refresh', 'Refresh')"
-            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
-          >
-            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
-          </button>
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              @click="handleRefresh"
+              :disabled="loading"
+              :title="languageStore.t('refresh', 'Refresh')"
+              class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+            >
+              <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+            </button>
 
-          <button
-            type="button"
-            @click="toggleFullscreen"
-            :title="languageStore.t('fullscreen', 'Toggle Fullscreen')"
-            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
-          >
-            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
-          </button>
+            <button
+              type="button"
+              @click="toggleFullscreen"
+              :title="languageStore.t('fullscreen', 'Toggle Fullscreen')"
+              class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+            >
+              <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
+      <!-- Filter Drawer -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -562,11 +566,28 @@ watch(
         </div>
       </Transition>
 
+      <!-- Unified Scrollable Table Card -->
       <div
         class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
       >
-        <div class="hidden md:block overflow-x-auto w-full">
-          <table class="w-full text-left border-collapse">
+        <!-- Mobile Horizontal Scroll Hint -->
+        <div
+          class="md:hidden flex items-center justify-between px-3.5 py-2 bg-slate-50/90 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 select-none"
+        >
+          <span class="flex items-center gap-1.5 font-semibold">
+            <span>👈</span>
+            <span>{{
+              languageStore.t('scroll_horizontal', 'Swipe table horizontally to see all columns')
+            }}</span>
+            <span>👉</span>
+          </span>
+          <span class="font-bold text-purple-600 dark:text-purple-400">
+            {{ totalRecords }} {{ languageStore.t('guests', 'guests') }}
+          </span>
+        </div>
+
+        <div class="overflow-x-auto w-full min-h-[360px]" style="-webkit-overflow-scrolling: touch">
+          <table class="w-full min-w-[850px] text-left border-collapse">
             <thead
               class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
             >
@@ -676,8 +697,9 @@ watch(
 
                   <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
                     <button
+                      type="button"
                       @click="openCheckOutModal(checkIn)"
-                      class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer active:scale-98"
                     >
                       <LogOut class="w-3.5 h-3.5" />
                       <span>{{ languageStore.t('Check Out', 'Check Out') }}</span>
@@ -703,57 +725,12 @@ watch(
           </table>
         </div>
 
-        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-          <div
-            v-if="loading"
-            class="py-16 text-center flex flex-col items-center justify-center gap-3"
-          >
-            <Loader2 class="w-8 h-8 text-rose-600 dark:text-rose-400 animate-spin" />
-            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{
-              languageStore.t('loading_checkout_records', 'Loading checkout records...')
-            }}</span>
-          </div>
-          <template v-else>
-            <div
-              v-for="checkIn in paginatedCheckIns"
-              :key="checkIn.id"
-              class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
-            >
-              <div class="flex items-center justify-between">
-                <span class="font-bold text-slate-900 dark:text-white text-sm">
-                  {{ checkIn.guest?.first_name }} {{ checkIn.guest?.last_name }}
-                </span>
-                <span
-                  class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 border border-blue-500/20"
-                >
-                  {{ calculateStayDuration(checkIn.checked_in_at) }}
-                </span>
-              </div>
-              <div
-                class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400"
-              >
-                <span>Room {{ checkIn.room?.room_number }}</span>
-                <span>Exp: {{ formatDate(checkIn.expected_check_out_at) }}</span>
-              </div>
-              <div
-                class="flex items-center justify-end pt-1 border-t border-slate-100 dark:border-slate-800 text-xs font-bold"
-              >
-                <button
-                  @click="openCheckOutModal(checkIn)"
-                  class="px-3 py-1.5 bg-rose-600 text-white rounded-xl font-bold text-xs"
-                >
-                  {{ languageStore.t('Check Out', 'Check Out') }}
-                </button>
-              </div>
-            </div>
-          </template>
-        </div>
-
+        <!-- Responsive Pagination -->
         <div
-          v-if="filteredCheckIns.length > 0"
-          class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+          v-if="totalRecords > 0"
+          class="border-t border-slate-200 dark:border-slate-800/80 px-3.5 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
-          <div class="text-slate-500 dark:text-slate-400 font-medium">
+          <div class="text-slate-500 dark:text-slate-400 font-medium text-center sm:text-left">
             {{ languageStore.t('Showing', 'Showing') }}
             <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
             {{ languageStore.t('to', 'to') }}
@@ -763,7 +740,9 @@ watch(
             {{ languageStore.t('active_in_house_guests', 'active guests') }}
           </div>
 
-          <div class="flex items-center gap-2 sm:gap-3">
+          <div
+            class="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto"
+          >
             <div class="flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{
                 languageStore.t('Per page:', 'Per page:')
@@ -789,19 +768,27 @@ watch(
                 <ChevronLeft class="w-4 h-4" />
               </button>
 
-              <button
-                v-for="page in paginationPages"
-                :key="page"
-                @click="goToPage(page)"
-                class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
-                :class="[
-                  currentPage === page
-                    ? 'bg-purple-600 text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
-                ]"
-              >
-                {{ page }}
-              </button>
+              <!-- Mobile concise page display -->
+              <div class="sm:hidden px-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                {{ currentPage }} / {{ lastPage }}
+              </div>
+
+              <!-- Desktop page buttons -->
+              <div class="hidden sm:flex items-center gap-1">
+                <button
+                  v-for="page in paginationPages"
+                  :key="page"
+                  @click="goToPage(page)"
+                  class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+                  :class="[
+                    currentPage === page
+                      ? 'bg-purple-600 text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
+                  ]"
+                >
+                  {{ page }}
+                </button>
+              </div>
 
               <button
                 @click="nextPage"
@@ -815,12 +802,13 @@ watch(
         </div>
       </div>
 
+      <!-- Responsive Check-Out Confirmation Modal -->
       <div
         v-if="showCheckOutModal && selectedCheckIn"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4"
       >
         <div
-          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4"
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
         >
           <div class="flex items-center gap-3">
             <div

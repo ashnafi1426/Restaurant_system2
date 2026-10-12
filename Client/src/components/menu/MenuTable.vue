@@ -1,5 +1,6 @@
 <template>
   <div class="w-full">
+    <!-- Loading State -->
     <div
       v-if="loading"
       class="py-20 px-4 text-center flex flex-col items-center justify-center space-y-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs"
@@ -7,616 +8,289 @@
       <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
       <div class="space-y-0.5">
         <p class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200">
-          Loading Menu Items...
+          {{ languageStore.t('loading_menu_items', 'Loading Menu Items...') }}
         </p>
         <p class="text-[11px] text-slate-500 dark:text-slate-400">
-          Fetching dishes, prices, and kitchen availability
+          {{
+            languageStore.t(
+              'fetching_dishes_info',
+              'Fetching dishes, prices, and kitchen availability',
+            )
+          }}
         </p>
       </div>
     </div>
 
-    <template v-else>
+    <!-- Unified Responsive Table -->
+    <div
+      v-else-if="items.length > 0"
+      class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden font-sans w-full"
+    >
+      <!-- Mobile Horizontal Scroll Hint -->
       <div
-        class="hidden md:block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden"
+        class="md:hidden flex items-center justify-between px-3.5 py-2 bg-slate-50/90 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 select-none"
       >
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead
-              class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
+        <span class="flex items-center gap-1.5 font-semibold">
+          <span>👈</span>
+          <span>{{
+            languageStore.t('scroll_horizontal', 'Swipe table horizontally to see all columns')
+          }}</span>
+          <span>👉</span>
+        </span>
+        <span class="font-bold text-blue-600 dark:text-blue-400">
+          {{ items.length }} {{ languageStore.t('dishes', 'dishes') }}
+        </span>
+      </div>
+
+      <div class="overflow-x-auto w-full min-h-[360px]" style="-webkit-overflow-scrolling: touch">
+        <table class="w-full min-w-[850px] text-left border-collapse">
+          <thead
+            class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
+          >
+            <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
+              <th class="py-3 px-4 pl-5 whitespace-nowrap">
+                {{ languageStore.t('item_name', 'Item Name') }}
+              </th>
+              <th class="py-3 px-4 whitespace-nowrap">
+                {{ languageStore.t('category', 'Category') }}
+              </th>
+              <th class="py-3 px-4 whitespace-nowrap font-mono">
+                {{ languageStore.t('price', 'Price') }}
+              </th>
+              <th class="py-3 px-4 text-center whitespace-nowrap">
+                {{ languageStore.t('status', 'Status') }}
+              </th>
+              <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">
+                {{ languageStore.t('actions', 'Actions') }}
+              </th>
+            </tr>
+          </thead>
+          <tbody
+            class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs font-medium text-slate-600 dark:text-slate-300"
+          >
+            <tr
+              v-for="(item, index) in items"
+              :key="item.id"
+              class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
+              :class="{
+                'relative z-30 bg-blue-50/30 dark:bg-[#13233c]/40':
+                  activeMenuId === item.id,
+              }"
             >
-              <tr class="text-[11px] font-bold text-slate-500 dark:text-slate-400 select-none">
-                <th class="py-3 px-4 pl-5 whitespace-nowrap">Item Name</th>
-                <th class="py-3 px-4 whitespace-nowrap">Category</th>
-                <th class="py-3 px-4 whitespace-nowrap font-mono">Price</th>
-                <th class="py-3 px-4 text-center whitespace-nowrap">Status</th>
-                <th class="py-3 px-4 text-right pr-5 whitespace-nowrap">Actions</th>
-              </tr>
-            </thead>
-            <tbody
-              class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs font-medium text-slate-600 dark:text-slate-300"
-            >
-              <tr
-                v-for="item in items"
-                :key="item.id"
-                class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
-              >
-                <td class="py-3 px-4 pl-5 flex items-center gap-3">
+              <!-- Item Column -->
+              <td class="py-3 px-4 pl-5 whitespace-nowrap">
+                <div class="flex items-center gap-3">
                   <div class="relative flex-shrink-0">
                     <img
                       :src="item.image_url || '/images/placeholder.png'"
-                      class="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 shadow-xs transition-transform duration-200 group-hover:scale-[1.02]"
+                      class="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 shadow-xs transition-transform duration-200 group-hover:scale-[1.03]"
                       alt="Food preview"
                       onerror="this.src = '/images/placeholder.png'"
                     />
                   </div>
                   <div class="min-w-0 flex flex-col justify-center gap-0.5">
                     <div
-                      class="font-extrabold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-xs sm:text-sm tracking-wide truncate"
+                      class="font-extrabold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-xs sm:text-sm tracking-wide truncate max-w-[220px]"
                     >
                       {{ item.name }}
                     </div>
                     <div
-                      class="text-[10px] text-slate-400 dark:text-slate-500 font-medium truncate max-w-[220px]"
+                      class="text-[10px] text-slate-400 dark:text-slate-500 font-medium truncate max-w-[240px]"
                     >
-                      {{ item.description || 'Served hot and fresh...' }}
+                      {{ item.description || languageStore.t('fresh_dish_desc', 'Served hot and fresh...') }}
                     </div>
-                  </div>
-                </td>
-
-                <td class="py-3 px-4 align-middle whitespace-nowrap">
-                  <span
-                    :class="getCategoryBadgeClass(item.category)"
-                    class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold tracking-wider uppercase border"
-                  >
-                    {{ getCategoryName(item.category) }}
-                  </span>
-                </td>
-
-                <td class="py-3 px-4 align-middle font-mono">
-                  <div
-                    class="font-black text-slate-900 dark:text-white text-xs sm:text-sm tracking-wide"
-                  >
-                    ETB
-                    {{
-                      (item.total_price !== undefined
-                        ? item.total_price
-                        : Number(item.price)
-                      ).toFixed(2)
-                    }}
-                  </div>
-                  <div
-                    v-if="item.tax_rate && Number(item.tax_rate.rate) > 0"
-                    class="text-[10px] font-sans font-medium text-slate-400 dark:text-slate-500"
-                  >
-                    <span
-                      v-if="item.tax_included"
-                      class="text-emerald-600 dark:text-emerald-400 font-semibold"
-                    >
-                      Incl. {{ item.tax_rate.rate }}% {{ item.tax_rate.name || 'VAT' }}
-                    </span>
-                    <span v-else>
-                      ETB {{ Number(item.price).toFixed(2) }} + {{ item.tax_rate.rate }}% tax
-                    </span>
-                  </div>
-                  <div v-else class="text-[10px] font-sans text-slate-400">No Tax</div>
-                </td>
-
-                <td class="py-3 px-4 align-middle text-center whitespace-nowrap">
-                  <span
-                    @click="$emit('toggle', item)"
-                    class="inline-flex items-center gap-1.5 font-bold cursor-pointer select-none group/status transition text-xs"
-                  >
-                    <span class="w-1.5 h-1.5 rounded-full relative flex flex-shrink-0">
-                      <span
-                        :class="item.is_available ? 'bg-emerald-400' : 'bg-rose-400'"
-                        class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-40"
-                      ></span>
-                      <span
-                        :class="item.is_available ? 'bg-emerald-500' : 'bg-rose-500'"
-                        class="relative inline-flex rounded-full h-full w-full"
-                      ></span>
-                    </span>
-                    <span
-                      class="text-xs font-bold text-slate-600 dark:text-slate-300 group-hover/status:text-slate-900 dark:group-hover/status:text-white transition-colors"
-                    >
-                      {{ item.is_available ? 'Available' : 'Out of Stock' }}
-                    </span>
-                  </span>
-                </td>
-
-                <td
-                  class="py-3 px-4 text-right pr-5 align-middle relative whitespace-nowrap"
-                  data-menu-container
-                >
-                  <div class="flex justify-end">
-                    <button
-                      @click.stop="toggleRowMenu(item.id)"
-                      class="text-slate-400 hover:text-slate-800 p-2 rounded-xl transition hover:bg-slate-100 inline-flex items-center justify-center min-h-10 w-10"
-                    >
-                      <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                        <path
-                          d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-
-                  <div
-                    v-if="activeMenuId === item.id"
-                    class="absolute right-8 top-14 bg-white shadow-xl border border-slate-200/80 rounded-xl py-1 z-40 w-44 text-left animate-in fade-in zoom-in-95 duration-100"
-                  >
-                    <button
-                      @click="
-                        () => {
-                          $emit('edit', item)
-                          activeMenuId = null
-                        }
-                      "
-                      class="w-full text-xs font-bold px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors min-h-10"
-                    >
-                      <svg
-                        class="w-4 h-4 text-slate-400 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                      <span class="truncate">Modify Item</span>
-                    </button>
-                    <button
-                      @click="
-                        () => {
-                          $emit('toggle', item)
-                          activeMenuId = null
-                        }
-                      "
-                      class="w-full text-xs font-bold px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors min-h-10"
-                    >
-                      <svg
-                        class="w-4 h-4 text-slate-400 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                      <span class="truncate">Check Status</span>
-                    </button>
-                    <div class="border-t border-slate-100 my-1"></div>
-                    <button
-                      @click="
-                        () => {
-                          $emit('delete', item)
-                          activeMenuId = null
-                        }
-                      "
-                      class="w-full text-xs font-extrabold px-4 py-2.5 text-rose-600 hover:bg-rose-50 flex items-center gap-3 transition-colors min-h-10"
-                    >
-                      <svg
-                        class="w-4 h-4 text-rose-500 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                      <span class="truncate">Remove Record</span>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div
-        class="hidden sm:block md:hidden bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden"
-      >
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr
-                class="border-b border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-400 uppercase tracking-wider select-none"
-              >
-                <th class="py-3 px-4 w-[40%]">Item</th>
-                <th class="py-3 px-3 w-[20%]">Category</th>
-                <th class="py-3 px-3 w-[15%]">Status</th>
-                <th class="py-3 px-4 text-right w-[12%]">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 text-xs font-medium text-slate-600">
-              <tr
-                v-for="item in items"
-                :key="item.id"
-                class="hover:bg-slate-50/50 transition-colors duration-150 group"
-              >
-                <td class="py-4 px-4 flex items-center gap-3">
-                  <div class="relative flex-shrink-0">
-                    <img
-                      :src="item.image_url || '/images/placeholder.png'"
-                      class="w-10 h-10 rounded-lg object-cover border border-slate-200 bg-slate-50 shadow-sm transition-transform duration-200 group-hover:scale-[1.02]"
-                      alt="Food preview"
-                      onerror="this.src = '/images/placeholder.png'"
-                    />
-                  </div>
-                  <div class="min-w-0 flex flex-col justify-center gap-0.5">
-                    <div
-                      class="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors text-xs tracking-wide truncate"
-                    >
-                      {{ item.name }}
-                    </div>
-                    <div class="text-xs text-slate-400 font-medium truncate">
-                      Total:
-                      <span class="font-bold text-slate-900"
-                        >ETB
-                        {{
-                          (item.total_price !== undefined
-                            ? item.total_price
-                            : Number(item.price)
-                          ).toFixed(2)
-                        }}</span
-                      >
-                      <span
-                        v-if="item.tax_rate && Number(item.tax_rate.rate) > 0"
-                        class="text-[10px] text-slate-400 ml-1"
-                      >
-                        ({{
-                          item.tax_included
-                            ? 'Tax Incl.'
-                            : `+ETB ${(item.tax_amount || 0).toFixed(2)} tax`
-                        }})
-                      </span>
-                    </div>
-                  </div>
-                </td>
-
-                <td class="py-4 px-3 align-middle whitespace-nowrap">
-                  <span
-                    :class="getCategoryBadgeClass(item.category)"
-                    class="inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-bold tracking-wider uppercase border"
-                  >
-                    {{ getCategoryName(item.category) }}
-                  </span>
-                </td>
-
-                <td class="py-4 px-3 align-middle whitespace-nowrap">
-                  <span
-                    @click="$emit('toggle', item)"
-                    class="inline-flex items-center gap-1.5 font-bold cursor-pointer select-none group/status transition text-xs"
-                  >
-                    <span class="w-1.5 h-1.5 rounded-full relative flex flex-shrink-0">
-                      <span
-                        :class="item.is_available ? 'bg-emerald-400' : 'bg-rose-400'"
-                        class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-40"
-                      ></span>
-                      <span
-                        :class="item.is_available ? 'bg-emerald-500' : 'bg-rose-500'"
-                        class="relative inline-flex rounded-full h-full w-full"
-                      ></span>
-                    </span>
-                    <span
-                      class="text-xs font-bold text-slate-600 group-hover/status:text-slate-900 transition-colors hidden sm:inline"
-                    >
-                      {{ item.is_available ? 'Avail' : 'OOS' }}
-                    </span>
-                  </span>
-                </td>
-
-                <td
-                  class="py-4 px-4 text-right align-middle relative whitespace-nowrap"
-                  data-menu-container
-                >
-                  <div class="flex justify-end">
-                    <button
-                      @click.stop="toggleRowMenu(item.id)"
-                      class="text-slate-400 hover:text-slate-800 p-1.5 rounded-lg transition hover:bg-slate-100 inline-flex items-center justify-center min-h-9 w-9"
-                    >
-                      <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                        <path
-                          d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-
-                  <div
-                    v-if="activeMenuId === item.id"
-                    class="absolute right-4 top-10 bg-white shadow-xl border border-slate-200/80 rounded-lg py-1 z-40 w-40 text-left animate-in fade-in zoom-in-95 duration-100"
-                  >
-                    <button
-                      @click="
-                        () => {
-                          $emit('edit', item)
-                          activeMenuId = null
-                        }
-                      "
-                      class="w-full text-xs font-bold px-3 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors min-h-9"
-                    >
-                      <svg
-                        class="w-3 h-3 text-slate-400 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                      <span class="truncate text-xs">Edit</span>
-                    </button>
-                    <button
-                      @click="
-                        () => {
-                          $emit('toggle', item)
-                          activeMenuId = null
-                        }
-                      "
-                      class="w-full text-xs font-bold px-3 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors min-h-9"
-                    >
-                      <svg
-                        class="w-3 h-3 text-slate-400 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                      <span class="truncate text-xs">Status</span>
-                    </button>
-                    <div class="border-t border-slate-100 my-1"></div>
-                    <button
-                      @click="
-                        () => {
-                          $emit('delete', item)
-                          activeMenuId = null
-                        }
-                      "
-                      class="w-full text-xs font-extrabold px-3 py-2 text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition-colors min-h-9"
-                    >
-                      <svg
-                        class="w-3 h-3 text-rose-500 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                      <span class="truncate text-xs">Delete</span>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="sm:hidden space-y-3">
-        <div
-          v-for="item in items"
-          :key="item.id"
-          class="bg-white rounded-lg border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-150"
-        >
-          <div class="p-4 border-b border-slate-100" data-menu-container>
-            <div class="flex items-start gap-3 mb-3">
-              <div class="relative flex-shrink-0">
-                <img
-                  :src="item.image_url || '/images/placeholder.png'"
-                  class="w-16 h-16 rounded-lg object-cover border border-slate-200 bg-slate-50 shadow-sm"
-                  alt="Food preview"
-                  onerror="this.src = '/images/placeholder.png'"
-                />
-              </div>
-
-              <div class="min-w-0 flex-1">
-                <h3 class="font-bold text-slate-900 text-sm leading-tight mb-1 truncate">
-                  {{ item.name }}
-                </h3>
-                <p class="text-xs text-slate-400 mb-2 truncate">
-                  {{ item.description || 'Served hot and fresh...' }}
-                </p>
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span
-                    :class="getCategoryBadgeClass(item.category)"
-                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold tracking-wider uppercase border"
-                  >
-                    {{ getCategoryName(item.category) }}
-                  </span>
-                  <div class="flex flex-col items-end">
-                    <span class="font-black text-slate-900 text-sm font-mono">
-                      ETB
-                      {{
-                        (item.total_price !== undefined
-                          ? item.total_price
-                          : Number(item.price)
-                        ).toFixed(2)
-                      }}
-                    </span>
-                    <span
-                      v-if="item.tax_rate && Number(item.tax_rate.rate) > 0"
-                      class="text-[9px] text-slate-400"
-                    >
-                      {{
-                        item.tax_included
-                          ? 'Tax Incl.'
-                          : `+ETB ${(item.tax_amount || 0).toFixed(2)} tax`
-                      }}
-                    </span>
                   </div>
                 </div>
-              </div>
+              </td>
 
-              <div class="flex-shrink-0">
-                <button
-                  @click.stop="toggleRowMenu(item.id)"
-                  class="text-slate-400 hover:text-slate-800 p-1.5 rounded-lg transition hover:bg-slate-100 inline-flex items-center justify-center min-h-9 w-9"
-                >
-                  <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path
-                      d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <span
-                @click="$emit('toggle', item)"
-                class="inline-flex items-center gap-2 font-bold cursor-pointer select-none group/status transition text-xs"
-              >
-                <span class="w-2 h-2 rounded-full relative flex flex-shrink-0">
-                  <span
-                    :class="item.is_available ? 'bg-emerald-400' : 'bg-rose-400'"
-                    class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-40"
-                  ></span>
-                  <span
-                    :class="item.is_available ? 'bg-emerald-500' : 'bg-rose-500'"
-                    class="relative inline-flex rounded-full h-full w-full"
-                  ></span>
-                </span>
+              <!-- Category Column -->
+              <td class="py-3 px-4 align-middle whitespace-nowrap">
                 <span
-                  class="text-xs font-bold text-slate-600 group-hover/status:text-slate-900 transition-colors"
+                  :class="getCategoryBadgeClass(item.category)"
+                  class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold tracking-wider uppercase border"
                 >
-                  {{ item.is_available ? 'Available' : 'Out of Stock' }}
+                  {{ getCategoryName(item.category) }}
                 </span>
-              </span>
-            </div>
-          </div>
+              </td>
 
-          <div
-            v-if="activeMenuId === item.id"
-            class="bg-slate-50/50 border-t border-slate-100"
-            data-menu-container
-          >
-            <button
-              @click="
-                () => {
-                  $emit('edit', item)
-                  activeMenuId = null
-                }
-              "
-              class="w-full px-4 py-3 text-left flex items-center gap-3 text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-100"
-            >
-              <svg
-                class="w-4 h-4 text-slate-400 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                viewBox="0 0 24 24"
+              <!-- Price Column -->
+              <td class="py-3 px-4 align-middle font-mono whitespace-nowrap">
+                <div
+                  class="font-black text-slate-900 dark:text-white text-xs sm:text-sm tracking-wide"
+                >
+                  ETB
+                  {{
+                    (item.total_price !== undefined
+                      ? item.total_price
+                      : Number(item.price)
+                    ).toFixed(2)
+                  }}
+                </div>
+                <div
+                  v-if="item.tax_rate && Number(item.tax_rate.rate) > 0"
+                  class="text-[10px] font-sans font-medium text-slate-400 dark:text-slate-500"
+                >
+                  <span
+                    v-if="item.tax_included"
+                    class="text-emerald-600 dark:text-emerald-400 font-semibold"
+                  >
+                    Incl. {{ item.tax_rate.rate }}% {{ item.tax_rate.name || 'VAT' }}
+                  </span>
+                  <span v-else>
+                    ETB {{ Number(item.price).toFixed(2) }} + {{ item.tax_rate.rate }}% tax
+                  </span>
+                </div>
+                <div v-else class="text-[10px] font-sans text-slate-400">
+                  {{ languageStore.t('no_tax', 'No Tax') }}
+                </div>
+              </td>
+
+              <!-- Status Column -->
+              <td class="py-3 px-4 align-middle text-center whitespace-nowrap">
+                <button
+                  type="button"
+                  @click.stop="$emit('toggle', item)"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold border transition cursor-pointer select-none"
+                  :class="
+                    item.is_available
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
+                      : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 hover:bg-rose-500/20'
+                  "
+                  :title="languageStore.t('toggle_availability_tip', 'Click to toggle availability')"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full relative flex flex-shrink-0">
+                    <span
+                      :class="item.is_available ? 'bg-emerald-400' : 'bg-rose-400'"
+                      class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-40"
+                    ></span>
+                    <span
+                      :class="item.is_available ? 'bg-emerald-500' : 'bg-rose-500'"
+                      class="relative inline-flex rounded-full h-full w-full"
+                    ></span>
+                  </span>
+                  <span>{{
+                    item.is_available
+                      ? languageStore.t('available', 'Available')
+                      : languageStore.t('out_of_stock', 'Out of Stock')
+                  }}</span>
+                </button>
+              </td>
+
+              <!-- Actions Column -->
+              <td
+                class="py-3 px-4 text-right pr-5 align-middle relative whitespace-nowrap"
+                :class="{ 'z-50': activeMenuId === item.id }"
+                @click.stop
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
-              <div class="text-sm font-bold">Modify Item</div>
-            </button>
-            <button
-              @click="
-                () => {
-                  $emit('toggle', item)
-                  activeMenuId = null
-                }
-              "
-              class="w-full px-4 py-3 text-left flex items-center gap-3 text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-100"
-            >
-              <svg
-                class="w-4 h-4 text-slate-400 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                />
-              </svg>
-              <div class="text-sm font-bold">Check Status</div>
-            </button>
-            <button
-              @click="
-                () => {
-                  $emit('delete', item)
-                  activeMenuId = null
-                }
-              "
-              class="w-full px-4 py-3 text-left flex items-center gap-3 text-rose-600 hover:bg-rose-50 transition-colors"
-            >
-              <svg
-                class="w-4 h-4 text-rose-500 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-              <div class="text-sm font-bold">Remove Record</div>
-            </button>
-          </div>
-        </div>
+                <div class="flex items-center justify-end gap-1.5">
+                  <button
+                    type="button"
+                    @click.stop="$emit('edit', item)"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 shadow-2xs text-xs font-bold transition cursor-pointer"
+                    :title="languageStore.t('modify_item', 'Modify Item')"
+                  >
+                    <Edit class="w-3.5 h-3.5 stroke-[2.2]" />
+                    <span class="hidden sm:inline">{{ languageStore.t('edit', 'Edit') }}</span>
+                  </button>
+
+                  <div class="relative inline-block text-left action-dropdown-container">
+                    <button
+                      type="button"
+                      @click.stop="toggleRowMenu(item.id, $event)"
+                      class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 shadow-xs transition cursor-pointer"
+                      :class="{
+                        'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-400 dark:border-blue-500 shadow-sm ring-2 ring-blue-500/20':
+                          activeMenuId === item.id,
+                      }"
+                      :title="languageStore.t('actions', 'Actions')"
+                    >
+                      <MoreVertical class="w-4 h-4 stroke-[2.5]" />
+                    </button>
+
+                    <Transition
+                      enter-active-class="transition duration-100 ease-out"
+                      enter-from-class="transform scale-95 opacity-0 -translate-y-2"
+                      enter-to-class="transform scale-100 opacity-100 translate-y-0"
+                      leave-active-class="transition duration-75 ease-in"
+                      leave-from-class="transform scale-100 opacity-100 translate-y-0"
+                      leave-to-class="transform scale-95 opacity-0 -translate-y-2"
+                    >
+                      <div
+                        v-if="activeMenuId === item.id"
+                        class="absolute right-0 z-50 w-48 rounded-2xl bg-white dark:bg-[#0f1d32] border border-slate-200 dark:border-slate-800 shadow-2xl p-1.5 space-y-0.5 text-left focus:outline-none"
+                        :class="[
+                          index >= items.length - 2 && items.length > 2
+                            ? 'bottom-full mb-1.5'
+                            : 'top-full mt-1.5',
+                        ]"
+                        @click.stop
+                      >
+                        <button
+                          type="button"
+                          @click="handleAction(() => $emit('edit', item))"
+                          class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer text-left"
+                        >
+                          <Edit class="w-4 h-4 text-blue-500 flex-shrink-0" />
+                          <span>{{ languageStore.t('modify_item', 'Modify Item') }}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          @click="handleAction(() => $emit('toggle', item))"
+                          class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer text-left"
+                        >
+                          <CheckCircle2
+                            v-if="!item.is_available"
+                            class="w-4 h-4 text-emerald-500 flex-shrink-0"
+                          />
+                          <XCircle
+                            v-else
+                            class="w-4 h-4 text-amber-500 flex-shrink-0"
+                          />
+                          <span>{{
+                            item.is_available
+                              ? languageStore.t('mark_out_of_stock', 'Mark Out of Stock')
+                              : languageStore.t('mark_available', 'Mark Available')
+                          }}</span>
+                        </button>
+
+                        <div class="my-1 border-t border-slate-100 dark:border-slate-800"></div>
+
+                        <button
+                          type="button"
+                          @click="handleAction(() => $emit('delete', item))"
+                          class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer text-left"
+                        >
+                          <Trash2 class="w-4 h-4 text-rose-500 flex-shrink-0" />
+                          <span>{{ languageStore.t('remove_record', 'Remove Record') }}</span>
+                        </button>
+                      </div>
+                    </Transition>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </template>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Loader2 } from 'lucide-vue-next'
+import {
+  Loader2,
+  MoreVertical,
+  Edit,
+  CheckCircle2,
+  XCircle,
+  Trash2,
+} from 'lucide-vue-next'
+import { useLanguageStore } from '@/stores/language'
 import type { MenuItem } from '@/types/menu'
+
+const languageStore = useLanguageStore()
 
 defineProps<{
   items: MenuItem[]
@@ -627,8 +301,18 @@ defineEmits(['edit', 'delete', 'toggle'])
 
 const activeMenuId = ref<string | number | null>(null)
 
-function toggleRowMenu(id: string | number) {
+function toggleRowMenu(id: string | number, e?: MouseEvent) {
+  if (e) e.stopPropagation()
   activeMenuId.value = activeMenuId.value === id ? null : id
+}
+
+function closeRowMenu() {
+  activeMenuId.value = null
+}
+
+function handleAction(actionFn: () => void) {
+  closeRowMenu()
+  actionFn()
 }
 
 function getCategoryName(category: any): string {
@@ -644,39 +328,29 @@ function getCategoryBadgeClass(category: any) {
   const catName = getCategoryName(category).toLowerCase()
   switch (catName) {
     case 'dinner':
-      return 'bg-emerald-50 text-emerald-600 border-emerald-100/60'
+      return 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/40'
     case 'lunch':
-      return 'bg-purple-50 text-purple-600 border-purple-100/60'
+      return 'bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800/40'
     case 'breakfast':
-      return 'bg-blue-50 text-blue-600 border-blue-100/60'
+      return 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800/40'
     case 'drinks':
-      return 'bg-orange-50 text-orange-600 border-orange-100/60'
+    case 'beverages':
+      return 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-800/40'
     case 'dessert':
     case 'desserts':
-      return 'bg-rose-50 text-rose-600 border-rose-100/60'
+      return 'bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800/40'
     case 'pasta':
-      return 'bg-amber-50 text-amber-600 border-amber-100/60'
+      return 'bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800/40'
     default:
-      return 'bg-slate-50 text-slate-600 border-slate-200'
-  }
-}
-
-const globalClickOverlayDismiss = (e: MouseEvent) => {
-  const target = e.target as HTMLElement
-  const isMenuOpen = activeMenuId.value !== null
-
-  const isInsideMenu = target.closest('[data-menu-container]')
-
-  if (isMenuOpen && !isInsideMenu) {
-    activeMenuId.value = null
+      return 'bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
   }
 }
 
 onMounted(() => {
-  window.addEventListener('click', globalClickOverlayDismiss)
+  window.addEventListener('click', closeRowMenu)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('click', globalClickOverlayDismiss)
+  window.removeEventListener('click', closeRowMenu)
 })
 </script>

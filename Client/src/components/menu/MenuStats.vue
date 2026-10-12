@@ -1,10 +1,10 @@
 <template>
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
     <div
       v-for="card in dynamicStatCards"
       :key="card.key"
       @click="$emit('select', selectedCategory === card.key ? null : card.key)"
-      class="bg-white dark:bg-slate-900 rounded-2xl p-4 border transition duration-200 hover:shadow-md cursor-pointer flex flex-col justify-between select-none relative group shadow-xs"
+      class="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-4 border transition duration-200 hover:shadow-md cursor-pointer flex flex-col justify-between select-none relative group shadow-xs"
       :class="
         selectedCategory === card.key
           ? 'border-amber-500 ring-2 ring-amber-500/20'
@@ -13,21 +13,21 @@
     >
       <div class="flex items-center justify-between">
         <span
-          class="text-[10px] font-black tracking-wider text-slate-400 dark:text-slate-500 uppercase"
+          class="text-[10px] font-black tracking-wider text-slate-400 dark:text-slate-500 uppercase truncate"
           >{{ languageStore.t(card.key, card.title) }}</span
         >
         <div
-          class="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:bg-amber-500/20 transition-colors"
+          class="p-1.5 sm:p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 group-hover:bg-amber-500/20 transition-colors flex-shrink-0"
         >
-          <component :is="card.iconComponent" class="w-5 h-5" />
+          <component :is="card.iconComponent" class="w-4 h-4 sm:w-5 sm:h-5" />
         </div>
       </div>
 
-      <div class="mt-4">
-        <span class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+      <div class="mt-3 sm:mt-4">
+        <span class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
           {{ card.count }}
         </span>
-        <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 ml-1">{{
+        <span class="text-[11px] sm:text-xs font-semibold text-slate-400 dark:text-slate-500 ml-1">{{
           languageStore.t('items_count', 'Items')
         }}</span>
       </div>

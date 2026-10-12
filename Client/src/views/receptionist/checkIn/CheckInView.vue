@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import CheckInDialog from '@/components/checkin/CheckinDialog.vue'
@@ -28,6 +28,7 @@ import {
   Building,
   Building2,
   Loader2,
+  MoreVertical,
 } from 'lucide-vue-next'
 
 import { useCheckInStore } from '@/stores/checkInStore'
@@ -291,8 +292,29 @@ const formatDate = (date?: string) => {
   }
 }
 
+const openDropdownId = ref<string | null>(null)
+
+const toggleDropdown = (id: string | number, e: MouseEvent) => {
+  e.stopPropagation()
+  openDropdownId.value = openDropdownId.value === String(id) ? null : String(id)
+}
+
+const closeDropdown = () => {
+  openDropdownId.value = null
+}
+
+const handleAction = (actionFn: () => void) => {
+  closeDropdown()
+  actionFn()
+}
+
 onMounted(async () => {
+  window.addEventListener('click', closeDropdown)
   await Promise.all([loadCheckIns(), loadReservations()])
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeDropdown)
 })
 
 watch(
@@ -306,7 +328,7 @@ watch(
 <template>
   <DashboardLayout>
     <div
-      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
+      class="space-y-4 sm:space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-3 sm:p-6 max-w-full font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
       <CheckInDialog
@@ -323,8 +345,9 @@ watch(
         <span>{{ toastMessage }}</span>
       </div>
 
+      <!-- Header Card -->
       <div
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-2xl shadow-xs"
       >
         <div class="flex items-center gap-3">
           <div
@@ -333,16 +356,16 @@ watch(
             <LogIn class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                 {{ languageStore.t('guest_checkin_mgmt', 'Guest Check-In Management') }}
               </h1>
               <span
                 v-if="hotelStore.hotelName"
-                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50 flex-shrink-0"
               >
                 <Building2 class="w-3 h-3" />
-                {{ hotelStore.hotelName }}
+                <span class="truncate">{{ hotelStore.hotelName }}</span>
               </span>
               <span
                 class="text-[10px] uppercase font-black bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-md border border-blue-500/20"
@@ -362,9 +385,10 @@ watch(
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <!-- 3 Metrics Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
@@ -372,7 +396,7 @@ watch(
             >
               {{ languageStore.t('total_checkins', 'Total Check-Ins') }}
             </p>
-            <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">
               {{ totalCheckIns }}
             </h3>
           </div>
@@ -382,7 +406,7 @@ watch(
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
@@ -390,7 +414,7 @@ watch(
             >
               {{ languageStore.t('in_house_guests', 'In-House Guests') }}
             </p>
-            <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
               {{ activeGuestCount }}
             </h3>
           </div>
@@ -400,7 +424,7 @@ watch(
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
@@ -408,7 +432,7 @@ watch(
             >
               {{ languageStore.t('checked_out', 'Checked Out') }}
             </p>
-            <h3 class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">
               {{ checkedOutCount }}
             </h3>
           </div>
@@ -418,31 +442,32 @@ watch(
         </div>
       </div>
 
+      <!-- Responsive Toolbar -->
       <div
-        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+        class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <div class="relative flex-1">
-            <Search
-              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
-            />
-            <input
-              v-model="searchQuery"
-              type="text"
-              :placeholder="
-                languageStore.t(
-                  'search_checkin_ph',
-                  'Search by guest name, room #, reservation, email, phone...',
-                )
-              "
-              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
-            />
-          </div>
+        <div class="relative flex-1 min-w-0">
+          <Search
+            class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+          />
+          <input
+            v-model="searchQuery"
+            type="text"
+            :placeholder="
+              languageStore.t(
+                'search_checkin_ph',
+                'Search by guest name, room #, reservation, email, phone...',
+              )
+            "
+            class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
+          />
+        </div>
 
+        <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto">
           <button
             type="button"
             @click="toggleFilter"
-            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            class="inline-flex items-center gap-1.5 sm:gap-2 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
             :class="[
               isFilterOpen
                 ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
@@ -452,43 +477,44 @@ watch(
             <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
             <span>{{
               isFilterOpen
-                ? languageStore.t('hide_filter', 'Hide Filter')
+                ? languageStore.t('hide_filter', 'Filter')
                 : languageStore.t('filter', 'Filter')
             }}</span>
           </button>
-        </div>
 
-        <div class="flex items-center gap-2 sm:gap-2.5">
-          <button
-            type="button"
-            @click="handleRefresh"
-            :disabled="store.loading"
-            :title="languageStore.t('refresh', 'Refresh')"
-            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
-          >
-            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': store.loading }" />
-          </button>
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              @click="handleRefresh"
+              :disabled="store.loading"
+              :title="languageStore.t('refresh', 'Refresh')"
+              class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+            >
+              <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': store.loading }" />
+            </button>
 
-          <button
-            type="button"
-            @click="toggleFullscreen"
-            :title="languageStore.t('fullscreen', 'Toggle Fullscreen')"
-            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
-          >
-            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
-          </button>
+            <button
+              type="button"
+              @click="toggleFullscreen"
+              :title="languageStore.t('fullscreen', 'Toggle Fullscreen')"
+              class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+            >
+              <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+            </button>
+          </div>
 
           <button
             type="button"
             @click="openNewCheckInDialog"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm shadow-blue-600/30 transition active:scale-98 cursor-pointer flex-shrink-0"
+            class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm shadow-blue-600/30 transition active:scale-98 cursor-pointer flex-shrink-0"
           >
-            <Plus class="w-4 h-4" />
-            <span>{{ languageStore.t('new_checkin', 'New Check-In') }}</span>
+            <Plus class="w-4 h-4 text-white" />
+            <span class="text-white">{{ languageStore.t('new_checkin', 'New Check-In') }}</span>
           </button>
         </div>
       </div>
 
+      <!-- Filter Drawer -->
       <Transition
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="transform -translate-y-2 opacity-0 scale-98"
@@ -546,11 +572,28 @@ watch(
         </div>
       </Transition>
 
+      <!-- Unified Scrollable Table Card -->
       <div
         class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
       >
-        <div class="hidden md:block overflow-x-auto w-full">
-          <table class="w-full text-left border-collapse">
+        <!-- Mobile Horizontal Scroll Hint -->
+        <div
+          class="md:hidden flex items-center justify-between px-3.5 py-2 bg-slate-50/90 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 select-none"
+        >
+          <span class="flex items-center gap-1.5 font-semibold">
+            <span>👈</span>
+            <span>{{
+              languageStore.t('scroll_horizontal', 'Swipe table horizontally to see all columns')
+            }}</span>
+            <span>👉</span>
+          </span>
+          <span class="font-bold text-blue-600 dark:text-blue-400">
+            {{ totalRecords }} {{ languageStore.t('records', 'records') }}
+          </span>
+        </div>
+
+        <div class="overflow-x-auto w-full min-h-[360px]" style="-webkit-overflow-scrolling: touch">
+          <table class="w-full min-w-[850px] text-left border-collapse">
             <thead
               class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
             >
@@ -592,9 +635,13 @@ watch(
 
               <template v-else>
                 <tr
-                  v-for="checkIn in paginatedCheckIns"
+                  v-for="(checkIn, index) in paginatedCheckIns"
                   :key="checkIn.id"
                   class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
+                  :class="{
+                    'relative z-30 bg-blue-50/30 dark:bg-[#13233c]/40':
+                      openDropdownId === String(checkIn.id),
+                  }"
                 >
                   <td class="py-3 px-4 pl-5 whitespace-nowrap">
                     <div class="flex items-center gap-2.5">
@@ -667,24 +714,77 @@ watch(
                     </span>
                   </td>
 
-                  <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
-                    <div class="flex items-center justify-end gap-1">
+                  <td
+                    class="py-3 px-4 text-right pr-5 whitespace-nowrap relative"
+                    :class="{ 'z-50': openDropdownId === String(checkIn.id) }"
+                    @click.stop
+                  >
+                    <div class="flex items-center justify-end gap-1.5">
                       <button
                         v-if="!checkIn.checked_out_at"
-                        @click="handleCheckout(checkIn)"
-                        class="p-1.5 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-lg transition cursor-pointer"
+                        type="button"
+                        @click.stop="handleCheckout(checkIn)"
+                        class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-purple-200 dark:border-purple-900/60 bg-purple-50/70 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/60 shadow-2xs text-xs font-bold transition cursor-pointer"
                         :title="languageStore.t('Check Out', 'Check Out Guest')"
                       >
                         <LogOut class="w-3.5 h-3.5" />
+                        <span class="hidden sm:inline">{{ languageStore.t('Check Out', 'Check Out') }}</span>
                       </button>
 
-                      <button
-                        @click="handleDelete(checkIn)"
-                        class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
-                        :title="languageStore.t('Delete', 'Delete Record')"
-                      >
-                        <Trash2 class="w-3.5 h-3.5" />
-                      </button>
+                      <div class="relative inline-block text-left action-dropdown-container">
+                        <button
+                          type="button"
+                          @click.stop="toggleDropdown(String(checkIn.id), $event)"
+                          class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 shadow-xs transition cursor-pointer"
+                          :class="{
+                            'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border-blue-400 dark:border-blue-500 shadow-sm ring-2 ring-blue-500/20':
+                              openDropdownId === String(checkIn.id),
+                          }"
+                          :title="languageStore.t('Actions', 'Actions')"
+                        >
+                          <MoreVertical class="w-4 h-4 stroke-[2.5]" />
+                        </button>
+
+                        <Transition
+                          enter-active-class="transition duration-100 ease-out"
+                          enter-from-class="transform scale-95 opacity-0 -translate-y-2"
+                          enter-to-class="transform scale-100 opacity-100 translate-y-0"
+                          leave-active-class="transition duration-75 ease-in"
+                          leave-from-class="transform scale-100 opacity-100 translate-y-0"
+                          leave-to-class="transform scale-95 opacity-0 -translate-y-2"
+                        >
+                          <div
+                            v-if="openDropdownId === String(checkIn.id)"
+                            class="absolute right-0 z-50 w-48 rounded-2xl bg-white dark:bg-[#0f1d32] border border-slate-200 dark:border-slate-800 shadow-2xl p-1.5 space-y-0.5 text-left focus:outline-none"
+                            :class="[
+                              index >= paginatedCheckIns.length - 2 &&
+                              paginatedCheckIns.length > 2
+                                ? 'bottom-full mb-1.5'
+                                : 'top-full mt-1.5',
+                            ]"
+                            @click.stop
+                          >
+                            <button
+                              v-if="!checkIn.checked_out_at"
+                              type="button"
+                              @click="handleAction(() => handleCheckout(checkIn))"
+                              class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40 transition cursor-pointer text-left"
+                            >
+                              <LogOut class="w-4 h-4 text-purple-500 flex-shrink-0" />
+                              <span>{{ languageStore.t('Check Out', 'Check Out Guest') }}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              @click="handleAction(() => handleDelete(checkIn))"
+                              class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer text-left"
+                            >
+                              <Trash2 class="w-4 h-4 text-rose-500 flex-shrink-0" />
+                              <span>{{ languageStore.t('Delete', 'Delete Record') }}</span>
+                            </button>
+                          </div>
+                        </Transition>
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -707,70 +807,12 @@ watch(
           </table>
         </div>
 
-        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-          <div
-            v-if="store.loading"
-            class="py-16 text-center flex flex-col items-center justify-center gap-3"
-          >
-            <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{
-              languageStore.t('loading_checkin_records', 'Loading check-in records...')
-            }}</span>
-          </div>
-          <template v-else>
-            <div
-              v-for="checkIn in paginatedCheckIns"
-              :key="checkIn.id"
-              class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
-            >
-              <div class="flex items-center justify-between">
-                <span class="font-bold text-slate-900 dark:text-white text-sm">
-                  {{ getGuestName(checkIn.guest) }}
-                </span>
-                <span
-                  class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
-                  :class="
-                    !checkIn.checked_out_at
-                      ? 'bg-emerald-500/10 text-emerald-600'
-                      : 'bg-slate-100 text-slate-500'
-                  "
-                >
-                  {{
-                    !checkIn.checked_out_at
-                      ? languageStore.t('In House', 'In House')
-                      : languageStore.t('checked_out', 'Checked Out')
-                  }}
-                </span>
-              </div>
-              <div
-                class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400"
-              >
-                <span>Room {{ checkIn.room?.room_number || 'N/A' }}</span>
-                <span>In: {{ formatDate(checkIn.checked_in_at) }}</span>
-              </div>
-              <div
-                class="flex items-center justify-end gap-3 pt-1 border-t border-slate-100 dark:border-slate-800 text-xs font-bold"
-              >
-                <button
-                  v-if="!checkIn.checked_out_at"
-                  @click="handleCheckout(checkIn)"
-                  class="text-purple-600"
-                >
-                  {{ languageStore.t('Check Out', 'Check Out') }}
-                </button>
-                <button @click="handleDelete(checkIn)" class="text-rose-600">
-                  {{ languageStore.t('Delete', 'Delete') }}
-                </button>
-              </div>
-            </div>
-          </template>
-        </div>
-
+        <!-- Responsive Pagination -->
         <div
-          v-if="filteredCheckIns.length > 0"
-          class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+          v-if="totalRecords > 0"
+          class="border-t border-slate-200 dark:border-slate-800/80 px-3.5 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
-          <div class="text-slate-500 dark:text-slate-400 font-medium">
+          <div class="text-slate-500 dark:text-slate-400 font-medium text-center sm:text-left">
             {{ languageStore.t('Showing', 'Showing') }}
             <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
             {{ languageStore.t('to', 'to') }}
@@ -780,7 +822,9 @@ watch(
             {{ languageStore.t('records', 'records') }}
           </div>
 
-          <div class="flex items-center gap-2 sm:gap-3">
+          <div
+            class="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto"
+          >
             <div class="flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{
                 languageStore.t('Per page:', 'Per page:')
@@ -806,19 +850,27 @@ watch(
                 <ChevronLeft class="w-4 h-4" />
               </button>
 
-              <button
-                v-for="page in paginationPages"
-                :key="page"
-                @click="goToPage(page)"
-                class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
-                :class="[
-                  currentPage === page
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
-                ]"
-              >
-                {{ page }}
-              </button>
+              <!-- Mobile concise page display -->
+              <div class="sm:hidden px-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                {{ currentPage }} / {{ lastPage }}
+              </div>
+
+              <!-- Desktop page buttons -->
+              <div class="hidden sm:flex items-center gap-1">
+                <button
+                  v-for="page in paginationPages"
+                  :key="page"
+                  @click="goToPage(page)"
+                  class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+                  :class="[
+                    currentPage === page
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
+                  ]"
+                >
+                  {{ page }}
+                </button>
+              </div>
 
               <button
                 @click="nextPage"
