@@ -586,7 +586,7 @@ onBeforeUnmount(() => {
                 : 'border-l-rose-500'
             ]"
           >
-            <!-- Header Row: Name + Status Badge -->
+            <!-- Header Row: Name + Status Badge - Updated Responsive Design -->
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0 flex-1">
                 <h3 class="font-bold text-slate-900 dark:text-white text-base leading-tight">
