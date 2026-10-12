@@ -879,4 +879,4 @@ const handleDelete = (rt: RoomType) => {
     min-height: 48px;
   }
 }
-</style>
+</style>>
