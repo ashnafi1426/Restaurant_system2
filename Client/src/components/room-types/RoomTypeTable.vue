@@ -227,103 +227,149 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="space-y-3 font-sans w-full"
+    class="space-y-4 font-sans w-full max-w-full"
     :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
   >
-    <div
-      class="flex flex-col gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
-    >
-      <!-- Search and Filter Row -->
-      <div class="flex items-center gap-2.5 w-full">
-        <div class="relative flex-1 min-w-0">
-          <Search
-            class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
-          />
+    <!-- Mobile-First Responsive Toolbar -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
+      <!-- Mobile Layout: Full width stacked -->
+      <div class="block sm:hidden p-4 space-y-3">
+        <!-- Search Row -->
+        <div class="relative">
+          <Search class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             v-model="search"
             type="text"
-            :placeholder="
-              languageStore.t(
-                'search_room_types',
-                'Search room types by name, ID, or description...',
-              )
-            "
-            class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none min-h-[44px]"
+            :placeholder="languageStore.t('search_room_types', 'Search room types...')"
+            class="w-full h-12 pl-11 pr-4 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           />
         </div>
-
-        <button
-          type="button"
-          @click="toggleFilter"
-          class="inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0 min-h-[44px] min-w-[44px] justify-center"
-          :class="[
-            isFilterOpen
-              ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
-              : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
-          ]"
-        >
-          <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-          <span class="hidden sm:inline">{{
-            isFilterOpen
-              ? languageStore.t('hide_filters', 'Hide Filter')
-              : languageStore.t('filter', 'Filter')
-          }}</span>
-        </button>
+        
+        <!-- Action Buttons Row -->
+        <div class="grid grid-cols-4 gap-2">
+          <button
+            type="button"
+            @click="toggleFilter"
+            class="h-12 flex items-center justify-center gap-2 rounded-lg font-medium text-sm transition-colors"
+            :class="[
+              isFilterOpen
+                ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-2 border-blue-300 dark:border-blue-600'
+                : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-2 border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600'
+            ]"
+          >
+            <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
+            <span class="text-xs">Filter</span>
+          </button>
+          
+          <button
+            type="button"
+            @click="emit('refresh')"
+            :disabled="loading"
+            class="h-12 flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 border-2 border-slate-300 dark:border-slate-600 rounded-lg font-medium text-sm transition-colors disabled:opacity-50"
+          >
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+            <span class="text-xs">Sync</span>
+          </button>
+          
+          <button
+            type="button"
+            @click="toggleFullscreen"
+            class="h-12 flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 border-2 border-slate-300 dark:border-slate-600 rounded-lg font-medium text-sm transition-colors"
+          >
+            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+            <span class="text-xs">Full</span>
+          </button>
+          
+          <button
+            type="button"
+            @click="emit('create')"
+            class="h-12 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-600 hover:border-blue-700 rounded-lg font-bold text-sm transition-colors shadow-sm"
+          >
+            <Plus class="w-4 h-4" />
+            <span class="text-xs">Add</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Action Buttons Row -->
-      <div class="flex items-center gap-2 justify-end">
-        <button
-          type="button"
-          @click="emit('refresh')"
-          :disabled="loading"
-          :title="languageStore.t('refresh', 'Refresh')"
-          class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
-        >
-          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
-        </button>
-
-        <button
-          type="button"
-          @click="toggleFullscreen"
-          :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
-          class="hidden sm:inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
-        >
-          <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
-        </button>
-
-        <button
-          type="button"
-          @click="emit('create')"
-          class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm shadow-blue-600/30 transition active:scale-98 cursor-pointer flex-shrink-0 min-h-[44px] justify-center"
-        >
-          <Plus class="w-4 h-4" />
-          <span class="sm:hidden">{{ languageStore.t('add', 'Add') }}</span>
-          <span class="hidden sm:inline">{{ languageStore.t('add_room_type', 'Add Room Type') }}</span>
-        </button>
+      <!-- Desktop Layout: Horizontal -->
+      <div class="hidden sm:flex items-center justify-between p-4 gap-4">
+        <div class="flex items-center gap-3 flex-1 max-w-lg">
+          <div class="relative flex-1">
+            <Search class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
+            <input
+              v-model="search"
+              type="text"
+              :placeholder="languageStore.t('search_room_types', 'Search room types by name, ID, or description...')"
+              class="w-full h-11 pl-11 pr-4 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            />
+          </div>
+          
+          <button
+            type="button"
+            @click="toggleFilter"
+            class="h-11 px-4 flex items-center gap-2 rounded-lg font-medium text-sm transition-colors"
+            :class="[
+              isFilterOpen
+                ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-2 border-blue-300 dark:border-blue-600'
+                : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-2 border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600'
+            ]"
+          >
+            <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
+            <span>{{ isFilterOpen ? languageStore.t('hide_filters', 'Hide Filters') : languageStore.t('filter', 'Filter') }}</span>
+          </button>
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            @click="emit('refresh')"
+            :disabled="loading"
+            :title="languageStore.t('refresh', 'Refresh')"
+            class="h-11 w-11 flex items-center justify-center bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 border-2 border-slate-300 dark:border-slate-600 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+          </button>
+          
+          <button
+            type="button"
+            @click="toggleFullscreen"
+            :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
+            class="h-11 w-11 flex items-center justify-center bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 border-2 border-slate-300 dark:border-slate-600 rounded-lg transition-colors"
+          >
+            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+          </button>
+          
+          <button
+            type="button"
+            @click="emit('create')"
+            class="h-11 px-6 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border-2 border-blue-600 hover:border-blue-700 rounded-lg font-bold text-sm transition-colors shadow-sm"
+          >
+            <Plus class="w-4 h-4" />
+            <span>{{ languageStore.t('add_room_type', 'Add Room Type') }}</span>
+          </button>
+        </div>
       </div>
     </div>
 
+    <!-- Mobile-Optimized Filter Panel -->
     <Transition
       enter-active-class="transition duration-200 ease-out"
-      enter-from-class="transform -translate-y-2 opacity-0 scale-98"
+      enter-from-class="transform -translate-y-2 opacity-0 scale-95"
       enter-to-class="transform translate-y-0 opacity-100 scale-100"
       leave-active-class="transition duration-150 ease-in"
       leave-from-class="transform translate-y-0 opacity-100 scale-100"
-      leave-to-class="transform -translate-y-2 opacity-0 scale-98"
+      leave-to-class="transform -translate-y-2 opacity-0 scale-95"
     >
-      <div
-        v-if="isFilterOpen"
-        class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
-      >
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+      <div v-if="isFilterOpen" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-4">
+        <!-- Mobile: Stacked Layout -->
+        <div class="block sm:hidden space-y-4">
           <div>
-            <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               {{ languageStore.t('status', 'Status') }}
             </label>
             <select
               v-model="statusFilter"
-              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
+              class="w-full h-12 px-4 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">{{ languageStore.t('all_statuses', 'All Statuses') }}</option>
               <option value="active">{{ languageStore.t('active', 'Active') }}</option>
@@ -332,12 +378,12 @@ onBeforeUnmount(() => {
           </div>
 
           <div>
-            <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               {{ languageStore.t('capacity', 'Capacity') }}
             </label>
             <select
               v-model="capacityFilter"
-              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
+              class="w-full h-12 px-4 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">{{ languageStore.t('all_capacities', 'All Capacities') }}</option>
               <option value="1">1 {{ languageStore.t('guest', 'Guest') }}</option>
@@ -347,46 +393,117 @@ onBeforeUnmount(() => {
             </select>
           </div>
 
-          <div>
-            <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-              {{ languageStore.t('min_price_night', 'Min Price / Night') }}
-            </label>
-            <input
-              v-model="priceMin"
-              type="number"
-              placeholder="e.g. 50"
-              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
-            />
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                {{ languageStore.t('min_price_night', 'Min Price') }}
+              </label>
+              <input
+                v-model="priceMin"
+                type="number"
+                placeholder="e.g. 50"
+                class="w-full h-12 px-4 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                {{ languageStore.t('max_price_night', 'Max Price') }}
+              </label>
+              <input
+                v-model="priceMax"
+                type="number"
+                placeholder="e.g. 500"
+                class="w-full h-12 px-4 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
           </div>
 
-          <div>
-            <label class="mb-1.5 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-              {{ languageStore.t('max_price_night', 'Max Price / Night') }}
-            </label>
-            <input
-              v-model="priceMax"
-              type="number"
-              placeholder="e.g. 500"
-              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
-            />
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+            <p class="text-sm text-slate-600 dark:text-slate-400 text-center sm:text-left">
+              {{ languageStore.t('found', 'Found') }} {{ total }} {{ languageStore.t('matching_room_types', 'matching room type(s)') }}
+            </p>
+            <button
+              type="button"
+              @click="resetFilters"
+              class="h-12 px-6 flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 border-2 border-slate-300 dark:border-slate-600 rounded-lg font-medium text-sm transition-colors"
+            >
+              <RotateCcw class="w-4 h-4" />
+              <span>{{ languageStore.t('reset_filters', 'Reset Filters') }}</span>
+            </button>
           </div>
         </div>
 
-        <div
-          class="flex flex-col sm:flex-row sm:items-center sm:justify-between pt-1 border-t border-slate-100 dark:border-slate-800/60 gap-2"
-        >
-          <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-            {{ languageStore.t('found', 'Found') }} {{ total }}
-            {{ languageStore.t('matching_room_types', 'matching room type(s)') }}
-          </span>
-          <button
-            type="button"
-            @click="resetFilters"
-            class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-[#1e3455] bg-slate-100/70 dark:bg-[#13233c] px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#1c3356] transition cursor-pointer min-h-[44px] justify-center"
-          >
-            <RotateCcw class="w-3.5 h-3.5" />
-            <span>{{ languageStore.t('reset_filters', 'Reset Filters') }}</span>
-          </button>
+        <!-- Desktop: Grid Layout -->
+        <div class="hidden sm:block">
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                {{ languageStore.t('status', 'Status') }}
+              </label>
+              <select
+                v-model="statusFilter"
+                class="w-full h-11 px-4 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">{{ languageStore.t('all_statuses', 'All Statuses') }}</option>
+                <option value="active">{{ languageStore.t('active', 'Active') }}</option>
+                <option value="inactive">{{ languageStore.t('inactive', 'Inactive') }}</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                {{ languageStore.t('capacity', 'Capacity') }}
+              </label>
+              <select
+                v-model="capacityFilter"
+                class="w-full h-11 px-4 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">{{ languageStore.t('all_capacities', 'All Capacities') }}</option>
+                <option value="1">1 {{ languageStore.t('guest', 'Guest') }}</option>
+                <option value="2">2 {{ languageStore.t('guests', 'Guests') }}</option>
+                <option value="3">3 {{ languageStore.t('guests', 'Guests') }}</option>
+                <option value="4">4+ {{ languageStore.t('guests', 'Guests') }}</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                {{ languageStore.t('min_price_night', 'Min Price / Night') }}
+              </label>
+              <input
+                v-model="priceMin"
+                type="number"
+                placeholder="e.g. 50"
+                class="w-full h-11 px-4 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                {{ languageStore.t('max_price_night', 'Max Price / Night') }}
+              </label>
+              <input
+                v-model="priceMax"
+                type="number"
+                placeholder="e.g. 500"
+                class="w-full h-11 px-4 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-700">
+            <span class="text-sm text-slate-600 dark:text-slate-400">
+              {{ languageStore.t('found', 'Found') }} {{ total }} {{ languageStore.t('matching_room_types', 'matching room type(s)') }}
+            </span>
+            <button
+              type="button"
+              @click="resetFilters"
+              class="h-11 px-6 flex items-center gap-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 border-2 border-slate-300 dark:border-slate-600 rounded-lg font-medium text-sm transition-colors"
+            >
+              <RotateCcw class="w-4 h-4" />
+              <span>{{ languageStore.t('reset_filters', 'Reset Filters') }}</span>
+            </button>
+          </div>
         </div>
       </div>
     </Transition>
@@ -565,173 +682,203 @@ onBeforeUnmount(() => {
         </table>
       </div>
 
-      <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800 overflow-x-hidden">
-        <div
-          v-if="loading"
-          class="py-16 text-center flex flex-col items-center justify-center gap-3"
-        >
-          <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-          <span class="text-xs font-extrabold text-slate-700 dark:text-slate-300">
-            {{ languageStore.t('loading_room_types', 'Loading Room Types...') }}
-          </span>
+      <!-- Mobile Cards - Completely Redesigned -->
+      <div class="block md:hidden">
+        <div v-if="loading" class="py-20 text-center">
+          <div class="flex flex-col items-center justify-center gap-4">
+            <Loader2 class="w-10 h-10 text-blue-600 dark:text-blue-400 animate-spin" />
+            <div class="space-y-1">
+              <p class="text-sm font-bold text-slate-800 dark:text-slate-200">
+                {{ languageStore.t('loading_room_types', 'Loading Room Types...') }}
+              </p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                {{ languageStore.t('fetching_room_types_sub', 'Fetching pricing tiers and room capacities') }}
+              </p>
+            </div>
+          </div>
         </div>
-        <template v-else>
+
+        <div v-else-if="paginatedRoomTypes.length === 0" class="py-16 text-center">
+          <div class="space-y-2">
+            <p class="text-sm font-bold text-slate-600 dark:text-slate-400">
+              {{ languageStore.t('no_room_types_found', 'No room types match your current search or filter criteria.') }}
+            </p>
+          </div>
+        </div>
+
+        <div v-else class="space-y-3 overflow-x-hidden">
           <div
             v-for="rt in paginatedRoomTypes"
             :key="rt.id"
-            class="p-4 space-y-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition border-l-4 cursor-pointer"
+            class="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl p-4 space-y-4 shadow-sm hover:shadow-md hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-all duration-200 border-l-4"
             :class="[
               rt.is_active 
-                ? 'border-l-emerald-500' 
-                : 'border-l-rose-500'
+                ? 'border-l-emerald-500 hover:border-l-emerald-600' 
+                : 'border-l-red-500 hover:border-l-red-600'
             ]"
           >
-            <!-- Header Row: Name + Status Badge - Updated Responsive Design -->
+            <!-- Card Header: Name + Status -->
             <div class="flex items-start justify-between gap-3">
-              <div class="min-w-0 flex-1">
-                <h3 class="font-bold text-slate-900 dark:text-white text-base leading-tight">
+              <div class="flex-1 min-w-0">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white truncate mb-1">
                   {{ rt.name }}
                 </h3>
-                <div class="text-[11px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">
-                  ID: #{{ rt.id }}
-                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                  ID: {{ (rt.id || '').toString().substring(0, 8) }}...
+                </p>
               </div>
-              <span
-                v-if="rt.is_active"
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 select-none flex-shrink-0"
-              >
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>{{ languageStore.t('active', 'Active') }}</span>
-              </span>
-              <span
-                v-else
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 select-none flex-shrink-0"
-              >
-                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                <span>{{ languageStore.t('inactive', 'Inactive') }}</span>
-              </span>
+              <div class="flex-shrink-0">
+                <span
+                  v-if="rt.is_active"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700/50"
+                >
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  {{ languageStore.t('active', 'Active') }}
+                </span>
+                <span
+                  v-else
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700/50"
+                >
+                  <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                  {{ languageStore.t('inactive', 'Inactive') }}
+                </span>
+              </div>
             </div>
 
-            <!-- Details Row: Capacity + Price -->
-            <div class="grid grid-cols-2 gap-4">
-              <div class="flex items-center gap-2">
-                <Users class="w-4 h-4 text-slate-400 flex-shrink-0" />
-                <span class="text-sm text-slate-600 dark:text-slate-400 font-medium">
+            <!-- Card Details Grid -->
+            <div class="grid grid-cols-2 gap-4 py-2">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <Users class="w-4 h-4 text-slate-400 dark:text-slate-500" />
+                  <span class="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+                    {{ languageStore.t('capacity', 'Capacity') }}
+                  </span>
+                </div>
+                <p class="text-sm font-bold text-slate-900 dark:text-white">
                   {{ rt.capacity }} {{ languageStore.t('guests', 'Guests') }}
-                </span>
+                </p>
               </div>
-              <div class="flex items-center gap-1 justify-end">
-                <span class="text-lg font-bold text-slate-900 dark:text-white">
+              <div class="space-y-1 text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <span class="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+                    {{ languageStore.t('price_night', 'Price/Night') }}
+                  </span>
+                </div>
+                <p class="text-xl font-bold text-slate-900 dark:text-white">
                   ${{ parseFloat(String(rt.base_price_per_night || 0)).toFixed(2) }}
-                </span>
-                <span class="text-xs text-slate-500 dark:text-slate-400">/night</span>
+                </p>
               </div>
             </div>
 
             <!-- Description (if available) -->
-            <div v-if="rt.description" class="text-sm text-slate-600 dark:text-slate-400 overflow-hidden" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-              {{ rt.description }}
+            <div v-if="rt.description" class="pt-2 border-t border-slate-100 dark:border-slate-700">
+              <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2">
+                {{ rt.description }}
+              </p>
             </div>
 
             <!-- Action Buttons -->
-            <div class="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div class="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
               <button
                 @click="handleView(rt)"
-                class="flex-1 min-h-[44px] py-2.5 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 rounded-lg cursor-pointer flex items-center justify-center gap-1.5 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition"
+                class="min-h-[48px] py-3 px-4 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-700/50 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors"
               >
-                <Eye class="w-3.5 h-3.5" />
+                <Eye class="w-4 h-4" />
                 <span>{{ languageStore.t('view', 'View') }}</span>
               </button>
               <button
                 @click="handleEdit(rt)"
-                class="flex-1 min-h-[44px] py-2.5 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 rounded-lg cursor-pointer flex items-center justify-center gap-1.5 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition"
+                class="min-h-[48px] py-3 px-4 bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-700/50 text-amber-700 dark:text-amber-300 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors"
               >
-                <Edit class="w-3.5 h-3.5" />
+                <Edit class="w-4 h-4" />
                 <span>{{ languageStore.t('edit', 'Edit') }}</span>
               </button>
               <button
                 @click="handleDelete(rt)"
-                class="flex-1 min-h-[44px] py-2.5 text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 rounded-lg cursor-pointer flex items-center justify-center gap-1.5 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition"
+                class="min-h-[48px] py-3 px-4 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 border border-red-200 dark:border-red-700/50 text-red-700 dark:text-red-300 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors"
               >
-                <Trash2 class="w-3.5 h-3.5" />
+                <Trash2 class="w-4 h-4" />
                 <span>{{ languageStore.t('delete', 'Delete') }}</span>
               </button>
             </div>
           </div>
-          <div
-            v-if="paginatedRoomTypes.length === 0"
-            class="p-8 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
-          >
-            {{
-              languageStore.t(
-                'no_room_types_found',
-                'No room types match your current search or filter criteria.',
-              )
-            }}
-          </div>
-        </template>
+        </div>
       </div>
 
+      <!-- Mobile-First Responsive Pagination -->
       <div
         v-if="total > 0"
-        class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+        class="border-t border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/50"
       >
-        <div class="text-slate-500 dark:text-slate-400 font-medium text-center sm:text-left">
-          {{ languageStore.t('showing', 'Showing') }}
-          <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
-          {{ languageStore.t('to', 'to') }}
-          <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span>
-          {{ languageStore.t('of', 'of') }}
-          <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span>
-          {{ languageStore.t('room_types', 'room types') }}
-        </div>
-
-        <div class="flex flex-col sm:flex-row items-center gap-3">
-          <!-- Per page selector - hidden on mobile -->
-          <div class="hidden sm:flex items-center gap-1.5">
-            <span class="text-slate-500 dark:text-slate-400 font-medium"
-              >{{ languageStore.t('per_page', 'Per page') }}:</span
-            >
-            <select
-              :value="perPage"
-              @change="changePerPage"
-              class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-1 text-xs outline-none"
-            >
-              <option :value="10">10</option>
-              <option :value="20">20</option>
-              <option :value="50">50</option>
-            </select>
+        <!-- Mobile Layout -->
+        <div class="block sm:hidden px-4 py-4 space-y-4">
+          <div class="text-center">
+            <p class="text-sm text-slate-600 dark:text-slate-400">
+              {{ languageStore.t('showing', 'Showing') }}
+              <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}-{{ showingTo }}</span>
+              {{ languageStore.t('of', 'of') }}
+              <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span>
+              {{ languageStore.t('room_types', 'room types') }}
+            </p>
           </div>
-
-          <!-- Mobile: Simple pagination -->
-          <div class="flex sm:hidden items-center gap-2 text-sm">
+          
+          <div class="flex items-center justify-center gap-2">
             <button
               @click="prevPage"
               :disabled="currentPage === 1"
-              class="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              class="h-12 w-12 flex items-center justify-center bg-white dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors"
             >
-              <ChevronLeft class="w-4 h-4" />
+              <ChevronLeft class="w-5 h-5" />
             </button>
             
-            <span class="px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300">
-              {{ languageStore.t('page', 'Page') }} {{ currentPage }} {{ languageStore.t('of', 'of') }} {{ lastPage }}
-            </span>
-
+            <div class="flex items-center px-4 py-3 bg-white dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg">
+              <span class="text-sm font-medium text-slate-700 dark:text-slate-300">
+                {{ languageStore.t('page', 'Page') }} {{ currentPage }} {{ languageStore.t('of', 'of') }} {{ lastPage }}
+              </span>
+            </div>
+            
             <button
               @click="nextPage"
               :disabled="currentPage === lastPage"
-              class="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              class="h-12 w-12 flex items-center justify-center bg-white dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors"
             >
-              <ChevronRight class="w-4 h-4" />
+              <ChevronRight class="w-5 h-5" />
             </button>
           </div>
+        </div>
 
-          <!-- Desktop: Full pagination with page numbers -->
-          <div class="hidden sm:flex items-center gap-1">
+        <!-- Desktop Layout -->
+        <div class="hidden sm:flex items-center justify-between px-6 py-4">
+          <div class="flex items-center gap-6">
+            <p class="text-sm text-slate-600 dark:text-slate-400">
+              {{ languageStore.t('showing', 'Showing') }}
+              <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
+              {{ languageStore.t('to', 'to') }}
+              <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span>
+              {{ languageStore.t('of', 'of') }}
+              <span class="font-bold text-slate-900 dark:text-white">{{ total }}</span>
+              {{ languageStore.t('room_types', 'room types') }}
+            </p>
+            
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-slate-600 dark:text-slate-400">{{ languageStore.t('per_page', 'Per page') }}:</span>
+              <select
+                :value="perPage"
+                @change="changePerPage"
+                class="h-9 px-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1">
             <button
               @click="prevPage"
               :disabled="currentPage === 1"
-              class="flex items-center justify-center min-w-[44px] min-h-[44px] p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              class="h-10 w-10 flex items-center justify-center border-2 border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronLeft class="w-4 h-4" />
             </button>
@@ -740,11 +887,11 @@ onBeforeUnmount(() => {
               v-for="page in paginationPages"
               :key="page"
               @click="goToPage(page)"
-              class="flex items-center justify-center min-w-[44px] min-h-[44px] px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+              class="h-10 min-w-[40px] px-3 flex items-center justify-center rounded-lg text-sm font-medium transition-colors"
               :class="[
                 currentPage === page
-                  ? 'bg-blue-600 text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
+                  ? 'bg-blue-600 text-white border-2 border-blue-600'
+                  : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-2 border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600'
               ]"
             >
               {{ page }}
@@ -753,7 +900,7 @@ onBeforeUnmount(() => {
             <button
               @click="nextPage"
               :disabled="currentPage === lastPage"
-              class="flex items-center justify-center min-w-[44px] min-h-[44px] p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+              class="h-10 w-10 flex items-center justify-center border-2 border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronRight class="w-4 h-4" />
             </button>
@@ -763,3 +910,34 @@ onBeforeUnmount(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Ensure mobile responsiveness at very small screens */
+@media (max-width: 320px) {
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 640px) {
+  button {
+    min-height: 48px;
+  }
+  
+  input, select {
+    min-height: 48px;
+  }
+}
+</style>
