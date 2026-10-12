@@ -155,19 +155,6 @@ class WaiterSelectionEngine
                 ->where('waiters.status', 'active')
                 ->when($hotelId, fn($q) => $q->where('waiters.hotel_id', $hotelId));
 
-            $hasTodayTableAssignment = (clone $tableAssignmentQuery)
-                ->whereDate('waiter_table_assignments.assignment_date', today())
-                ->exists();
-
-            if ($hasTodayTableAssignment) {
-                $tableAssignmentQuery->whereDate('waiter_table_assignments.assignment_date', today());
-            } else {
-                $tableAssignmentQuery->where(function ($q) {
-                    $q->whereNull('waiter_table_assignments.assignment_date')
-                      ->orWhere('waiter_table_assignments.status', 'active');
-                });
-            }
-
             $tableWaiter = $tableAssignmentQuery
                 ->with('user')
                 ->orderBy('waiters.current_orders', 'asc')

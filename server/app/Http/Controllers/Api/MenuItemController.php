@@ -109,6 +109,28 @@ class MenuItemController extends Controller
                 'success' => true,
                 'message' => 'Menu item deleted successfully.',
             ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Integrity constraint fallback (e.g. FK constraint with past orders)
+            if ($e->getCode() === '23000' || str_contains($e->getMessage(), '1451')) {
+                try {
+                    $menuItem->update(['is_available' => false]);
+                    $menuItem->delete();
+                    \App\Services\MenuService::invalidateMenuCache($menuItem->hotel_id);
+
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Menu item is associated with existing orders and has been safely archived.',
+                    ]);
+                } catch (Throwable $fallbackError) {
+                    // ignore
+                }
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to delete menu item due to database constraints.',
+                'error' => $e->getMessage(),
+            ], 400);
         } catch (Throwable $e) {
             return response()->json([
                 'success' => false,

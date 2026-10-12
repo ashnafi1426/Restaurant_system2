@@ -120,7 +120,7 @@
     <div class="container">
         <div class="header">
             <div class="icon">🎉</div>
-            <h1>Welcome to Executive Horizon!</h1>
+            <h1>Welcome to Hotel managment system</h1>
             <p>Your check-in is confirmed</p>
         </div>
 
@@ -161,7 +161,7 @@
             </div>
 
             <div class="info-section">
-                <h3>🏨 Important Information</h3>
+                <h3>Important Information</h3>
                 <ul style="margin: 10px 0; padding-left: 20px;">
                     <li>Your room key has been prepared at the reception desk</li>
                     <li>Check-out time is 12:00 PM</li>

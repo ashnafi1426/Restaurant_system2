@@ -30,6 +30,7 @@ class PaymentStatusUpdated implements ShouldBroadcast, ShouldQueue
     public ?string $paymentMethod;
     public ?string $paymentType;
     public float $amount;
+    public float $tip;
     public ?string $transactionRef;
 
     /**
@@ -38,7 +39,9 @@ class PaymentStatusUpdated implements ShouldBroadcast, ShouldQueue
     public function __construct(
         Order $order,
         ?string $transactionRef = null,
-        ?string $paymentMethod = null
+        ?string $paymentMethod = null,
+        ?float $amount = null,
+        ?float $tip = null
     ) {
         $this->orderId = $order->id;
         $this->hotelId = $order->hotel_id;
@@ -46,7 +49,8 @@ class PaymentStatusUpdated implements ShouldBroadcast, ShouldQueue
         $this->paymentStatus = $this->normalizePaymentStatus($order);
         $this->paymentMethod = $paymentMethod ?? 'chapa';
         $this->paymentType = $order->payment_type;
-        $this->amount = (float) $order->total;
+        $this->amount = $amount !== null ? (float) $amount : (float) $order->total;
+        $this->tip = $tip !== null ? (float) $tip : 0.0;
         $this->transactionRef = $transactionRef;
     }
 
@@ -87,6 +91,7 @@ class PaymentStatusUpdated implements ShouldBroadcast, ShouldQueue
             'payment_method' => $this->paymentMethod,
             'payment_type' => $this->paymentType,
             'amount' => $this->amount,
+            'tip' => $this->tip,
             'transaction_ref' => $this->transactionRef,
             'updated_at' => now()->toISOString(),
         ];

@@ -119,27 +119,25 @@ class QRResolutionService
                 $assignedWaiter = null;
                 $currentShift = \App\Models\HotelShift::getCurrentShift();
 
-                if ($currentShift && \Illuminate\Support\Facades\Schema::hasTable('waiter_table_assignments')) {
+                if (\Illuminate\Support\Facades\Schema::hasTable('waiter_table_assignments')) {
                     try {
-                        $assignment = \App\Models\WaiterTableAssignment::getAssignedWaiter(
-                            $table->id,
-                            $currentShift->id,
-                            today()
-                        );
+                        $assignment = \App\Models\WaiterTableAssignment::getAssignedWaiter($table->id);
 
                         if ($assignment && $assignment->waiter) {
                             $assignedWaiter = [
                                 'waiter_id' => $assignment->waiter_id,
-                                'waiter_name' => $assignment->waiter->user->name ?? 'Unknown',
+                                'waiter_name' => $assignment->waiter->user->name ?? $assignment->waiter->name ?? 'Staff',
                                 'waiter_email' => $assignment->waiter->user->email ?? null,
                                 'priority' => $assignment->priority,
-                                'shift' => [
+                            ];
+                            if ($currentShift) {
+                                $assignedWaiter['shift'] = [
                                     'id' => $currentShift->id,
                                     'name' => $currentShift->name,
                                     'start_time' => $currentShift->start_time,
                                     'end_time' => $currentShift->end_time,
-                                ],
-                            ];
+                                ];
+                            }
                         }
                     } catch (\Throwable $e) {
                         \Illuminate\Support\Facades\Log::warning('QRResolution assigned waiter lookup skipped: ' . $e->getMessage());

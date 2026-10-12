@@ -130,52 +130,118 @@ class CustomerOrderController extends Controller
                 }
             }
 
-            $cacheKey = "customer_order_status_{$order->id}";
-            $data = \Illuminate\Support\Facades\Cache::remember($cacheKey, 5, function () use ($order) {
+            // Fetch verified or latest payment for this order
+            $payment = Payment::withoutGlobalScopes()
+                ->where(function ($q) use ($order) {
+                    $q->where('order_id', $order->id)
+                      ->orWhereJsonContains('metadata->order_id', $order->id);
+                })
+                ->where(function ($q) {
+                    $q->whereIn('status', ['paid', 'verified', 'completed', 'successful', 'success'])
+                      ->orWhereIn('payment_status', ['paid', 'verified', 'completed', 'successful', 'success']);
+                })
+                ->latest()
+                ->first();
+
+            if (!$payment) {
+                $payment = Payment::withoutGlobalScopes()
+                    ->where(function ($q) use ($order) {
+                        $q->where('order_id', $order->id)
+                          ->orWhereJsonContains('metadata->order_id', $order->id);
+                    })
+                    ->latest()
+                    ->first();
+            }
+
+            $tip = 0.0;
+            $paymentAmount = (float) $order->total;
+            $txRef = null;
+            $paymentMethod = $order->payment_type;
+
+            if ($payment) {
+                $meta = is_array($payment->metadata) ? $payment->metadata : json_decode($payment->metadata ?? '[]', true);
+                if (isset($meta['tip']) && is_numeric($meta['tip'])) {
+                    $tip = (float) $meta['tip'];
+                } elseif (isset($meta['calculation']['tip']) && is_numeric($meta['calculation']['tip'])) {
+                    $tip = (float) $meta['calculation']['tip'];
+                } elseif ((float) $payment->amount > (float) $order->total) {
+                    $tip = max(0, (float) $payment->amount - (float) $order->total);
+                }
+
+                $paymentAmount = (float) $payment->amount;
+                $txRef = $payment->tx_ref;
+                if (!empty($payment->payment_method)) {
+                    $paymentMethod = $payment->payment_method;
+                }
+            }
+
+            $isPaymentVerified = $this->hasVerifiedPayment($order);
+            $effectivePaymentStatus = $this->getPaymentStatus($order);
+            $finalTotal = $tip > 0 ? (float) $order->total + $tip : (float) $order->total;
+            $amountPaid = ($isPaymentVerified || $effectivePaymentStatus === 'paid')
+                ? ($payment && (float) $payment->amount > 0 ? (float) $payment->amount : $finalTotal)
+                : 0.0;
+
+            $items = $order->orderItems->map(function ($item) {
+                $unitPrice = ($item->total && $item->quantity)
+                    ? round((float) $item->total / (float) $item->quantity, 2)
+                    : (float) $item->item_price_at_order;
+
                 return [
-                    'order_id' => $order->id,
-                    'order_number' => $order->order_number,
-                    'hotel_id' => $order->hotel_id,
-                    'status' => $order->status,
-                    'is_cleared' => $order->status === Order::STATUS_SERVED,
-                    'status_label' => $order->status === Order::STATUS_SERVED ? 'Cleared & Completed' : ucfirst($order->status),
-                    'order_type' => $order->order_type,
-                    'order_time' => $order->order_time?->toISOString() ?? $order->created_at->toISOString(),
-
-                    'room_number' => $order->room?->room_number,
-                    'table_number' => $order->table?->table_number,
-                    'table_id' => $order->table_id,
-
-                    'customer_name' => $this->getCustomerName($order),
-
-                    'items' => $order->orderItems->map(function ($item) {
-                        return [
-                            'id' => $item->id,
-                            'name' => $item->item_name ?? $item->menuItem?->name,
-                            'quantity' => $item->quantity,
-                            'price' => (float) $item->item_price_at_order,
-                            'total' => (float) $item->total,
-                        ];
-                    })->values()->toArray(),
-
-                    'subtotal' => (float) $order->subtotal,
-                    'tax' => (float) $order->tax,
-                    'service_charge' => (float) $order->service_charge_amount,
-                    'total' => (float) $order->total,
-
-                    'payment_type' => ($this->hasVerifiedPayment($order) && $order->payment_type === 'room_charge') ? 'chapa' : $order->payment_type,
-                    'payment_status' => $this->getPaymentStatus($order),
-
-                    'chef_id' => $order->chef_id,
-                    'chef_name' => $order->chef?->name,
-
-                    'created_at' => $order->created_at->toISOString(),
-                    'updated_at' => $order->updated_at->toISOString(),
-                    'served_at' => $order->served_at?->toISOString(),
-
-                    'notes' => $order->notes,
+                    'id' => $item->id,
+                    'name' => $item->item_name ?? $item->menuItem?->name,
+                    'quantity' => $item->quantity,
+                    'price' => $unitPrice,
+                    'unit_price' => $unitPrice,
+                    'base_price' => (float) $item->item_price_at_order,
+                    'tax_amount' => (float) $item->tax_amount,
+                    'total' => (float) $item->total,
                 ];
-            });
+            })->values()->toArray();
+
+            $data = [
+                'order_id' => $order->id,
+                'id' => $order->id,
+                'order_number' => $order->order_number,
+                'hotel_id' => $order->hotel_id,
+                'status' => $order->status,
+                'is_cleared' => $order->status === Order::STATUS_SERVED,
+                'status_label' => $order->status === Order::STATUS_SERVED ? 'Cleared & Completed' : ucfirst($order->status),
+                'order_type' => $order->order_type,
+                'order_time' => $order->order_time?->toISOString() ?? $order->created_at->toISOString(),
+
+                'room_number' => $order->room?->room_number,
+                'table_number' => $order->table?->table_number,
+                'table_id' => $order->table_id,
+
+                'customer_name' => $this->getCustomerName($order),
+
+                'items' => $items,
+
+                'subtotal' => (float) $order->subtotal,
+                'tax' => (float) $order->tax,
+                'service_charge' => (float) $order->service_charge_amount,
+                'order_total' => (float) $order->total,
+                'total' => (float) $order->total,
+                'tip' => round($tip, 2),
+                'tip_amount' => round($tip, 2),
+                'amount_paid' => round($amountPaid, 2),
+                'final_total' => round($finalTotal, 2),
+                'tx_ref' => $txRef,
+
+                'payment_type' => ($isPaymentVerified && $order->payment_type === 'room_charge') ? 'chapa' : $paymentMethod,
+                'payment_method' => $paymentMethod,
+                'payment_status' => $effectivePaymentStatus,
+
+                'chef_id' => $order->chef_id,
+                'chef_name' => $order->chef?->name,
+
+                'created_at' => $order->created_at->toISOString(),
+                'updated_at' => $order->updated_at->toISOString(),
+                'served_at' => $order->served_at?->toISOString(),
+
+                'notes' => $order->notes,
+            ];
 
             return response()->json([
                 'success' => true,

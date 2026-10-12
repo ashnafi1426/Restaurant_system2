@@ -448,7 +448,9 @@ class PaymentController extends Controller
                         'tx_ref' => $txRef,
                     ]);
 
-                    event(new \App\Events\PaymentStatusUpdated($order, 'paid'));
+                    \Illuminate\Support\Facades\Cache::forget("customer_order_status_{$order->id}");
+                    $tipAmount = (float)($payment->metadata['tip'] ?? 0);
+                    event(new \App\Events\PaymentStatusUpdated($order, $payment->tx_ref, 'chapa', (float)$payment->amount, $tipAmount));
                     event(new \App\Events\OrderStatusUpdated($order, $order->status, 'paid'));
                     return;
                 }

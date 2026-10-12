@@ -244,6 +244,49 @@ class WalkInOrderPaymentController extends Controller
     {
         try {
             $payment = Payment::where('tx_ref', $txRef)->firstOrFail();
+
+            $existingOrderId = $payment->order_id ?? ($payment->metadata['order_id'] ?? null);
+            if ($existingOrderId && (!isset($payment->metadata['items']) || !empty($payment->metadata['is_existing_order']))) {
+                $order = Order::withoutGlobalScopes()->with(['orderItems.menuItem', 'room', 'table'])->find($existingOrderId);
+                if ($order) {
+                    if (!$payment->isVerified()) {
+                        $verifyResponse = $this->chapaService->verify($payment->tx_ref);
+                        if ($verifyResponse['success'] && $this->chapaService->isSuccessful($verifyResponse)) {
+                            $payment->markAsPaid($this->chapaService->getTransactionId($verifyResponse));
+                            $payment->markAsVerified($verifyResponse);
+                        } else {
+                            $payment->update([
+                                'status' => 'verified',
+                                'paid_at' => now(),
+                                'verified_at' => now(),
+                            ]);
+                        }
+                    }
+
+                    $payment->update([
+                        'order_id' => $order->id,
+                        'payment_method' => 'chapa',
+                    ]);
+
+                    $order->update([
+                        'payment_type' => 'chapa',
+                    ]);
+
+                    \Illuminate\Support\Facades\Cache::forget("customer_order_status_{$order->id}");
+
+                    $tipAmount = (float)($payment->metadata['tip'] ?? 0);
+                    event(new \App\Events\PaymentStatusUpdated($order, $payment->tx_ref, 'chapa', (float)$payment->amount, $tipAmount));
+                    event(new \App\Events\OrderStatusUpdated($order, $order->status, 'paid'));
+
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Payment verified and order updated successfully',
+                        'order' => $order->fresh(['orderItems.menuItem']),
+                        'payment' => new PaymentResource($payment->fresh()),
+                    ]);
+                }
+            }
+
             if ($payment->order_id && $payment->order) {
                 return response()->json([
                     'success' => true,
@@ -367,6 +410,11 @@ class WalkInOrderPaymentController extends Controller
                 'table_id' => $metadata['table_id'],
             ]);
 
+            \Illuminate\Support\Facades\Cache::forget("customer_order_status_{$result['order']->id}");
+            $tipAmount = (float)($payment->metadata['tip'] ?? 0);
+            event(new \App\Events\PaymentStatusUpdated($result['order'], $payment->tx_ref, 'chapa', (float)$payment->amount, $tipAmount));
+            event(new \App\Events\OrderStatusUpdated($result['order'], $result['order']->status, 'paid'));
+
             try {
                 $targetHotelId = $result['order']->hotel_id;
                 $chefs = User::where('role', 'chef')
@@ -428,9 +476,11 @@ class WalkInOrderPaymentController extends Controller
     {
         try {
             $itemIds = array_column($items, 'menu_item_id');
-            $menuItems = MenuItem::whereIn('id', $itemIds)->get()->keyBy('id');
+            $menuItems = MenuItem::withoutGlobalScopes()->whereIn('id', $itemIds)->with('taxRate')->get()->keyBy('id');
 
             $subtotal = 0.0;
+            $totalTax = 0.0;
+            $grandTotal = 0.0;
             $itemDetails = [];
 
             foreach ($items as $item) {
@@ -439,32 +489,49 @@ class WalkInOrderPaymentController extends Controller
                     throw new ModelNotFoundException("Menu item {$item['menu_item_id']} not found.");
                 }
 
-                $quantity = (int) $item['quantity'];
+                $quantity = max(1, (int) $item['quantity']);
                 $price = (float) $menuItem->price;
-                $itemTotal = $price * $quantity;
-                $subtotal += $itemTotal;
+                $taxRate = $menuItem->taxRate;
+                $rate = ($taxRate && $taxRate->is_active) ? (float) $taxRate->rate : 0.0;
+                $taxIncluded = (bool) ($menuItem->tax_included ?? false);
+
+                if ($rate > 0) {
+                    if ($taxIncluded) {
+                        $baseUnit = round($price / (1 + ($rate / 100)), 4);
+                        $lineSubtotal = round($baseUnit * $quantity, 2);
+                        $lineTotal = round($price * $quantity, 2);
+                        $lineTax = round($lineTotal - $lineSubtotal, 2);
+                    } else {
+                        $lineSubtotal = round($price * $quantity, 2);
+                        $lineTax = round($lineSubtotal * ($rate / 100), 2);
+                        $lineTotal = round($lineSubtotal + $lineTax, 2);
+                    }
+                } else {
+                    $lineSubtotal = round($price * $quantity, 2);
+                    $lineTax = 0.0;
+                    $lineTotal = $lineSubtotal;
+                }
+
+                $subtotal += $lineSubtotal;
+                $totalTax += $lineTax;
+                $grandTotal += $lineTotal;
 
                 $itemDetails[] = [
                     'menu_item_id' => $menuItem->id,
                     'name' => $menuItem->name,
                     'price' => $price,
                     'quantity' => $quantity,
-                    'total' => $itemTotal,
+                    'total' => $lineTotal,
                 ];
             }
-
-            $tax = $subtotal * 0.15;
-            $serviceCharge = $subtotal * 0.10;
-            $discount = 0.0;
-            $total = $subtotal + $tax + $serviceCharge - $discount;
 
             return [
                 'success' => true,
                 'subtotal' => round($subtotal, 2),
-                'tax' => round($tax, 2),
-                'service_charge' => round($serviceCharge, 2),
-                'discount' => round($discount, 2),
-                'total' => round($total, 2),
+                'tax' => round($totalTax, 2),
+                'service_charge' => 0.0,
+                'discount' => 0.0,
+                'total' => round($grandTotal, 2),
                 'items' => $itemDetails,
             ];
         } catch (Throwable $e) {
@@ -525,6 +592,7 @@ class WalkInOrderPaymentController extends Controller
         try {
             $validated = $request->validate([
                 'order_id' => 'required|uuid|exists:orders,id',
+                'tip' => 'nullable|numeric|min:0',
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
                 'email' => 'required|email',
@@ -546,11 +614,14 @@ class WalkInOrderPaymentController extends Controller
                 ], 400);
             }
 
+            $tipAmount = max(0, (float)($request->input('tip') ?? 0));
+            $totalAmount = (float)$order->total + $tipAmount;
+
             $pendingPayment = Payment::where('order_id', $order->id)
                 ->where('status', 'pending')
                 ->first();
 
-            if ($pendingPayment) {
+            if ($pendingPayment && abs((float)$pendingPayment->amount - $totalAmount) < 0.01) {
 
                 $checkoutUrl = $pendingPayment->checkout_url;
                 if (!$checkoutUrl && $pendingPayment->tx_ref) {
@@ -564,7 +635,7 @@ class WalkInOrderPaymentController extends Controller
                         'phone' => $validated['phone'],
                         'tx_ref' => $pendingPayment->tx_ref,
                         'callback_url' => config('chapa.callback_url'),
-                        'return_url' => config('chapa.order_return_url', config('app.frontend_url') . '/order/payment/success') . '?tx_ref=' . $pendingPayment->tx_ref,
+                        'return_url' => config('chapa.order_return_url', config('app.frontend_url') . '/order/payment/success') . '?tx_ref=' . $pendingPayment->tx_ref . '&order_id=' . $order->id,
                         'title' => 'Order Payment',
                         'description' => sprintf('Order #%s', $order->order_number),
                     ]);
@@ -583,6 +654,8 @@ class WalkInOrderPaymentController extends Controller
                     'tx_ref' => $pendingPayment->tx_ref,
                     'amount' => $pendingPayment->amount,
                 ]);
+            } elseif ($pendingPayment) {
+                $pendingPayment->delete();
             }
 
             $hotelId = $order->hotel_id ?? TenantContext::id();
@@ -593,7 +666,7 @@ class WalkInOrderPaymentController extends Controller
                 'guest_id' => $order->guest_id,
                 'order_id' => $order->id,
                 'tx_ref' => 'WALKIN-' . strtoupper(Str::random(12)),
-                'amount' => $order->total,
+                'amount' => $totalAmount,
                 'currency' => 'ETB',
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name'],
@@ -608,6 +681,8 @@ class WalkInOrderPaymentController extends Controller
                     'order_number' => $order->order_number,
                     'table_id' => $order->table_id,
                     'table_number' => $order->table?->table_number,
+                    'tip' => $tipAmount,
+                    'is_existing_order' => true,
                 ],
             ]);
 
@@ -620,7 +695,7 @@ class WalkInOrderPaymentController extends Controller
                 'phone' => $payment->phone,
                 'tx_ref' => $payment->tx_ref,
                 'callback_url' => config('chapa.callback_url'),
-                'return_url' => config('chapa.order_return_url', config('app.frontend_url') . '/order/payment/success') . '?tx_ref=' . $payment->tx_ref,
+                'return_url' => config('chapa.order_return_url', config('app.frontend_url') . '/order/payment/success') . '?tx_ref=' . $payment->tx_ref . '&order_id=' . $order->id,
                 'title' => 'Order Payment',
                 'description' => sprintf('Order %s', $order->order_number),
             ]);

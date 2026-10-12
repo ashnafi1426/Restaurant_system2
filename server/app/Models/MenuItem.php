@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Traits\BelongsToTenant;
 
 class MenuItem extends Model
 {
-    use HasFactory, HasUuids, BelongsToTenant;
+    use HasFactory, HasUuids, SoftDeletes, BelongsToTenant;
     public $incrementing = false;
     protected $keyType = 'string';
     protected $table = 'menu_items';
@@ -38,6 +39,10 @@ class MenuItem extends Model
     public function taxRate()
     {
         return $this->belongsTo(TaxRate::class, 'tax_rate_id');
+    }
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class, 'menu_item_id');
     }
     public function scopeAvailable($query)
     {

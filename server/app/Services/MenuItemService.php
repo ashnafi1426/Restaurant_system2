@@ -11,9 +11,6 @@ use Illuminate\Support\Facades\Storage;
 
 class MenuItemService
 {
-    /**
-     * List menu items for the current hotel with filters and pagination.
-     */
     public function listMenuItems(array $filters = [], int $perPage = 10): LengthAwarePaginator
     {
         $hotelId = app(TenantContext::class)->getHotelId()
@@ -110,10 +107,6 @@ class MenuItemService
             return $item;
         });
     }
-
-    /**
-     * Update a menu item.
-     */
     public function updateMenuItem(MenuItem $menuItem, array $data, ?UploadedFile $imageFile = null): MenuItem
     {
         return DB::transaction(function () use ($menuItem, $data, $imageFile) {
@@ -153,16 +146,23 @@ class MenuItemService
             return $menuItem->fresh(['taxRate', 'categoryRelation']);
         });
     }
-
-    /**
-     * Delete a menu item and its stored image.
-     */
     public function deleteMenuItem(MenuItem $menuItem): void
     {
         DB::transaction(function () use ($menuItem) {
             $hotelId = $menuItem->hotel_id;
-            $this->deleteStoredImage($menuItem->image);
-            $menuItem->delete();
+
+            $hasOrders = DB::table('order_items')
+                ->where('menu_item_id', $menuItem->id)
+                ->exists();
+
+            if ($hasOrders) {
+                $menuItem->update(['is_available' => false]);
+                $menuItem->delete();
+            } else {
+                $this->deleteStoredImage($menuItem->image);
+                $menuItem->forceDelete();
+            }
+
             MenuService::invalidateMenuCache($hotelId);
         });
     }

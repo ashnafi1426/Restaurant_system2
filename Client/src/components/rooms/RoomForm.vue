@@ -24,7 +24,6 @@ const props = defineProps<{
   serverErrors?: Record<string, string[]>
   initialData?: any
 }>()
-
 const emit = defineEmits(['submit', 'cancel'])
 
 const router = useRouter()

@@ -31,7 +31,7 @@ class OrderItem extends Model
     {
         static::creating(function ($item) {
             if (empty($item->item_name) && !empty($item->menu_item_id)) {
-                $menuItem = MenuItem::withoutGlobalScopes()->find($item->menu_item_id);
+                $menuItem = MenuItem::withoutGlobalScopes()->withTrashed()->find($item->menu_item_id);
                 if ($menuItem) {
                     $item->item_name = $menuItem->name;
                 }
@@ -61,7 +61,7 @@ class OrderItem extends Model
 
     public function menuItem(): BelongsTo
     {
-        return $this->belongsTo(MenuItem::class);
+        return $this->belongsTo(MenuItem::class)->withTrashed();
     }
 
     public function taxRate(): BelongsTo

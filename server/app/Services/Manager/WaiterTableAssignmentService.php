@@ -189,7 +189,6 @@ class WaiterTableAssignmentService
             });
         })
         ->active()
-        ->today()
         ->orderByRaw("
             CASE
                 WHEN priority = 'primary' THEN 1
@@ -385,18 +384,7 @@ class WaiterTableAssignmentService
 
     public function getAssignedWaiterForTable(string $tableId)
     {
-        $currentTime = Carbon::now()->format('H:i:s');
-
-        $currentShift = HotelShift::where('is_active', true)
-            ->where('start_time', '<=', $currentTime)
-            ->where('end_time', '>=', $currentTime)
-            ->first();
-
-        return WaiterTableAssignment::getAssignedWaiter(
-            $tableId,
-            $currentShift?->id,
-            today()
-        );
+        return WaiterTableAssignment::getAssignedWaiter($tableId);
     }
 
     public function getWaiterTables(int $waiterId, ?string $date = null)

@@ -203,7 +203,10 @@ class GuestOrderPaymentController extends Controller
                         'tx_ref' => $txRef,
                     ]);
 
-                    event(new \App\Events\PaymentStatusUpdated($order, 'paid'));
+                    \Illuminate\Support\Facades\Cache::forget("customer_order_status_{$order->id}");
+
+                    $tipAmount = (float)($payment->metadata['tip'] ?? 0);
+                    event(new \App\Events\PaymentStatusUpdated($order, $payment->tx_ref, 'chapa', (float)$payment->amount, $tipAmount));
                     event(new \App\Events\OrderStatusUpdated($order, $order->status, 'paid'));
 
                     return response()->json([
@@ -300,9 +303,11 @@ class GuestOrderPaymentController extends Controller
     {
         try {
             $itemIds = array_column($items, 'menu_item_id');
-            $menuItems = MenuItem::whereIn('id', $itemIds)->get()->keyBy('id');
+            $menuItems = MenuItem::withoutGlobalScopes()->whereIn('id', $itemIds)->with('taxRate')->get()->keyBy('id');
 
             $subtotal = 0.0;
+            $totalTax = 0.0;
+            $grandTotal = 0.0;
             $itemDetails = [];
 
             foreach ($items as $item) {
@@ -311,32 +316,49 @@ class GuestOrderPaymentController extends Controller
                     throw new ModelNotFoundException("Menu item {$item['menu_item_id']} not found.");
                 }
 
-                $quantity = (int) $item['quantity'];
+                $quantity = max(1, (int) $item['quantity']);
                 $price = (float) $menuItem->price;
-                $itemTotal = $price * $quantity;
-                $subtotal += $itemTotal;
+                $taxRate = $menuItem->taxRate;
+                $rate = ($taxRate && $taxRate->is_active) ? (float) $taxRate->rate : 0.0;
+                $taxIncluded = (bool) ($menuItem->tax_included ?? false);
+
+                if ($rate > 0) {
+                    if ($taxIncluded) {
+                        $baseUnit = round($price / (1 + ($rate / 100)), 4);
+                        $lineSubtotal = round($baseUnit * $quantity, 2);
+                        $lineTotal = round($price * $quantity, 2);
+                        $lineTax = round($lineTotal - $lineSubtotal, 2);
+                    } else {
+                        $lineSubtotal = round($price * $quantity, 2);
+                        $lineTax = round($lineSubtotal * ($rate / 100), 2);
+                        $lineTotal = round($lineSubtotal + $lineTax, 2);
+                    }
+                } else {
+                    $lineSubtotal = round($price * $quantity, 2);
+                    $lineTax = 0.0;
+                    $lineTotal = $lineSubtotal;
+                }
+
+                $subtotal += $lineSubtotal;
+                $totalTax += $lineTax;
+                $grandTotal += $lineTotal;
 
                 $itemDetails[] = [
                     'menu_item_id' => $menuItem->id,
                     'name' => $menuItem->name,
                     'price' => $price,
                     'quantity' => $quantity,
-                    'total' => $itemTotal,
+                    'total' => $lineTotal,
                 ];
             }
-
-            $tax = $subtotal * 0.15;
-            $serviceCharge = $subtotal * 0.10;
-            $discount = 0.0;
-            $total = $subtotal + $tax + $serviceCharge - $discount;
 
             return [
                 'success' => true,
                 'subtotal' => round($subtotal, 2),
-                'tax' => round($tax, 2),
-                'service_charge' => round($serviceCharge, 2),
-                'discount' => round($discount, 2),
-                'total' => round($total, 2),
+                'tax' => round($totalTax, 2),
+                'service_charge' => 0.0,
+                'discount' => 0.0,
+                'total' => round($grandTotal, 2),
                 'items' => $itemDetails,
             ];
         } catch (Throwable $e) {

@@ -127,10 +127,8 @@ class WaiterTableAssignment extends Model
             ->where('table_id', $tableId)
             ->active();
 
-        if ($date) {
+        if ($date && $date !== 'all') {
             $query->forDate($date);
-        } else {
-            $query->where(fn($q) => $q->today()->orWhereNull('assignment_date'));
         }
 
         if ($shiftId) {
@@ -139,7 +137,14 @@ class WaiterTableAssignment extends Model
             });
         }
 
-        return $query->orderBy('created_at', 'desc')->first();
+        return $query->orderByRaw("
+            CASE
+                WHEN priority = 'primary' THEN 1
+                WHEN priority = 'secondary' THEN 2
+                WHEN priority = 'backup' THEN 3
+                ELSE 4
+            END
+        ")->orderBy('updated_at', 'desc')->orderBy('created_at', 'desc')->first();
     }
 
     public static function getWaiterTables($waiterId, $date = null)
@@ -149,10 +154,8 @@ class WaiterTableAssignment extends Model
             ->where('waiter_id', $waiterId)
             ->active();
 
-        if ($date) {
+        if ($date && $date !== 'all') {
             $query->forDate($date);
-        } else {
-            $query->where(fn($q) => $q->today()->orWhereNull('assignment_date'));
         }
 
         return $query->get();

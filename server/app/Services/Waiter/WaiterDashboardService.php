@@ -68,11 +68,7 @@ class WaiterDashboardService
             try {
                 $query = \App\Models\WaiterTableAssignment::withoutGlobalScope(\App\Models\Scopes\TenantScope::class)
                     ->where('waiter_id', $waiterId)
-                    ->where('status', 'active')
-                    ->where(function ($q) {
-                        $q->whereDate('assignment_date', today())
-                          ->orWhereNull('assignment_date');
-                    });
+                    ->where('status', 'active');
 
                 if ($hotelId) {
                     $query->where(function ($q) use ($hotelId) {

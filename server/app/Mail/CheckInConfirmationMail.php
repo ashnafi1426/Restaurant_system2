@@ -26,7 +26,7 @@ class CheckInConfirmationMail extends Mailable
         $checkInDate = $this->checkIn->checked_in_at->format('F d, Y');
         $checkOutDate = $this->checkIn->expected_check_out_at->format('F d, Y');
 
-        return $this->subject('Welcome! Your Check-in is Confirmed')
+        return $this->subject('Welcome to Hotel Management System! Your Check-in is Confirmed')
                     ->view('emails.check-in-confirmation')
                     ->with([
                         'guestName' => $guestName,

@@ -158,8 +158,7 @@ class RestaurantTable extends Model
     public function activeAssignments()
     {
         return $this->waiterAssignments()
-            ->where('status', WaiterTableAssignment::STATUS_ACTIVE)
-            ->whereDate('assignment_date', today());
+            ->where('status', WaiterTableAssignment::STATUS_ACTIVE);
     }
 
     public function isAvailable(): bool

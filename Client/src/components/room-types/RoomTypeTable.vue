@@ -11,7 +11,6 @@ import {
   Minimize2,
   Plus,
   RotateCcw,
-  MoreVertical,
   Eye,
   Edit,
   Trash2,
@@ -35,7 +34,6 @@ const emit = defineEmits<{
 }>()
 
 const languageStore = useLanguageStore()
-const openMenuId = ref<string | number | null>(null)
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
 
@@ -185,44 +183,17 @@ const toggleFullscreen = () => {
   isFullscreen.value = !isFullscreen.value
 }
 
-const toggleMenu = (id: string | number, e: MouseEvent) => {
-  e.stopPropagation()
-  openMenuId.value = openMenuId.value === id ? null : id
-}
-
-const closeMenu = () => {
-  openMenuId.value = null
-}
-
 const handleView = (rt: RoomType) => {
   emit('view', rt)
-  closeMenu()
 }
 
 const handleEdit = (rt: RoomType) => {
   emit('edit', rt)
-  closeMenu()
 }
 
 const handleDelete = (rt: RoomType) => {
   emit('delete', rt)
-  closeMenu()
 }
-
-const handleClickOutside = (e: MouseEvent) => {
-  const target = e.target as HTMLElement
-  if (openMenuId.value !== null && !target.closest('[data-menu-container]')) {
-    closeMenu()
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
 </script>
 
 <template>
@@ -233,7 +204,7 @@ onBeforeUnmount(() => {
     <!-- Mobile-First Responsive Toolbar -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
       <!-- Mobile Layout: Full width stacked -->
-      <div class="block sm:hidden p-4 space-y-3">
+      <div class="block md:hidden p-4 space-y-3">
         <!-- Search Row -->
         <div class="relative">
           <Search class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
@@ -245,8 +216,8 @@ onBeforeUnmount(() => {
           />
         </div>
         
-        <!-- Action Buttons Row -->
-        <div class="grid grid-cols-4 gap-2">
+        <!-- Action Buttons Row: 2x2 Grid -->
+        <div class="grid grid-cols-2 gap-2.5">
           <button
             type="button"
             @click="toggleFilter"
@@ -268,7 +239,7 @@ onBeforeUnmount(() => {
             class="h-12 flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 border-2 border-slate-300 dark:border-slate-600 rounded-lg font-medium text-sm transition-colors disabled:opacity-50"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
-            <span class="text-xs">Sync</span>
+            <span class="text-xs">Refresh</span>
           </button>
           
           <button
@@ -277,7 +248,7 @@ onBeforeUnmount(() => {
             class="h-12 flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 border-2 border-slate-300 dark:border-slate-600 rounded-lg font-medium text-sm transition-colors"
           >
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
-            <span class="text-xs">Full</span>
+            <span class="text-xs">Screen</span>
           </button>
           
           <button
@@ -292,7 +263,7 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- Desktop Layout: Horizontal -->
-      <div class="hidden sm:flex items-center justify-between p-4 gap-4">
+      <div class="hidden md:flex items-center justify-between p-4 gap-4">
         <div class="flex items-center gap-3 flex-1 max-w-lg">
           <div class="relative flex-1">
             <Search class="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
@@ -318,8 +289,6 @@ onBeforeUnmount(() => {
             <span>{{ isFilterOpen ? languageStore.t('hide_filters', 'Hide Filters') : languageStore.t('filter', 'Filter') }}</span>
           </button>
         </div>
-        
-        <div class="flex items-center gap-2">
           <button
             type="button"
             @click="emit('refresh')"
@@ -362,7 +331,7 @@ onBeforeUnmount(() => {
     >
       <div v-if="isFilterOpen" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm p-4">
         <!-- Mobile: Stacked Layout -->
-        <div class="block sm:hidden space-y-4">
+        <div class="block md:hidden space-y-4">
           <div>
             <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               {{ languageStore.t('status', 'Status') }}
@@ -418,8 +387,8 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-            <p class="text-sm text-slate-600 dark:text-slate-400 text-center sm:text-left">
+          <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+            <p class="text-sm text-slate-600 dark:text-slate-400 text-center md:text-left">
               {{ languageStore.t('found', 'Found') }} {{ total }} {{ languageStore.t('matching_room_types', 'matching room type(s)') }}
             </p>
             <button
@@ -434,7 +403,7 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- Desktop: Grid Layout -->
-        <div class="hidden sm:block">
+        <div class="hidden md:block">
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div>
               <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -509,7 +478,7 @@ onBeforeUnmount(() => {
     </Transition>
 
     <div
-      class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
+      class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs font-sans w-full"
     >
       <div class="hidden md:block overflow-x-auto w-full">
         <table class="w-full text-left border-collapse">
@@ -604,62 +573,32 @@ onBeforeUnmount(() => {
                 </td>
 
                 <td
-                  class="py-3 px-4 text-right whitespace-nowrap pr-5 relative"
-                  data-menu-container
+                  class="py-3 px-4 text-right whitespace-nowrap pr-5"
                 >
-                  <div class="relative inline-block text-left">
+                  <div class="flex items-center gap-1.5 justify-end">
                     <button
-                      @click="toggleMenu(rt.id!, $event)"
-                      class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                      :class="{
-                        'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white':
-                          openMenuId === rt.id,
-                      }"
-                      :title="languageStore.t('actions', 'Actions')"
+                      @click="handleView(rt)"
+                      :title="languageStore.t('view_details', 'View Details')"
+                      class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] p-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition cursor-pointer"
                     >
-                      <MoreVertical class="w-4 h-4" />
+                      <Eye class="w-4 h-4" />
                     </button>
 
-                    <transition
-                      enter-active-class="transition duration-100 ease-out"
-                      leave-active-class="transition duration-75 ease-in"
-                      enter-from-class="opacity-0 scale-95 -translate-y-2"
-                      enter-to-class="opacity-100 scale-100 translate-y-0"
-                      leave-from-class="opacity-100 scale-100 translate-y-0"
-                      leave-to-class="opacity-0 scale-95 -translate-y-2"
+                    <button
+                      @click="handleEdit(rt)"
+                      :title="languageStore.t('edit_type', 'Edit Type')"
+                      class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] p-2 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition cursor-pointer"
                     >
-                      <div
-                        v-if="openMenuId === rt.id"
-                        class="absolute right-0 top-8 z-50 w-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-1.5 space-y-1 text-left"
-                        @click.stop
-                      >
-                        <button
-                          @click="handleView(rt)"
-                          class="flex w-full items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-                        >
-                          <Eye class="w-3.5 h-3.5 text-blue-500" />
-                          <span>{{ languageStore.t('view_details', 'View Details') }}</span>
-                        </button>
+                      <Edit class="w-4 h-4" />
+                    </button>
 
-                        <button
-                          @click="handleEdit(rt)"
-                          class="flex w-full items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition cursor-pointer"
-                        >
-                          <Edit class="w-3.5 h-3.5 text-amber-500" />
-                          <span>{{ languageStore.t('edit_type', 'Edit Type') }}</span>
-                        </button>
-
-                        <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
-
-                        <button
-                          @click="handleDelete(rt)"
-                          class="flex w-full items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition cursor-pointer"
-                        >
-                          <Trash2 class="w-3.5 h-3.5 text-rose-500" />
-                          <span>{{ languageStore.t('delete_type', 'Delete Type') }}</span>
-                        </button>
-                      </div>
-                    </transition>
+                    <button
+                      @click="handleDelete(rt)"
+                      :title="languageStore.t('delete_type', 'Delete Type')"
+                      class="inline-flex items-center justify-center min-w-[44px] min-h-[44px] p-2 rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer"
+                    >
+                      <Trash2 class="w-4 h-4" />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -706,7 +645,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <div v-else class="space-y-3 overflow-x-hidden">
+        <div v-else class="p-3 space-y-3 overflow-x-hidden">
           <div
             v-for="rt in paginatedRoomTypes"
             :key="rt.id"
@@ -811,7 +750,7 @@ onBeforeUnmount(() => {
         class="border-t border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/50"
       >
         <!-- Mobile Layout -->
-        <div class="block sm:hidden px-4 py-4 space-y-4">
+        <div class="block md:hidden px-4 py-4 space-y-4">
           <div class="text-center">
             <p class="text-sm text-slate-600 dark:text-slate-400">
               {{ languageStore.t('showing', 'Showing') }}
@@ -848,7 +787,7 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- Desktop Layout -->
-        <div class="hidden sm:flex items-center justify-between px-6 py-4">
+        <div class="hidden md:flex items-center justify-between px-6 py-4">
           <div class="flex items-center gap-6">
             <p class="text-sm text-slate-600 dark:text-slate-400">
               {{ languageStore.t('showing', 'Showing') }}
@@ -921,7 +860,7 @@ onBeforeUnmount(() => {
 
 /* Ensure mobile responsiveness at very small screens */
 @media (max-width: 320px) {
-  .grid-cols-4 {
+  .grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   

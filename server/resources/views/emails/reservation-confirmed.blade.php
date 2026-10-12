@@ -31,7 +31,7 @@
     <div class="container">
         <div class="header">
             <h1>✓ Reservation Confirmed!</h1>
-            <p>Welcome to <strong>{{ $hotelName }}</strong></p>
+            <p>Welcome to <strong>Hotel Management System</strong></p>
             <div class="badge">Confirmed & Guaranteed</div>
         </div>
 
