@@ -228,8 +228,7 @@ develops.
 
 ``` text
 Restaurant_system2/
-├── Client2/
-│   └── vue-project/    # Vue frontend
+├── Client              # Vue frontend
 ├── server/             # Laravel backend
 ├── schema.sql          # Database schema / SQL reference
 ├── SRS.md              # Main software requirements (if present)
@@ -259,7 +258,7 @@ cd Restaurant_system2
 ### 2. Start the frontend
 
 ``` bash
-cd Client2/vue-project
+cd Client
 npm install
 ```
 
