@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import type { Order } from '@/types/order'
 import {
   BedDouble,
+  UtensilsCrossed,
   MoreVertical,
   Eye,
   Edit,
@@ -211,64 +212,22 @@ function handleClickOutside() {
     </div>
 
     <template v-else>
-      <div class="block sm:hidden divide-y divide-slate-100 dark:divide-slate-800">
-        <div
-          v-for="order in orders"
-          :key="'card-' + order.id"
-          class="p-3.5 space-y-2.5 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
-        >
-          <div class="flex items-center justify-between">
-            <span class="font-mono font-extrabold text-xs text-blue-600 dark:text-blue-400">
-              {{ order.order_number || `ORD-${String(order.id).padStart(6, '0')}` }}
-            </span>
-            <span
-              class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black border"
-              :class="statusClass(order.status)"
-            >
-              <span class="h-1.5 w-1.5 rounded-full" :class="statusDot(order.status)"></span>
-              {{ statusLabel(order.status) }}
-            </span>
-          </div>
-
-          <div
-            class="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300 bg-slate-50/70 dark:bg-slate-950 p-2 rounded-xl border border-slate-200 dark:border-slate-800"
-          >
-            <div>
-              <span class="text-[9px] text-slate-400 block font-bold uppercase">Guest</span>
-              <span class="font-bold text-slate-900 dark:text-white truncate block text-xs">
-                {{ getGuestDisplayName(order.guest) }}
-              </span>
-            </div>
-            <div>
-              <span class="text-[9px] text-slate-400 block font-bold uppercase">Room / Table</span>
-              <span class="font-bold text-slate-900 dark:text-white block text-xs">
-                {{
-                  order.room?.room_number
-                    ? 'Room ' + order.room.room_number
-                    : order.table?.table_number
-                      ? 'Table ' + order.table.table_number
-                      : 'N/A'
-                }}
-              </span>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between text-xs pt-0.5">
-            <span
-              class="px-2 py-0.5 rounded-md text-[10px] font-extrabold border"
-              :class="paymentClass(order.payment_type)"
-            >
-              {{ paymentLabel(order.payment_type) }}
-            </span>
-            <span class="font-black text-xs text-slate-900 dark:text-white">
-              {{ formatCurrency(order.total) }}
-            </span>
-          </div>
-        </div>
+      <!-- Mobile Horizontal Scroll Hint -->
+      <div
+        class="md:hidden flex items-center justify-between px-3.5 py-2 bg-slate-50/90 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 select-none"
+      >
+        <span class="flex items-center gap-1.5 font-semibold">
+          <span>👈</span>
+          <span>Swipe table horizontally to see all columns</span>
+          <span>👉</span>
+        </span>
+        <span class="font-bold text-blue-600 dark:text-blue-400">
+          {{ total }} orders
+        </span>
       </div>
 
-      <div class="hidden sm:block overflow-x-auto w-full">
-        <table class="w-full text-left border-collapse">
+      <div class="overflow-x-auto w-full min-h-[360px]" style="-webkit-overflow-scrolling: touch">
+        <table class="w-full min-w-[850px] text-left border-collapse">
           <thead
             class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
           >
@@ -299,7 +258,7 @@ function handleClickOutside() {
               <td class="px-3 py-3">
                 <div class="flex items-center gap-2 max-w-[160px]">
                   <div
-                    class="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-black text-[9px] flex items-center justify-center flex-shrink-0"
+                    class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-black text-[9px] flex items-center justify-center flex-shrink-0"
                   >
                     {{ (getGuestDisplayName(order.guest)?.[0] || 'G').toUpperCase() }}
                   </div>
@@ -323,10 +282,11 @@ function handleClickOutside() {
                   Room {{ order.room.room_number }}
                 </span>
                 <span
-                  v-else-if="order.table?.table_number"
-                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800"
+                  v-else-if="order.table?.table_number || order.order_type === 'walk_in'"
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 font-bold text-xs border border-emerald-200 dark:border-emerald-800"
                 >
-                  Table {{ order.table.table_number }}
+                  <UtensilsCrossed class="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                  {{ order.table?.table_name || `Table ${order.table?.table_number || ''}` }}
                 </span>
                 <span v-else class="text-slate-400 text-xs italic">N/A</span>
               </td>
@@ -354,7 +314,7 @@ function handleClickOutside() {
               </td>
 
               <td
-                class="px-2.5 py-2.5 text-right whitespace-nowrap font-extrabold text-slate-900 dark:text-white text-xs"
+                class="px-2.5 py-2.5 text-right whitespace-nowrap font-extrabold text-slate-900 dark:text-white font-mono text-xs sm:text-sm"
               >
                 {{ formatCurrency(order.total) }}
               </td>
@@ -365,7 +325,7 @@ function handleClickOutside() {
                 {{ formatDate(order.order_time) }}
               </td>
 
-              <td class="px-2.5 py-2.5 text-right whitespace-nowrap pr-3 relative">
+              <td class="px-2.5 py-2.5 text-right whitespace-nowrap pr-4 relative">
                 <div class="relative inline-block">
                   <button
                     @click="toggleDropdown(order.id, $event)"
@@ -422,16 +382,19 @@ function handleClickOutside() {
         </table>
       </div>
 
+      <!-- Responsive Pagination -->
       <div
-        class="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 p-3 text-xs font-sans"
+        class="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 p-3 sm:p-4 text-xs font-sans"
       >
-        <div class="flex flex-wrap items-center gap-3 text-slate-600 dark:text-slate-400">
+        <div
+          class="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-slate-600 dark:text-slate-400 w-full sm:w-auto"
+        >
           <div class="flex items-center gap-1.5">
             <span class="font-bold text-slate-700 dark:text-slate-300">Items per page:</span>
             <select
               :value="perPage"
               @change="changePerPage"
-              class="px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-black focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
+              class="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-black focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
             >
               <option :value="5">5</option>
               <option :value="10">10</option>
@@ -446,7 +409,8 @@ function handleClickOutside() {
             of <span class="font-extrabold text-slate-900 dark:text-white">{{ total }}</span> orders
           </div>
         </div>
-        <div class="flex items-center gap-1">
+
+        <div class="flex items-center justify-center sm:justify-end gap-1 w-full sm:w-auto">
           <button
             type="button"
             class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1 font-bold text-xs"

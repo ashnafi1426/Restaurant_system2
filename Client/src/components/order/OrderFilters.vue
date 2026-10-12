@@ -130,27 +130,27 @@ function toggleFilter(): void {
 <template>
   <div class="space-y-3 font-sans w-full">
     <div
-      class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+      class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
     >
-      <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-        <div class="relative flex-1">
-          <Search
-            class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
-          />
-          <input
-            v-model="localFilters.search"
-            @input="onSearchInput"
-            @keyup.enter="onFilterChange"
-            type="text"
-            placeholder="Search orders, guest, room/table..."
-            class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
-          />
-        </div>
+      <div class="relative flex-1 min-w-0">
+        <Search
+          class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+        />
+        <input
+          v-model="localFilters.search"
+          @input="onSearchInput"
+          @keyup.enter="onFilterChange"
+          type="text"
+          placeholder="Search orders, guest, room/table..."
+          class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
+        />
+      </div>
 
+      <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto">
         <button
           type="button"
           @click="toggleFilter"
-          class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+          class="inline-flex items-center gap-1.5 sm:gap-2 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
           :class="[
             isFilterOpen
               ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
@@ -158,38 +158,38 @@ function toggleFilter(): void {
           ]"
         >
           <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-          <span>{{ isFilterOpen ? 'Hide Filter' : 'Filter' }}</span>
-        </button>
-      </div>
-
-      <div class="flex items-center gap-2 sm:gap-2.5">
-        <button
-          type="button"
-          @click="emit('refresh')"
-          :disabled="loading"
-          title="Refresh orders"
-          class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
-        >
-          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+          <span>{{ isFilterOpen ? 'Filter' : 'Filter' }}</span>
         </button>
 
-        <button
-          type="button"
-          @click="emit('toggle-fullscreen')"
-          title="Toggle fullscreen table"
-          class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
-        >
-          <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
-        </button>
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <button
+            type="button"
+            @click="emit('refresh')"
+            :disabled="loading"
+            title="Refresh orders"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+          >
+            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+          </button>
 
-        <button
-          type="button"
-          @click="emit('create')"
-          class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm shadow-blue-600/30 transition active:scale-98 cursor-pointer flex-shrink-0"
-        >
-          <Plus class="w-4 h-4" />
-          <span>Create New</span>
-        </button>
+          <button
+            type="button"
+            @click="emit('toggle-fullscreen')"
+            title="Toggle fullscreen table"
+            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+          >
+            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+          </button>
+
+          <button
+            type="button"
+            @click="emit('create')"
+            class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm shadow-blue-600/30 transition active:scale-98 cursor-pointer flex-shrink-0"
+          >
+            <Plus class="w-4 h-4" />
+            <span>Create New</span>
+          </button>
+        </div>
       </div>
     </div>
 
