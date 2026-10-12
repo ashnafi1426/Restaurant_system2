@@ -807,7 +807,7 @@ onUnmounted(() => {
                       {{ waiter.name }}
                     </h3>
                     <p class="text-[11px] text-slate-400 dark:text-slate-500 truncate mt-0.5">
-                      {{ waiter.email || 'ID: ' + (waiter.id || '').substring(0, 8) }}
+                      {{ waiter.user?.email || 'ID: ' + (waiter.id || '').substring(0, 8) }}
                     </p>
                   </div>
                 </div>
