@@ -18,6 +18,9 @@ import {
   Minimize2,
   RotateCcw,
   Building2,
+  Clock,
+  Truck,
+  Shirt,
 } from 'lucide-vue-next'
 
 const operationsStore = useManagerOperationsStore()
@@ -61,11 +64,11 @@ watch(
 <template>
   <DashboardLayout>
     <div
-      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
+      class="space-y-4 sm:space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-3 sm:p-6 max-w-full font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-5 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div class="flex items-center gap-3">
           <div
@@ -74,7 +77,7 @@ watch(
             <Activity class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                 {{ languageStore.t('daily_operations', 'Daily Operations') }}
               </h1>
@@ -99,7 +102,7 @@ watch(
 
         <div class="flex items-center gap-2">
           <div
-            class="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs sm:text-sm flex items-center gap-1.5"
+            class="px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs sm:text-sm flex items-center gap-1.5"
           >
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>{{ languageStore.t('live_system_active', 'Live System Active') }}</span>
@@ -107,9 +110,9 @@ watch(
         </div>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
         <div
-          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xs flex items-center justify-between"
         >
           <div>
             <p
@@ -117,17 +120,17 @@ watch(
             >
               {{ languageStore.t('pending_orders', 'Pending Orders') }}
             </p>
-            <h3 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 mt-0.5 sm:mt-1">
               {{ operationsStore.pendingOrders?.length || 0 }}
             </h3>
           </div>
-          <div class="p-3 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
-            <Clock class="w-5 h-5" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0">
+            <Clock class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xs flex items-center justify-between"
         >
           <div>
             <p
@@ -135,17 +138,17 @@ watch(
             >
               {{ languageStore.t('kitchen_prep', 'Kitchen Prep') }}
             </p>
-            <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-1">
               {{ operationsStore.preparingOrders?.length || 0 }}
             </h3>
           </div>
-          <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
-            <ChefHat class="w-5 h-5" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+            <ChefHat class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xs flex items-center justify-between"
         >
           <div>
             <p
@@ -153,17 +156,17 @@ watch(
             >
               {{ languageStore.t('active_deliveries', 'Active Deliveries') }}
             </p>
-            <h3 class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400 mt-0.5 sm:mt-1">
               {{ operationsStore.activeDeliveries?.length || 0 }}
             </h3>
           </div>
-          <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
-            <Truck class="w-5 h-5" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+            <Truck class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xs flex items-center justify-between"
         >
           <div>
             <p
@@ -171,23 +174,23 @@ watch(
             >
               {{ languageStore.t('pending_laundry', 'Pending Laundry') }}
             </p>
-            <h3 class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400 mt-0.5 sm:mt-1">
               {{ operationsStore.pendingLaundry?.length || 0 }}
             </h3>
           </div>
-          <div class="p-3 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
-            <Shirt class="w-5 h-5" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
+            <Shirt class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
       </div>
 
       <div
-        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+        class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <div class="relative flex-1">
+        <div class="flex items-center gap-2 flex-1 w-full sm:w-auto">
+          <div class="relative flex-1 min-w-0">
             <Search
-              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+              class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
             />
             <input
               v-model="searchQuery"
@@ -195,39 +198,39 @@ watch(
               :placeholder="
                 languageStore.t(
                   'search_operations_placeholder',
-                  'Search live operations, orders, or rooms...',
+                  'Search operations, orders...',
                 )
               "
-              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
+              class="w-full h-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-9 pr-3 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />
           </div>
 
           <button
             type="button"
             @click="toggleFilter"
-            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            class="inline-flex items-center justify-center gap-1.5 h-[38px] rounded-xl px-3 sm:px-4 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
             :class="[
               isFilterOpen
                 ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
                 : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
-            <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{
+            <component :is="isFilterOpen ? X : Filter" class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span class="hidden xs:inline">{{
               isFilterOpen
-                ? languageStore.t('hide_filter', 'Hide Filter')
+                ? languageStore.t('hide_filter', 'Hide')
                 : languageStore.t('filter', 'Filter')
             }}</span>
           </button>
         </div>
 
-        <div class="flex items-center gap-2 sm:gap-2.5">
+        <div class="flex items-center gap-1.5 justify-end">
           <button
             type="button"
             @click="refreshData"
             :disabled="operationsStore.loading"
             :title="languageStore.t('refresh', 'Refresh')"
-            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+            class="inline-flex items-center justify-center h-[38px] w-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': operationsStore.loading }" />
           </button>
@@ -236,7 +239,7 @@ watch(
             type="button"
             @click="toggleFullscreen"
             :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
-            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+            class="inline-flex items-center justify-center h-[38px] w-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           >
             <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
           </button>

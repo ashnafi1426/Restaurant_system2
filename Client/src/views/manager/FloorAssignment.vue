@@ -347,7 +347,7 @@ watch(() => hotelStore.hotelId, loadData)
 <template>
   <DashboardLayout>
     <div
-      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
+      class="space-y-4 sm:space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-3 sm:p-6 max-w-full font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
       <Transition
@@ -374,16 +374,16 @@ watch(() => hotelStore.hotelId, loadData)
       </Transition>
 
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-3xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-5 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
-        <div class="flex items-center gap-3.5">
+        <div class="flex items-center gap-3 sm:gap-3.5">
           <div
-            class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-md shadow-blue-500/20 text-white flex-shrink-0"
+            class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-md shadow-blue-500/20 text-white flex-shrink-0"
           >
-            <Hotel class="w-6 h-6 stroke-[2.2]" />
+            <Hotel class="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.2]" />
           </div>
           <div>
-            <div class="flex items-center gap-2.5 flex-wrap">
+            <div class="flex items-center gap-2 flex-wrap">
               <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                 {{
                   languageStore.t('floor_management_title', 'Floor Management & Staff Allocation')
@@ -391,7 +391,7 @@ watch(() => hotelStore.hotelId, loadData)
               </h1>
               <span
                 v-if="hotelStore.hotelName"
-                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
+                class="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full text-[11px] sm:text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50"
               >
                 <Building2 class="w-3.5 h-3.5" />
                 {{ hotelStore.hotelName }}
@@ -408,10 +408,10 @@ watch(() => hotelStore.hotelId, loadData)
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2.5">
+        <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
           <button
             @click="openCreateFloor"
-            class="px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-black shadow-md shadow-blue-600/25 transition flex items-center gap-2 cursor-pointer hover:shadow-lg active:scale-98"
+            class="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-600/25 transition flex items-center gap-2 cursor-pointer hover:shadow-lg active:scale-98"
           >
             <Plus class="w-4 h-4 stroke-[3]" />
             <span>{{ languageStore.t('add_floor', 'Add Floor') }}</span>
@@ -421,7 +421,7 @@ watch(() => hotelStore.hotelId, loadData)
             v-if="hasChanges"
             @click="saveAssignments"
             :disabled="isSaving"
-            class="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+            class="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
           >
             <Save class="w-4 h-4" />
             <span>{{
@@ -433,108 +433,107 @@ watch(() => hotelStore.hotelId, loadData)
         </div>
       </div>
 
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         <div
-          class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-4 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
-              class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
             >
               {{ languageStore.t('total_floors', 'Total Floors') }}
             </p>
-            <div class="flex items-baseline gap-2 mt-1">
-              <h3 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <div class="flex items-baseline gap-1.5 mt-0.5 sm:mt-1">
+              <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                 {{ overallStats.totalFloors }}
               </h3>
-              <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+              <span class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
                 {{ overallStats.activeFloors }} {{ languageStore.t('active', 'active') }}
               </span>
             </div>
           </div>
-          <div class="p-3.5 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
-            <Layers class="w-6 h-6" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+            <Layers class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-4 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
-              class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
             >
               {{ languageStore.t('rooms_managed', 'Rooms Managed') }}
             </p>
-            <div class="flex items-baseline gap-2 mt-1">
-              <h3 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+            <div class="flex items-baseline gap-1.5 mt-0.5 sm:mt-1">
+              <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                 {{ overallStats.totalRooms }}
               </h3>
-              <span class="text-xs font-medium text-slate-400">
+              <span class="text-[11px] font-medium text-slate-400">
                 {{ languageStore.t('across_floors', 'across floors') }}
               </span>
             </div>
           </div>
-          <div class="p-3.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-            <BedDouble class="w-6 h-6" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 shrink-0">
+            <BedDouble class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-4 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
-              class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
             >
               {{ languageStore.t('assigned_waiters', 'Assigned Waiters') }}
             </p>
-            <div class="flex items-baseline gap-2 mt-1">
-              <h3 class="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
+            <div class="flex items-baseline gap-1.5 mt-0.5 sm:mt-1">
+              <h3 class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">
                 {{ overallStats.assignedWaiters }}
               </h3>
-              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">
+              <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">
                 / {{ overallStats.availableWaiters }}
-                {{ languageStore.t('available', 'available') }}
               </span>
             </div>
           </div>
-          <div class="p-3.5 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-            <Users class="w-6 h-6" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+            <Users class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-4 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
-              class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+              class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
             >
               {{ languageStore.t('floor_coverage_health', 'Coverage Health') }}
             </p>
-            <div class="flex items-baseline gap-2 mt-1">
-              <h3 class="text-2xl sm:text-3xl font-black text-purple-600 dark:text-purple-400">
+            <div class="flex items-baseline gap-1.5 mt-0.5 sm:mt-1">
+              <h3 class="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400">
                 {{ overallStats.coverageRate }}%
               </h3>
-              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">
+              <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">
                 {{ languageStore.t('staffed', 'staffed') }}
               </span>
             </div>
           </div>
-          <div class="p-3.5 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
-            <Sparkles class="w-6 h-6" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
+            <Sparkles class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
       </div>
 
       <div
-        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 sm:p-4 shadow-xs"
+        class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 sm:p-4 shadow-xs"
       >
-        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <div class="relative flex-1">
+        <div class="flex items-center gap-2 flex-1 w-full sm:w-auto">
+          <div class="relative flex-1 min-w-0">
             <Search
-              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+              class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
             />
             <input
               v-model="searchQuery"
@@ -542,35 +541,35 @@ watch(() => hotelStore.hotelId, loadData)
               :placeholder="
                 languageStore.t(
                   'search_floors_placeholder',
-                  'Search by floor name, level #, or assigned staff...',
+                  'Search floors, staff...',
                 )
               "
-              class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white placeholder-slate-400 pl-10 pr-4 py-2.5 text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/40 transition"
+              class="w-full h-[38px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white placeholder-slate-400 pl-9 pr-3 text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/40 transition"
             />
           </div>
 
           <button
             type="button"
             @click="toggleFilter"
-            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition cursor-pointer flex-shrink-0 border"
+            class="inline-flex items-center justify-center gap-1.5 h-[38px] rounded-xl px-3 sm:px-4 text-xs sm:text-sm font-bold transition cursor-pointer flex-shrink-0 border"
             :class="
               isFilterOpen
                 ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400 border-blue-500/40'
                 : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
             "
           >
-            <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{
+            <component :is="isFilterOpen ? X : Filter" class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span class="hidden xs:inline">{{
               isFilterOpen
-                ? languageStore.t('hide_filters', 'Hide Filters')
+                ? languageStore.t('hide_filters', 'Hide')
                 : languageStore.t('filter', 'Filter')
             }}</span>
           </button>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 justify-between sm:justify-end">
           <div
-            class="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+            class="flex items-center h-[38px] p-0.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
           >
             <button
               @click="viewMode = 'grid'"
@@ -579,7 +578,7 @@ watch(() => hotelStore.hotelId, loadData)
                   ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
               "
-              class="p-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+              class="h-full px-2.5 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
               :title="languageStore.t('grid_view', 'Grid Cards View')"
             >
               <LayoutGrid class="w-4 h-4" />
@@ -591,31 +590,33 @@ watch(() => hotelStore.hotelId, loadData)
                   ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
               "
-              class="p-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+              class="h-full px-2.5 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
               :title="languageStore.t('table_view', 'Table List View')"
             >
               <LayoutList class="w-4 h-4" />
             </button>
           </div>
 
-          <button
-            type="button"
-            @click="refreshData"
-            :disabled="isLoading"
-            class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition cursor-pointer"
-            :title="languageStore.t('refresh', 'Refresh Floors')"
-          >
-            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isLoading }" />
-          </button>
+          <div class="flex items-center gap-1.5">
+            <button
+              type="button"
+              @click="refreshData"
+              :disabled="isLoading"
+              class="inline-flex items-center justify-center h-[38px] w-[38px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition cursor-pointer"
+              :title="languageStore.t('refresh', 'Refresh Floors')"
+            >
+              <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isLoading }" />
+            </button>
 
-          <button
-            type="button"
-            @click="toggleFullscreen"
-            class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition cursor-pointer"
-            :title="languageStore.t('fullscreen', 'Toggle Fullscreen')"
-          >
-            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
-          </button>
+            <button
+              type="button"
+              @click="toggleFullscreen"
+              class="inline-flex items-center justify-center h-[38px] w-[38px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition cursor-pointer"
+              :title="languageStore.t('fullscreen', 'Toggle Fullscreen')"
+            >
+              <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -891,8 +892,22 @@ watch(() => hotelStore.hotelId, loadData)
         v-else
         class="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden w-full"
       >
-        <div class="overflow-x-auto w-full">
-          <table class="w-full text-left border-collapse">
+        <!-- Mobile Swipe Table Guidance Hint -->
+        <div
+          class="md:hidden flex items-center justify-between px-3.5 py-2 bg-slate-50/90 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 select-none"
+        >
+          <span class="flex items-center gap-1.5 font-semibold">
+            <span>👈</span>
+            <span>Swipe table horizontally to see all columns</span>
+            <span>👉</span>
+          </span>
+          <span class="font-bold text-blue-600 dark:text-blue-400">
+            {{ totalFloorsCount }} floors
+          </span>
+        </div>
+
+        <div class="overflow-x-auto w-full min-h-[220px]" style="-webkit-overflow-scrolling: touch">
+          <table class="w-full min-w-[750px] text-left border-collapse">
             <thead
               class="bg-slate-50/90 dark:bg-slate-950/60 border-b border-slate-200 dark:border-slate-800"
             >
@@ -1056,44 +1071,51 @@ watch(() => hotelStore.hotelId, loadData)
 
       <div
         v-if="totalFloorsCount > 0"
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-400"
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-400"
       >
-        <div>
-          {{ languageStore.t('showing', 'Showing') }}
-          <span class="text-slate-900 dark:text-white">{{ showingFrom }}</span> -
-          <span class="text-slate-900 dark:text-white">{{ showingTo }}</span>
-          {{ languageStore.t('of', 'of') }}
-          <span class="text-slate-900 dark:text-white">{{ totalFloorsCount }}</span>
-          {{ languageStore.t('floors', 'floors') }}
+        <div class="flex items-center justify-between sm:justify-start w-full sm:w-auto">
+          <div>
+            {{ languageStore.t('showing', 'Showing') }}
+            <span class="text-slate-900 dark:text-white">{{ showingFrom }}</span> -
+            <span class="text-slate-900 dark:text-white">{{ showingTo }}</span>
+            {{ languageStore.t('of', 'of') }}
+            <span class="text-slate-900 dark:text-white">{{ totalFloorsCount }}</span>
+            {{ languageStore.t('floors', 'floors') }}
+          </div>
+          <div class="sm:hidden font-bold text-xs text-slate-700 dark:text-slate-300">
+            Page {{ currentPage }} / {{ lastPage }}
+          </div>
         </div>
 
-        <div class="flex items-center gap-1.5">
+        <div class="flex items-center justify-end gap-1.5 w-full sm:w-auto">
           <button
             @click="prevPage"
             :disabled="currentPage === 1"
-            class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 cursor-pointer"
+            class="p-1.5 sm:p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 cursor-pointer"
           >
             <ChevronLeft class="w-4 h-4" />
           </button>
 
-          <button
-            v-for="p in paginationPages"
-            :key="p"
-            @click="goToPage(p)"
-            class="w-8 h-8 rounded-xl font-black text-xs transition cursor-pointer"
-            :class="
-              p === currentPage
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-            "
-          >
-            {{ p }}
-          </button>
+          <div class="hidden sm:flex items-center gap-1.5">
+            <button
+              v-for="p in paginationPages"
+              :key="p"
+              @click="goToPage(p)"
+              class="w-8 h-8 rounded-xl font-black text-xs transition cursor-pointer"
+              :class="
+                p === currentPage
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+              "
+            >
+              {{ p }}
+            </button>
+          </div>
 
           <button
             @click="nextPage"
             :disabled="currentPage === lastPage"
-            class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 cursor-pointer"
+            class="p-1.5 sm:p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 cursor-pointer"
           >
             <ChevronRight class="w-4 h-4" />
           </button>

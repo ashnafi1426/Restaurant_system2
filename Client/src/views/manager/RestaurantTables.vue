@@ -236,11 +236,11 @@ onMounted(() => {
 <template>
   <DashboardLayout>
     <div
-      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
+      class="space-y-4 sm:space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-3 sm:p-6 max-w-full font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
       <div
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-5 rounded-2xl shadow-xs"
       >
         <div class="flex items-center gap-3">
           <div
@@ -264,9 +264,9 @@ onMounted(() => {
         </div>
       </div>
 
-      <div v-if="statistics" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+      <div v-if="statistics" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4">
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 sm:p-4 shadow-xs flex items-center justify-between"
         >
           <div>
             <p
@@ -274,19 +274,19 @@ onMounted(() => {
             >
               {{ languageStore.t('total', 'Total') }}
             </p>
-            <h2 class="text-2xl font-black text-slate-900 dark:text-white mt-1">
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1">
               {{ statistics.total }}
             </h2>
           </div>
           <div
-            class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+            class="p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shrink-0"
           >
-            <UtensilsCrossed class="w-5 h-5" />
+            <UtensilsCrossed class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 sm:p-4 shadow-xs flex items-center justify-between"
         >
           <div>
             <p
@@ -294,17 +294,17 @@ onMounted(() => {
             >
               {{ languageStore.t('Available', 'Available') }}
             </p>
-            <h2 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+            <h2 class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1">
               {{ statistics.available }}
             </h2>
           </div>
-          <div class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-            <Sparkles class="w-5 h-5" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+            <Sparkles class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 sm:p-4 shadow-xs flex items-center justify-between"
         >
           <div>
             <p
@@ -312,17 +312,17 @@ onMounted(() => {
             >
               {{ languageStore.t('Occupied', 'Occupied') }}
             </p>
-            <h2 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
+            <h2 class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 mt-0.5 sm:mt-1">
               {{ statistics.occupied }}
             </h2>
           </div>
-          <div class="p-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
-            <Users class="w-5 h-5" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0">
+            <Users class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 sm:p-4 shadow-xs flex items-center justify-between"
         >
           <div>
             <p
@@ -330,17 +330,17 @@ onMounted(() => {
             >
               {{ languageStore.t('Reserved', 'Reserved') }}
             </p>
-            <h2 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
+            <h2 class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-1">
               {{ statistics.reserved || 0 }}
             </h2>
           </div>
-          <div class="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
-            <CheckCircle2 class="w-5 h-5" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+            <CheckCircle2 class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 sm:p-4 shadow-xs flex items-center justify-between"
         >
           <div>
             <p
@@ -348,17 +348,17 @@ onMounted(() => {
             >
               {{ languageStore.t('Cleaning', 'Cleaning') }}
             </p>
-            <h2 class="text-2xl font-black text-sky-600 dark:text-sky-400 mt-1">
+            <h2 class="text-xl sm:text-2xl font-black text-sky-600 dark:text-sky-400 mt-0.5 sm:mt-1">
               {{ statistics.cleaning || 0 }}
             </h2>
           </div>
-          <div class="p-2.5 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
-            <RefreshCw class="w-5 h-5" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 shrink-0">
+            <RefreshCw class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 sm:p-4 shadow-xs flex items-center justify-between"
         >
           <div>
             <p
@@ -366,23 +366,23 @@ onMounted(() => {
             >
               {{ languageStore.t('Maintenance', 'Service Off') }}
             </p>
-            <h2 class="text-2xl font-black text-slate-500 dark:text-slate-400 mt-1">
+            <h2 class="text-xl sm:text-2xl font-black text-slate-500 dark:text-slate-400 mt-0.5 sm:mt-1">
               {{ statistics.out_of_service || 0 }}
             </h2>
           </div>
-          <div class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500">
-            <AlertCircle class="w-5 h-5" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 shrink-0">
+            <AlertCircle class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
       </div>
 
       <div
-        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+        class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <div class="relative flex-1">
+        <div class="flex items-center gap-2 flex-1 w-full sm:w-auto">
+          <div class="relative flex-1 min-w-0">
             <Search
-              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+              class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
             />
             <input
               v-model="searchQuery"
@@ -391,69 +391,73 @@ onMounted(() => {
               :placeholder="
                 languageStore.t(
                   'search_tables_placeholder',
-                  'Search by table number, name, or location...',
+                  'Search tables...',
                 )
               "
-              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
+              class="w-full h-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-9 pr-3 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />
           </div>
 
           <button
             type="button"
             @click="toggleFilter"
-            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            class="inline-flex items-center justify-center gap-1.5 h-[38px] rounded-xl px-3 sm:px-4 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
             :class="[
               isFilterOpen
                 ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
                 : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
-            <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{
+            <component :is="isFilterOpen ? X : Filter" class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span class="hidden xs:inline">{{
               isFilterOpen
-                ? languageStore.t('hide_filter', 'Hide Filter')
+                ? languageStore.t('hide_filter', 'Hide')
                 : languageStore.t('filter', 'Filter')
             }}</span>
           </button>
         </div>
 
-        <div class="flex items-center gap-2 sm:gap-2.5">
-          <button
-            type="button"
-            @click="refreshData"
-            :disabled="loading"
-            :title="languageStore.t('refresh', 'Refresh')"
-            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
-          >
-            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
-          </button>
+        <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
+          <div class="flex items-center gap-1.5">
+            <button
+              type="button"
+              @click="refreshData"
+              :disabled="loading"
+              :title="languageStore.t('refresh', 'Refresh')"
+              class="inline-flex items-center justify-center h-[38px] w-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+            >
+              <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+            </button>
 
-          <button
-            type="button"
-            @click="toggleFullscreen"
-            :title="languageStore.t('fullscreen', 'Toggle Fullscreen')"
-            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
-          >
-            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
-          </button>
+            <button
+              type="button"
+              @click="toggleFullscreen"
+              :title="languageStore.t('fullscreen', 'Toggle Fullscreen')"
+              class="inline-flex items-center justify-center h-[38px] w-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+            >
+              <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+            </button>
+          </div>
 
-          <button
-            type="button"
-            @click="showSectionModal = true"
-            class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white px-3.5 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
-          >
-            <Layers class="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            <span>Manage Sections</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              @click="showSectionModal = true"
+              class="inline-flex items-center justify-center gap-1.5 h-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white px-3 sm:px-3.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            >
+              <Layers class="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <span>Sections</span>
+            </button>
 
-          <button
-            type="button"
-            @click="openCreateModal"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold shadow-md shadow-blue-600/25 transition active:scale-98 cursor-pointer flex-shrink-0"
-          >
-            <Plus class="w-4 h-4 text-white" />
-            <span class="text-white">{{ languageStore.t('add_table', 'Add Table') }}</span>
-          </button>
+            <button
+              type="button"
+              @click="openCreateModal"
+              class="inline-flex items-center justify-center gap-1.5 h-[38px] rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3.5 sm:px-4 text-xs sm:text-sm font-bold shadow-md shadow-blue-600/25 transition active:scale-98 cursor-pointer flex-shrink-0"
+            >
+              <Plus class="w-4 h-4 text-white" />
+              <span class="text-white">{{ languageStore.t('add_table', 'Add Table') }}</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -538,8 +542,22 @@ onMounted(() => {
       <div
         class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
       >
-        <div class="hidden md:block overflow-x-auto w-full">
-          <table class="w-full text-left border-collapse">
+        <!-- Mobile Swipe Table Guidance Hint -->
+        <div
+          class="md:hidden flex items-center justify-between px-3.5 py-2 bg-slate-50/90 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 select-none"
+        >
+          <span class="flex items-center gap-1.5 font-semibold">
+            <span>👈</span>
+            <span>Swipe table horizontally to see all columns</span>
+            <span>👉</span>
+          </span>
+          <span class="font-bold text-blue-600 dark:text-blue-400">
+            {{ pagination?.total || tables.length }} tables
+          </span>
+        </div>
+
+        <div class="overflow-x-auto w-full min-h-[220px]" style="-webkit-overflow-scrolling: touch">
+          <table class="w-full min-w-[750px] text-left border-collapse">
             <thead
               class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
             >
@@ -686,80 +704,41 @@ onMounted(() => {
           </table>
         </div>
 
-        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-          <div
-            v-if="loading"
-            class="py-16 text-center flex flex-col items-center justify-center gap-3"
-          >
-            <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{
-              languageStore.t('Loading...', 'Loading restaurant tables...')
-            }}</span>
-          </div>
-          <div
-            v-else-if="tables.length === 0"
-            class="py-12 text-center text-slate-500 text-xs font-bold"
-          >
-            {{ languageStore.t('no_items_found', 'No restaurant tables found.') }}
-          </div>
-          <div v-else>
-            <div
-              v-for="table in tables"
-              :key="table.id"
-              class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition border-b border-slate-100 dark:border-slate-800/60 last:border-b-0"
-            >
-              <div class="flex items-center justify-between">
-                <span class="font-bold text-slate-900 dark:text-white text-sm">
-                  {{ languageStore.t('table', 'Table') }} {{ table.table_number }}
-                </span>
-                <span
-                  class="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase"
-                  :class="getStatusBadgeClass(table.status)"
-                >
-                  {{ languageStore.t(table.status, table.status) }}
-                </span>
-              </div>
-              <div
-                class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400"
-              >
-                <div class="flex items-center gap-1.5">
-                  <span>{{ table.capacity }} {{ languageStore.t('capacity', 'Seats') }}</span>
-                  <span class="text-slate-300">•</span>
-                  <span class="font-semibold text-blue-600 dark:text-blue-400">{{
-                    table.section_name || table.section || table.location || 'Main Dining'
-                  }}</span>
-                </div>
-                <div class="flex gap-2">
-                  <button @click="viewQRCode(table)" class="text-blue-600 font-bold cursor-pointer">
-                    QR
-                  </button>
-                  <button @click="editTable(table)" class="text-amber-600 font-bold cursor-pointer">
-                    {{ languageStore.t('Edit', 'Edit') }}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div
           v-if="pagination && pagination.total > 0"
-          class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+          class="border-t border-slate-200 dark:border-slate-800/80 px-3.5 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 text-xs"
         >
-          <div class="text-slate-500 dark:text-slate-400 font-medium">
-            {{ languageStore.t('Showing', 'Showing') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ pagination.from || 1 }}</span>
-            {{ languageStore.t('to', 'to') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{
-              pagination.to || tables.length
-            }}</span>
-            {{ languageStore.t('of', 'of') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ pagination.total }}</span>
-            {{ languageStore.t('restaurant_tables', 'tables') }}
+          <div
+            class="flex items-center justify-between w-full sm:w-auto text-slate-500 dark:text-slate-400 font-medium text-[11px] sm:text-xs"
+          >
+            <div>
+              {{ languageStore.t('Showing', 'Showing') }}
+              <span class="font-bold text-slate-900 dark:text-white">{{ pagination.from || 1 }}</span>
+              {{ languageStore.t('to', 'to') }}
+              <span class="font-bold text-slate-900 dark:text-white">{{
+                pagination.to || tables.length
+              }}</span>
+              {{ languageStore.t('of', 'of') }}
+              <span class="font-bold text-slate-900 dark:text-white">{{ pagination.total }}</span>
+              {{ languageStore.t('restaurant_tables', 'tables') }}
+            </div>
+
+            <div class="flex items-center gap-1.5 sm:hidden">
+              <span class="text-slate-400">Per page:</span>
+              <select
+                :value="localPerPage"
+                @change="changePerPage"
+                class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-0.5 text-xs outline-none"
+              >
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
           </div>
 
-          <div class="flex items-center gap-2 sm:gap-3">
-            <div class="flex items-center gap-1.5">
+          <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-3">
+            <div class="hidden sm:flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{
                 languageStore.t('per_page', 'Per page:')
               }}</span>
@@ -774,33 +753,39 @@ onMounted(() => {
               </select>
             </div>
 
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1 w-full sm:w-auto justify-end">
               <button
                 @click="goToPage((pagination.current_page || 1) - 1)"
                 :disabled="(pagination.current_page || 1) <= 1"
-                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+                class="p-1 sm:p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
               >
                 <ChevronLeft class="w-4 h-4" />
               </button>
 
-              <button
-                v-for="page in paginationPages"
-                :key="page"
-                @click="goToPage(page)"
-                class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
-                :class="[
-                  pagination.current_page === page
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
-                ]"
-              >
-                {{ page }}
-              </button>
+              <div class="sm:hidden font-bold text-xs text-slate-700 dark:text-slate-300 px-2">
+                {{ pagination.current_page || 1 }} / {{ pagination.last_page || 1 }}
+              </div>
+
+              <div class="hidden sm:flex items-center gap-1">
+                <button
+                  v-for="page in paginationPages"
+                  :key="page"
+                  @click="goToPage(page)"
+                  class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+                  :class="[
+                    pagination.current_page === page
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
+                  ]"
+                >
+                  {{ page }}
+                </button>
+              </div>
 
               <button
                 @click="goToPage((pagination.current_page || 1) + 1)"
                 :disabled="(pagination.current_page || 1) >= (pagination.last_page || 1)"
-                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+                class="p-1 sm:p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
               >
                 <ChevronRight class="w-4 h-4" />
               </button>

@@ -98,20 +98,20 @@ onMounted(() => {
 
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 px-6 py-6">
-      <div class="flex items-center gap-4 mb-8">
+    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-3 sm:p-6 max-w-full font-sans">
+      <div class="flex items-center gap-4 mb-4 sm:mb-8">
         <button
           @click="goBack"
-          class="flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-slate-900 transition"
+          class="flex items-center gap-2 px-3 sm:px-4 py-2 text-slate-600 hover:text-slate-900 transition text-xs sm:text-sm font-semibold cursor-pointer"
         >
-          <ArrowLeft class="w-5 h-5" />
-          <span class="font-medium">Back to Assignments</span>
+          <ArrowLeft class="w-4 h-4 sm:w-5 sm:h-5" />
+          <span>Back to Assignments</span>
         </button>
       </div>
 
-      <div class="mb-8">
-        <h1 class="text-4xl font-bold text-slate-900">Add New Floor</h1>
-        <p class="text-slate-600 mt-2">
+      <div class="mb-5 sm:mb-8">
+        <h1 class="text-2xl sm:text-4xl font-bold text-slate-900">Add New Floor</h1>
+        <p class="text-xs sm:text-sm text-slate-600 mt-1 sm:mt-2">
           Expand your hospitality suite operations. Define new zones and designate management teams
           for immediate service readiness.
         </p>

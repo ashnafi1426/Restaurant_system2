@@ -315,7 +315,7 @@ const handleAssignSuccess = async () => {
 <template>
   <DashboardLayout>
     <div
-      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
+      class="space-y-4 sm:space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-3 sm:p-6 max-w-full font-sans"
       :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
       <div
@@ -327,7 +327,7 @@ const handleAssignSuccess = async () => {
       </div>
 
       <div
-        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs"
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-5 rounded-2xl shadow-xs"
       >
         <div class="flex items-center gap-3">
           <div
@@ -351,9 +351,9 @@ const handleAssignSuccess = async () => {
         </div>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-4 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
@@ -361,17 +361,17 @@ const handleAssignSuccess = async () => {
             >
               {{ languageStore.t('total_assignments', 'Total Assignments') }}
             </p>
-            <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1">
               {{ tableAssignmentStore.stats.total_assignments }}
             </h3>
           </div>
-          <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
-            <Users class="w-5 h-5" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+            <Users class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-4 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
@@ -379,17 +379,17 @@ const handleAssignSuccess = async () => {
             >
               {{ languageStore.t('tables_covered', 'Tables Covered') }}
             </p>
-            <h3 class="text-2xl font-black text-purple-600 dark:text-purple-400 mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400 mt-0.5 sm:mt-1">
               {{ tableAssignmentStore.stats.total_tables }}
             </h3>
           </div>
-          <div class="p-3 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
-            <MapPin class="w-5 h-5" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
+            <MapPin class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-4 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
@@ -397,17 +397,17 @@ const handleAssignSuccess = async () => {
             >
               {{ languageStore.t('waiters_on_duty', 'Waiters on Duty') }}
             </p>
-            <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1">
               {{ tableAssignmentStore.stats.total_waiters }}
             </h3>
           </div>
-          <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-            <Users class="w-5 h-5" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+            <Users class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-4 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
@@ -415,26 +415,26 @@ const handleAssignSuccess = async () => {
             >
               {{ languageStore.t('active_assignments', 'Active Assignments') }}
             </p>
-            <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-1">
               {{
                 tableAssignmentStore.stats.active_assignments ??
                 tableAssignmentStore.stats.primary_assignments
               }}
             </h3>
           </div>
-          <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
-            <CheckCircle2 class="w-5 h-5" />
+          <div class="p-2 sm:p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+            <CheckCircle2 class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
       </div>
 
       <div
-        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+        class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
-          <div class="relative flex-1">
+        <div class="flex items-center gap-2 flex-1 w-full sm:w-auto">
+          <div class="relative flex-1 min-w-0">
             <Search
-              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+              class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
             />
             <input
               v-model="searchQuery"
@@ -442,56 +442,58 @@ const handleAssignSuccess = async () => {
               :placeholder="
                 languageStore.t(
                   'search_assignments_placeholder',
-                  'Search assignments by waiter, table, section...',
+                  'Search assignments...',
                 )
               "
-              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
+              class="w-full h-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-9 pr-3 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />
           </div>
 
           <button
             type="button"
             @click="toggleFilter"
-            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            class="inline-flex items-center justify-center gap-1.5 h-[38px] rounded-xl px-3 sm:px-4 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
             :class="[
               isFilterOpen
                 ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
                 : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
-            <component :is="isFilterOpen ? X : Filter" class="w-4 h-4" />
-            <span>{{
+            <component :is="isFilterOpen ? X : Filter" class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span class="hidden xs:inline">{{
               isFilterOpen
-                ? languageStore.t('hide_filter', 'Hide Filter')
+                ? languageStore.t('hide_filter', 'Hide')
                 : languageStore.t('filter', 'Filter')
             }}</span>
           </button>
         </div>
 
-        <div class="flex items-center gap-2 sm:gap-2.5">
-          <button
-            type="button"
-            @click="handleRefresh"
-            :disabled="tableAssignmentStore.loading"
-            :title="languageStore.t('refresh', 'Refresh')"
-            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
-          >
-            <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': tableAssignmentStore.loading }" />
-          </button>
+        <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
+          <div class="flex items-center gap-1.5">
+            <button
+              type="button"
+              @click="handleRefresh"
+              :disabled="tableAssignmentStore.loading"
+              :title="languageStore.t('refresh', 'Refresh')"
+              class="inline-flex items-center justify-center h-[38px] w-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+            >
+              <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': tableAssignmentStore.loading }" />
+            </button>
 
-          <button
-            type="button"
-            @click="toggleFullscreen"
-            :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
-            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
-          >
-            <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
-          </button>
+            <button
+              type="button"
+              @click="toggleFullscreen"
+              :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
+              class="inline-flex items-center justify-center h-[38px] w-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+            >
+              <component :is="isFullscreen ? Minimize2 : Maximize2" class="w-4 h-4" />
+            </button>
+          </div>
 
           <button
             type="button"
             @click="showAssignModal = true"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold shadow-md shadow-blue-600/25 transition active:scale-98 cursor-pointer flex-shrink-0"
+            class="inline-flex items-center justify-center gap-1.5 h-[38px] rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3.5 sm:px-4 text-xs sm:text-sm font-bold shadow-md shadow-blue-600/25 transition active:scale-98 cursor-pointer flex-shrink-0"
           >
             <Plus class="w-4 h-4 text-white" />
             <span class="text-white">{{ languageStore.t('assign_table', 'Assign Table') }}</span>
@@ -554,8 +556,22 @@ const handleAssignSuccess = async () => {
       <div
         class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
       >
-        <div class="hidden md:block overflow-x-auto w-full">
-          <table class="w-full text-left border-collapse">
+        <!-- Mobile Swipe Table Guidance Hint -->
+        <div
+          class="md:hidden flex items-center justify-between px-3.5 py-2 bg-slate-50/90 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 select-none"
+        >
+          <span class="flex items-center gap-1.5 font-semibold">
+            <span>👈</span>
+            <span>Swipe table horizontally to see all columns</span>
+            <span>👉</span>
+          </span>
+          <span class="font-bold text-blue-600 dark:text-blue-400">
+            {{ totalRecords }} assignments
+          </span>
+        </div>
+
+        <div class="overflow-x-auto w-full min-h-[220px]" style="-webkit-overflow-scrolling: touch">
+          <table class="w-full min-w-[750px] text-left border-collapse">
             <thead
               class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
             >
@@ -691,8 +707,8 @@ const handleAssignSuccess = async () => {
                         >
                           <button
                             @click="
-                              handleEdit(assignment)
-                              closeMenu()
+                              handleEdit(assignment);
+                              closeMenu();
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#152744] hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer"
                           >
@@ -704,8 +720,8 @@ const handleAssignSuccess = async () => {
 
                           <button
                             @click="
-                              promptDeleteAssignment(assignment)
-                              closeMenu()
+                              promptDeleteAssignment(assignment);
+                              closeMenu();
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer"
                           >
@@ -738,111 +754,39 @@ const handleAssignSuccess = async () => {
           </table>
         </div>
 
-        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-          <div
-            v-if="tableAssignmentStore.loading"
-            class="py-16 text-center flex flex-col items-center justify-center gap-3"
-          >
-            <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{
-              languageStore.t('loading_table_assignments', 'Loading table assignments...')
-            }}</span>
-          </div>
-          <template v-else>
-            <div
-              v-for="assignment in paginatedAssignments"
-              :key="assignment.id"
-              class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
-            >
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <span class="font-bold text-slate-900 dark:text-white text-sm">
-                    {{ languageStore.t('table', 'Table') }} {{ getTableNumber(assignment) }}
-                  </span>
-                  <span
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
-                  >
-                    <MapPin class="w-3 h-3 text-blue-500" />
-                    {{ getTableSection(assignment) }}
-                  </span>
-                </div>
-                <span
-                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
-                  :class="
-                    assignment.status === 'active'
-                      ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
-                      : 'bg-slate-100 text-slate-500 border border-slate-200'
-                  "
-                >
-                  <span
-                    class="w-1.5 h-1.5 rounded-full"
-                    :class="assignment.status === 'active' ? 'bg-emerald-500' : 'bg-slate-400'"
-                  ></span>
-                  {{
-                    languageStore.t(
-                      assignment.status || 'active',
-                      (assignment.status || 'active').replace('_', ' '),
-                    )
-                  }}
-                </span>
-              </div>
-              <div
-                class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400"
-              >
-                <div class="flex items-center gap-2">
-                  <div
-                    class="w-6 h-6 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center text-[10px]"
-                  >
-                    {{ getWaiterName(assignment.waiter).charAt(0).toUpperCase() }}
-                  </div>
-                  <span>{{ getWaiterName(assignment.waiter) }}</span>
-                </div>
-                <div class="flex gap-2.5">
-                  <button
-                    @click="handleEdit(assignment)"
-                    class="text-blue-600 dark:text-blue-400 font-bold cursor-pointer"
-                  >
-                    {{ languageStore.t('edit', 'Edit') }}
-                  </button>
-                  <button
-                    @click="promptDeleteAssignment(assignment)"
-                    class="text-rose-600 dark:text-rose-400 font-bold cursor-pointer"
-                  >
-                    {{ languageStore.t('delete', 'Delete') }}
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div
-              v-if="paginatedAssignments.length === 0"
-              class="p-8 text-center text-slate-500 text-xs font-bold"
-            >
-              {{
-                languageStore.t(
-                  'no_table_assignments',
-                  'No table assignments found for this filter.',
-                )
-              }}
-            </div>
-          </template>
-        </div>
-
         <div
           v-if="totalRecords > 0"
-          class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+          class="border-t border-slate-200 dark:border-slate-800/80 px-3.5 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 text-xs"
         >
-          <div class="text-slate-500 dark:text-slate-400 font-medium">
-            {{ languageStore.t('showing', 'Showing') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
-            {{ languageStore.t('to', 'to') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span>
-            {{ languageStore.t('of', 'of') }}
-            <span class="font-bold text-slate-900 dark:text-white">{{ totalRecords }}</span>
-            {{ languageStore.t('assignments', 'assignments') }}
+          <div
+            class="flex items-center justify-between w-full sm:w-auto text-slate-500 dark:text-slate-400 font-medium text-[11px] sm:text-xs"
+          >
+            <div>
+              {{ languageStore.t('showing', 'Showing') }}
+              <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
+              {{ languageStore.t('to', 'to') }}
+              <span class="font-bold text-slate-900 dark:text-white">{{ showingTo }}</span>
+              {{ languageStore.t('of', 'of') }}
+              <span class="font-bold text-slate-900 dark:text-white">{{ totalRecords }}</span>
+              {{ languageStore.t('assignments', 'assignments') }}
+            </div>
+
+            <div class="flex items-center gap-1.5 sm:hidden">
+              <span class="text-slate-400">Per page:</span>
+              <select
+                :value="perPage"
+                @change="changePerPage"
+                class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-900 dark:text-white px-2 py-0.5 text-xs outline-none"
+              >
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+              </select>
+            </div>
           </div>
 
-          <div class="flex items-center gap-2 sm:gap-3">
-            <div class="flex items-center gap-1.5">
+          <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-3">
+            <div class="hidden sm:flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{
                 languageStore.t('per_page', 'Per page:')
               }}</span>
@@ -857,33 +801,39 @@ const handleAssignSuccess = async () => {
               </select>
             </div>
 
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1 w-full sm:w-auto justify-end">
               <button
                 @click="prevPage"
                 :disabled="currentPage === 1"
-                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+                class="p-1 sm:p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
               >
                 <ChevronLeft class="w-4 h-4" />
               </button>
 
-              <button
-                v-for="page in paginationPages"
-                :key="page"
-                @click="goToPage(page)"
-                class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
-                :class="[
-                  currentPage === page
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
-                ]"
-              >
-                {{ page }}
-              </button>
+              <div class="sm:hidden font-bold text-xs text-slate-700 dark:text-slate-300 px-2">
+                {{ currentPage }} / {{ lastPage }}
+              </div>
+
+              <div class="hidden sm:flex items-center gap-1">
+                <button
+                  v-for="page in paginationPages"
+                  :key="page"
+                  @click="goToPage(page)"
+                  class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+                  :class="[
+                    currentPage === page
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
+                  ]"
+                >
+                  {{ page }}
+                </button>
+              </div>
 
               <button
                 @click="nextPage"
                 :disabled="currentPage === lastPage"
-                class="p-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
+                class="p-1 sm:p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition cursor-pointer"
               >
                 <ChevronRight class="w-4 h-4" />
               </button>
