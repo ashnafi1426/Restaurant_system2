@@ -433,6 +433,7 @@ import {
   RefreshCw,
   ArrowRight,
   Inbox,
+  UtensilsCrossed,
 } from 'lucide-vue-next'
 
 const hotelStore = useHotelStore()
