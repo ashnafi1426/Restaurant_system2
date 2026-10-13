@@ -141,11 +141,11 @@ watch(() => hotelStore.hotelId, refreshData)
 <template>
   <DashboardLayout>
     <div
-      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
-      :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
+      class="space-y-4 sm:space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-3 sm:p-6 max-w-full font-sans"
+      :class="{ 'fixed inset-0 z-50 p-4 sm:p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-5 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"
       >
         <div class="flex items-center gap-3">
           <div
@@ -154,8 +154,8 @@ watch(() => hotelStore.hotelId, refreshData)
             <ClipboardList class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <div class="flex items-center gap-2">
-              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">
                 {{ languageStore.t('daily_operations', 'Daily Operations') }}
               </h1>
               <span
@@ -178,9 +178,9 @@ watch(() => hotelStore.hotelId, refreshData)
         </div>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
@@ -188,17 +188,17 @@ watch(() => hotelStore.hotelId, refreshData)
             >
               {{ languageStore.t('pending_tasks', 'Pending Tasks') }}
             </p>
-            <h3 class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-1">
               {{ operationsData.pending_tasks }}
             </h3>
           </div>
-          <div class="p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
-            <Clock class="w-5 h-5" />
+          <div class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+            <Clock class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
@@ -206,17 +206,17 @@ watch(() => hotelStore.hotelId, refreshData)
             >
               {{ languageStore.t('completed', 'Completed') }}
             </p>
-            <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1">
               {{ operationsData.completed_tasks }}
             </h3>
           </div>
-          <div class="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-            <CheckCircle class="w-5 h-5" />
+          <div class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+            <CheckCircle class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
@@ -224,17 +224,17 @@ watch(() => hotelStore.hotelId, refreshData)
             >
               {{ languageStore.t('urgent_attention', 'Urgent Attention') }}
             </p>
-            <h3 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 mt-0.5 sm:mt-1">
               {{ operationsData.urgent_tasks }}
             </h3>
           </div>
-          <div class="p-3 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
-            <AlertCircle class="w-5 h-5" />
+          <div class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0">
+            <AlertCircle class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
 
         <div
-          class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
+          class="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-5 shadow-xs border border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
           <div>
             <p
@@ -242,59 +242,59 @@ watch(() => hotelStore.hotelId, refreshData)
             >
               {{ languageStore.t('Staff On Duty', 'Staff On Duty') }}
             </p>
-            <h3 class="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">
+            <h3 class="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400 mt-0.5 sm:mt-1">
               {{ operationsData.total_staff }}
             </h3>
           </div>
-          <div class="p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
-            <ClipboardList class="w-5 h-5" />
+          <div class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+            <ClipboardList class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
       </div>
 
       <div
-        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+        class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
+        <div class="flex items-center gap-2 w-full sm:max-w-xl">
           <div class="relative flex-1">
             <Search
-              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+              class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
             />
             <input
               v-model="searchQuery"
               type="text"
               :placeholder="languageStore.t('search_daily_tasks', 'Search daily tasks or areas...')"
-              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
+              class="w-full h-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-9 pr-3 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />
           </div>
 
           <button
             type="button"
             @click="toggleFilter"
-            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            class="h-[38px] inline-flex items-center gap-2 rounded-xl px-3 sm:px-4 text-xs font-semibold transition cursor-pointer shrink-0"
             :class="[
               isFilterOpen
                 ? 'bg-blue-600/10 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-500/40'
                 : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
-            <X v-if="isFilterOpen" class="w-4 h-4" />
-            <Filter v-else class="w-4 h-4" />
+            <X v-if="isFilterOpen" class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Filter v-else class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>{{
               isFilterOpen
-                ? languageStore.t('hide_filters', 'Hide Filter')
+                ? languageStore.t('hide_filters', 'Hide')
                 : languageStore.t('filter', 'Filter')
             }}</span>
           </button>
         </div>
 
-        <div class="flex items-center gap-2 sm:gap-2.5">
+        <div class="flex items-center justify-end gap-2 shrink-0">
           <button
             type="button"
             @click="refreshData"
             :disabled="isLoading"
             :title="languageStore.t('refresh', 'Refresh')"
-            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+            class="inline-flex items-center justify-center h-[38px] w-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': isLoading }" />
           </button>
@@ -303,7 +303,7 @@ watch(() => hotelStore.hotelId, refreshData)
             type="button"
             @click="toggleFullscreen"
             :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
-            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+            class="inline-flex items-center justify-center h-[38px] w-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           >
             <Minimize2 v-if="isFullscreen" class="w-4 h-4" />
             <Maximize2 v-else class="w-4 h-4" />
@@ -321,7 +321,7 @@ watch(() => hotelStore.hotelId, refreshData)
       >
         <div
           v-if="isFilterOpen"
-          class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
+          class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3.5 sm:p-5 shadow-sm space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
             <div>
@@ -358,7 +358,7 @@ watch(() => hotelStore.hotelId, refreshData)
 
       <div
         v-if="errorMessage"
-        class="rounded-2xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 p-4 flex items-center justify-between gap-3 text-rose-700 dark:text-rose-300 text-xs sm:text-sm font-semibold"
+        class="rounded-2xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 p-3.5 sm:p-4 flex items-center justify-between gap-3 text-rose-700 dark:text-rose-300 text-xs sm:text-sm font-semibold"
       >
         <div class="flex items-center gap-2.5">
           <AlertCircle class="w-5 h-5 text-rose-500 shrink-0" />
@@ -376,8 +376,15 @@ watch(() => hotelStore.hotelId, refreshData)
       <div
         class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
       >
-        <div class="overflow-x-auto w-full">
-          <table class="w-full text-left border-collapse">
+        <!-- Mobile swipe hint banner -->
+        <div
+          class="md:hidden flex items-center justify-between px-3.5 py-2 bg-blue-50/70 dark:bg-blue-950/20 border-b border-blue-100 dark:border-blue-900/30 text-[11px] font-semibold text-blue-700 dark:text-blue-300"
+        >
+          <span>👈 {{ languageStore.t('swipe_horizontally', 'Swipe table horizontally to see all columns') }} 👉</span>
+        </div>
+
+        <div class="overflow-x-auto w-full min-h-[220px]">
+          <table class="w-full text-left border-collapse min-w-[700px]">
             <thead
               class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
             >

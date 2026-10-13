@@ -210,11 +210,11 @@ watch(() => hotelStore.hotelId, loadOrders)
 <template>
   <DashboardLayout>
     <div
-      class="space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-4 sm:p-6 max-w-full overflow-hidden font-sans"
-      :class="{ 'fixed inset-0 z-50 p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
+      class="space-y-4 sm:space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-3 sm:p-6 max-w-full font-sans"
+      :class="{ 'fixed inset-0 z-50 p-4 sm:p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
     >
       <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-5 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"
       >
         <div class="flex items-center gap-3">
           <div
@@ -223,8 +223,8 @@ watch(() => hotelStore.hotelId, loadOrders)
             <Clock class="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <div class="flex items-center gap-2">
-              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">
                 {{ languageStore.t('ready_for_pickup', 'Ready for Pickup') }}
               </h1>
               <span
@@ -248,7 +248,7 @@ watch(() => hotelStore.hotelId, loadOrders)
 
         <div class="flex items-center gap-2">
           <div
-            class="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-extrabold text-xs sm:text-sm"
+            class="w-full sm:w-auto text-center px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-extrabold text-xs sm:text-sm"
           >
             {{ languageStore.t('ready_for_pickup', 'Ready') }}: {{ orders.length }}
             {{ languageStore.t('orders', 'Orders') }}
@@ -257,12 +257,12 @@ watch(() => hotelStore.hotelId, loadOrders)
       </div>
 
       <div
-        class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
+        class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3 sm:p-4 shadow-xs transition-all"
       >
-        <div class="flex flex-1 items-center gap-2.5 min-w-[280px] max-w-2xl">
+        <div class="flex items-center gap-2 w-full sm:max-w-xl">
           <div class="relative flex-1">
             <Search
-              class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+              class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
             />
             <input
               v-model="searchQuery"
@@ -273,37 +273,37 @@ watch(() => hotelStore.hotelId, loadOrders)
                   'Search ready orders by #, room, or guest...',
                 )
               "
-              class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 dark:focus:border-amber-400 transition outline-none"
+              class="w-full h-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-9 pr-3 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 dark:focus:border-amber-400 transition outline-none"
             />
           </div>
 
           <button
             type="button"
             @click="toggleFilter"
-            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold transition cursor-pointer flex-shrink-0"
+            class="h-[38px] inline-flex items-center gap-2 rounded-xl px-3 sm:px-4 text-xs font-semibold transition cursor-pointer shrink-0"
             :class="[
               isFilterOpen
                 ? 'bg-amber-600/10 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-500/40'
                 : 'border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356]',
             ]"
           >
-            <X v-if="isFilterOpen" class="w-4 h-4" />
-            <Filter v-else class="w-4 h-4" />
+            <X v-if="isFilterOpen" class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Filter v-else class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>{{
               isFilterOpen
-                ? languageStore.t('hide_filter', 'Hide Filter')
+                ? languageStore.t('hide_filter', 'Hide')
                 : languageStore.t('filter', 'Filter')
             }}</span>
           </button>
         </div>
 
-        <div class="flex items-center gap-2 sm:gap-2.5">
+        <div class="flex items-center justify-end gap-2 shrink-0">
           <button
             type="button"
             @click="loadOrders"
             :disabled="loading"
             :title="languageStore.t('refresh', 'Refresh')"
-            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
+            class="inline-flex items-center justify-center h-[38px] w-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
           </button>
@@ -312,7 +312,7 @@ watch(() => hotelStore.hotelId, loadOrders)
             type="button"
             @click="toggleFullscreen"
             :title="languageStore.t('toggle_fullscreen', 'Toggle Fullscreen')"
-            class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
+            class="inline-flex items-center justify-center h-[38px] w-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
           >
             <Minimize2 v-if="isFullscreen" class="w-4 h-4" />
             <Maximize2 v-else class="w-4 h-4" />
@@ -330,7 +330,7 @@ watch(() => hotelStore.hotelId, loadOrders)
       >
         <div
           v-if="isFilterOpen"
-          class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-4 sm:p-5 shadow-sm space-y-4"
+          class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b1527] p-3.5 sm:p-5 shadow-sm space-y-4"
         >
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
             <div>
@@ -368,8 +368,15 @@ watch(() => hotelStore.hotelId, loadOrders)
       <div
         class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full"
       >
-        <div class="hidden md:block overflow-x-auto w-full">
-          <table class="w-full text-left border-collapse">
+        <!-- Mobile swipe hint banner -->
+        <div
+          class="md:hidden flex items-center justify-between px-3.5 py-2 bg-blue-50/70 dark:bg-blue-950/20 border-b border-blue-100 dark:border-blue-900/30 text-[11px] font-semibold text-blue-700 dark:text-blue-300"
+        >
+          <span>👈 {{ languageStore.t('swipe_horizontally', 'Swipe table horizontally to see all columns') }} 👉</span>
+        </div>
+
+        <div class="overflow-x-auto w-full min-h-[220px]">
+          <table class="w-full text-left border-collapse min-w-[700px]">
             <thead
               class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
             >
@@ -484,71 +491,11 @@ watch(() => hotelStore.hotelId, loadOrders)
           </table>
         </div>
 
-        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-          <div
-            v-if="loading"
-            class="py-12 text-center flex flex-col items-center justify-center gap-3"
-          >
-            <Loader2 class="w-8 h-8 text-emerald-600 dark:text-emerald-400 animate-spin" />
-            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">{{
-              languageStore.t('loading_pickup_orders', 'Loading orders ready for pickup...')
-            }}</span>
-          </div>
-          <template v-else>
-            <div
-              v-for="order in paginatedOrders"
-              :key="order.id"
-              class="p-4 space-y-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition"
-            >
-              <div class="flex items-center justify-between">
-                <span class="font-mono font-bold text-blue-600 dark:text-blue-400 text-xs">
-                  #{{ getOrderReference(order) }}
-                </span>
-                <button
-                  @click="pickupOrder(order.id)"
-                  :disabled="loadingOrderId === String(order.id)"
-                  class="px-3 py-1 bg-emerald-600 text-white font-bold text-xs rounded-lg transition disabled:opacity-50"
-                >
-                  {{ languageStore.t('pickup', 'Pickup') }}
-                </button>
-              </div>
-              <div
-                class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400"
-              >
-                <span>{{ getOrderGuestName(order) }}</span>
-                <span
-                  v-if="getOrderTableNumber(order)"
-                  class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1"
-                >
-                  <UtensilsCrossed class="w-3 h-3" />
-                  {{ languageStore.t('table', 'Table') }} {{ getOrderTableNumber(order) }}
-                </span>
-                <span
-                  v-else-if="getOrderRoomNumber(order)"
-                  class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1"
-                >
-                  <BedDouble class="w-3 h-3" />
-                  {{ languageStore.t('room', 'Room') }} {{ getOrderRoomNumber(order) }}
-                </span>
-                <span v-else class="text-amber-600 dark:text-amber-400">
-                  {{ order.destination || 'Takeout / Table' }}
-                </span>
-              </div>
-            </div>
-            <div
-              v-if="paginatedOrders.length === 0"
-              class="p-8 text-center text-slate-500 text-xs font-bold"
-            >
-              {{ languageStore.t('no_pickup_orders', 'No orders ready for pickup.') }}
-            </div>
-          </template>
-        </div>
-
         <div
           v-if="total > 0"
-          class="border-t border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+          class="border-t border-slate-200 dark:border-slate-800/80 px-3.5 sm:px-6 py-3 sm:py-4 bg-slate-50/50 dark:bg-[#0c182c] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
         >
-          <div class="text-slate-500 dark:text-slate-400 font-medium">
+          <div class="text-slate-500 dark:text-slate-400 font-medium text-center sm:text-left">
             {{ languageStore.t('showing', 'Showing') }}
             <span class="font-bold text-slate-900 dark:text-white">{{ showingFrom }}</span>
             {{ languageStore.t('to', 'to') }}
@@ -558,7 +505,7 @@ watch(() => hotelStore.hotelId, loadOrders)
             {{ languageStore.t('orders', 'orders') }}
           </div>
 
-          <div class="flex items-center gap-2 sm:gap-3">
+          <div class="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto">
             <div class="flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{
                 languageStore.t('per_page', 'Per page:')
@@ -571,6 +518,10 @@ watch(() => hotelStore.hotelId, loadOrders)
                 <option :value="20">20</option>
                 <option :value="50">50</option>
               </select>
+            </div>
+
+            <div class="sm:hidden text-xs font-bold text-slate-600 dark:text-slate-400 px-1">
+              {{ currentPage }} / {{ totalPages }}
             </div>
 
             <div class="flex items-center gap-1">
@@ -586,7 +537,7 @@ watch(() => hotelStore.hotelId, loadOrders)
                 v-for="page in paginationPages"
                 :key="page"
                 @click="goToPage(page)"
-                class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
+                class="hidden sm:inline-flex px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer"
                 :class="[
                   currentPage === page
                     ? 'bg-amber-600 text-white'
