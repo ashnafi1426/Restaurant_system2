@@ -194,20 +194,20 @@ const toggleSidebar = () => {
           >
             {{ languageStore.t('switch_hotel', 'Switch Hotel') }}
           </div>
-          <button
+            <button
             v-for="h in hotelStore.availableHotels"
             :key="h.id"
-            @click="handleSwitchHotel(h.id)"
+            @click="handleSwitchHotel(String(h.id))"
             class="w-full px-3 py-2 text-left flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50 text-xs sm:text-sm transition-colors"
             :class="
-              h.id === hotelStore.hotelId
+              String(h.id).trim().toLowerCase() === String(hotelStore.hotelId).trim().toLowerCase()
                 ? 'text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50/50 dark:bg-emerald-950/20'
                 : 'text-slate-700 dark:text-slate-300'
             "
           >
             <span class="truncate">{{ h.name }}</span>
             <Check
-              v-if="h.id === hotelStore.hotelId"
+              v-if="String(h.id).trim().toLowerCase() === String(hotelStore.hotelId).trim().toLowerCase()"
               class="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0"
             />
           </button>

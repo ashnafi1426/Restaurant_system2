@@ -2,16 +2,22 @@ import api from '../api/auth'
 import { publicAxios } from './axios'
 
 function getGuestHotelHeaders() {
-  try {
-    const hotelData = localStorage.getItem('guest_current_hotel')
-    if (hotelData) {
-      const hotel = JSON.parse(hotelData)
-      if (hotel && hotel.id) {
-        return { 'X-Hotel-ID': String(hotel.id) }
+  for (const key of ['guest_current_hotel', 'current_hotel']) {
+    try {
+      const hotelData = localStorage.getItem(key)
+      if (hotelData) {
+        const hotel = JSON.parse(hotelData)
+        if (hotel && hotel.id) {
+          return { 'X-Hotel-ID': String(hotel.id) }
+        }
       }
+    } catch (err: any) {
+      console.error(`[MenuService] Error parsing ${key}:`, err)
     }
-  } catch (err: any) {
-    console.error('[MenuService] Error parsing guest_current_hotel:', err)
+  }
+  const fallbackId = localStorage.getItem('guest_hotel_id') || localStorage.getItem('hotel_id')
+  if (fallbackId && fallbackId !== 'undefined' && fallbackId !== 'null') {
+    return { 'X-Hotel-ID': String(fallbackId) }
   }
   return {}
 }

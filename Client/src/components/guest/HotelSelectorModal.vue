@@ -75,6 +75,23 @@ function getHotelLogoUrl(hotel: PublicHotel) {
   return '/images/Hotel logo.png'
 }
 
+function isHotelActive(hotel: PublicHotel): boolean {
+  if (!hotel) return false
+  const activeId = String(guestHotelStore.hotelId || '').trim().toLowerCase()
+  const activeSlug = String(guestHotelStore.currentHotel?.slug || '').trim().toLowerCase()
+  const activeName = String(guestHotelStore.hotelName || '').trim().toLowerCase()
+
+  const hId = String(hotel.id || '').trim().toLowerCase()
+  const hSlug = String(hotel.slug || '').trim().toLowerCase()
+  const hName = String(hotel.name || '').trim().toLowerCase()
+
+  return (
+    (Boolean(activeId) && (activeId === hId || activeId === hSlug)) ||
+    (Boolean(activeSlug) && activeSlug === hSlug) ||
+    (Boolean(activeName) && activeName === hName)
+  )
+}
+
 function handleSelect(hotel: PublicHotel) {
   guestHotelStore.selectHotel(hotel)
   emit('update:open', false)
@@ -195,7 +212,7 @@ onMounted(() => {
               @click="handleSelect(hotel)"
               class="w-full text-left p-4 md:p-5 rounded-2xl border-2 transition-all duration-200 flex items-center justify-between gap-4 group cursor-pointer"
               :class="[
-                guestHotelStore.hotelId === hotel.id
+                isHotelActive(hotel)
                   ? 'border-amber-500 bg-amber-50/60 dark:bg-amber-950/20 shadow-sm'
                   : 'border-slate-100 dark:border-slate-800/80 hover:border-amber-400 dark:hover:border-amber-500/60 hover:bg-slate-50 dark:hover:bg-slate-800/40',
               ]"
@@ -204,7 +221,7 @@ onMounted(() => {
                 <div
                   class="w-14 h-14 rounded-2xl flex-shrink-0 flex items-center justify-center font-black text-xl shadow-xs overflow-hidden transition-transform group-hover:scale-105"
                   :class="[
-                    guestHotelStore.hotelId === hotel.id
+                    isHotelActive(hotel)
                       ? 'bg-amber-500 text-slate-950'
                       : 'bg-slate-100 dark:bg-slate-800 text-amber-600 dark:text-amber-400 border border-slate-200 dark:border-slate-700',
                   ]"
@@ -232,13 +249,13 @@ onMounted(() => {
                     <h3
                       class="text-base font-bold text-slate-900 dark:text-white truncate transition-colors"
                       :class="{
-                        'text-amber-600 dark:text-amber-400': guestHotelStore.hotelId === hotel.id,
+                        'text-amber-600 dark:text-amber-400': isHotelActive(hotel),
                       }"
                     >
                       {{ hotel.name }}
                     </h3>
                     <span
-                      v-if="guestHotelStore.hotelId === hotel.id"
+                      v-if="isHotelActive(hotel)"
                       class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-slate-950 uppercase tracking-wider"
                     >
                       <Check class="w-3 h-3" />
@@ -265,7 +282,7 @@ onMounted(() => {
 
               <div class="flex-shrink-0">
                 <span
-                  v-if="guestHotelStore.hotelId === hotel.id"
+                  v-if="isHotelActive(hotel)"
                   class="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500 text-slate-950 shadow-xs"
                 >
                   <Check class="w-4 h-4 stroke-[3]" />

@@ -36,6 +36,13 @@ function loadInitialHotel(): PublicHotel | null {
   return null
 }
 
+const isSameId = (a: any, b: any): boolean => {
+  if (a == null || b == null) return false
+  const strA = String(a).trim().toLowerCase()
+  const strB = String(b).trim().toLowerCase()
+  return Boolean(strA && strB && strA === strB)
+}
+
 export const useGuestHotelStore = defineStore('guestHotel', {
   state: () => ({
     currentHotel: loadInitialHotel(),
@@ -69,7 +76,7 @@ export const useGuestHotelStore = defineStore('guestHotel', {
     diningHours: (state): string =>
       state.currentHotel?.dining_hours || '06:00 AM – 11:00 PM Daily',
     currency: (state): string => state.currentHotel?.currency || 'ETB',
-    hasSelectedHotel: (state): boolean => !!state.currentHotel,
+    hasSelectedHotel: (state): boolean => Boolean(state.currentHotel && (state.currentHotel.id || state.currentHotel.name)),
   },
 
   actions: {
@@ -86,20 +93,34 @@ export const useGuestHotelStore = defineStore('guestHotel', {
             this.currentHotel?.id ||
             localStorage.getItem('guest_hotel_id') ||
             localStorage.getItem('hotel_id') ||
-            localStorage.getItem('active_hotel_id') ||
-            this.currentHotel?.slug
+            localStorage.getItem('active_hotel_id')
 
-          if (savedId) {
-            const matched = this.availableHotels.find(
-              (h) => h.id === savedId || h.slug === savedId,
-            )
+          const savedSlug = this.currentHotel?.slug || localStorage.getItem('guest_hotel_slug')
+          const savedName = this.currentHotel?.name
+
+          if (savedId || savedSlug || savedName) {
+            const matched = this.availableHotels.find((h) => {
+              return (
+                isSameId(h.id, savedId) ||
+                isSameId(h.slug, savedSlug) ||
+                isSameId(h.slug, savedId) ||
+                (savedName && h.name && h.name.trim().toLowerCase() === savedName.trim().toLowerCase())
+              )
+            })
+
             if (matched) {
               this.selectHotel(matched)
               return
             }
           }
 
-          if (!this.currentHotel && this.availableHotels.length > 0) {
+          // If currentHotel is already loaded and valid from storage, keep it
+          if (this.currentHotel && (this.currentHotel.id || this.currentHotel.name)) {
+            return
+          }
+
+          // Fallback to first available hotel
+          if (this.availableHotels.length > 0) {
             this.selectHotel(this.availableHotels[0])
           }
         }
@@ -130,9 +151,12 @@ export const useGuestHotelStore = defineStore('guestHotel', {
       const hotelJson = JSON.stringify(hotel)
       localStorage.setItem('guest_current_hotel', hotelJson)
       localStorage.setItem('current_hotel', hotelJson)
-      localStorage.setItem('guest_hotel_id', hotel.id)
-      localStorage.setItem('hotel_id', hotel.id)
-      localStorage.setItem('active_hotel_id', hotel.id)
+      localStorage.setItem('guest_hotel_id', String(hotel.id))
+      localStorage.setItem('hotel_id', String(hotel.id))
+      localStorage.setItem('active_hotel_id', String(hotel.id))
+      if (hotel.slug) {
+        localStorage.setItem('guest_hotel_slug', String(hotel.slug))
+      }
 
       try {
         const themeStore = useThemeStore()
@@ -146,7 +170,7 @@ export const useGuestHotelStore = defineStore('guestHotel', {
         const { useHotelStore } = await import('./hotelStore')
         const hotelStore = useHotelStore()
         hotelStore.currentHotel = {
-          id: hotel.id,
+          id: String(hotel.id),
           name: hotel.name,
           slug: hotel.slug,
           logo: hotel.logo || undefined,
@@ -164,7 +188,7 @@ export const useGuestHotelStore = defineStore('guestHotel', {
         if (authStore.currentHotel) {
           authStore.currentHotel = {
             ...authStore.currentHotel,
-            id: hotel.id,
+            id: String(hotel.id),
             name: hotel.name,
             slug: hotel.slug,
             logo: hotel.logo,
@@ -176,7 +200,7 @@ export const useGuestHotelStore = defineStore('guestHotel', {
       }
 
       window.dispatchEvent(new CustomEvent('guest-hotel-selected', { detail: { hotel } }))
-      window.dispatchEvent(new CustomEvent('hotel-switched', { detail: { hotelId: hotel.id } }))
+      window.dispatchEvent(new CustomEvent('hotel-switched', { detail: { hotelId: String(hotel.id), hotel } }))
     },
 
     async selectHotelById(hotelId: string) {
@@ -187,7 +211,7 @@ export const useGuestHotelStore = defineStore('guestHotel', {
         await this.fetchAvailableHotels()
       }
 
-      const matched = this.availableHotels.find((h) => h.id === hotelId || h.slug === hotelId)
+      const matched = this.availableHotels.find((h) => isSameId(h.id, hotelId) || isSameId(h.slug, hotelId))
       if (matched) {
         this.selectHotel(matched)
         return
@@ -206,6 +230,11 @@ export const useGuestHotelStore = defineStore('guestHotel', {
     clearSelectedHotel() {
       this.currentHotel = null
       localStorage.removeItem('guest_current_hotel')
+      localStorage.removeItem('current_hotel')
+      localStorage.removeItem('guest_hotel_id')
+      localStorage.removeItem('hotel_id')
+      localStorage.removeItem('active_hotel_id')
+      localStorage.removeItem('guest_hotel_slug')
       this.openHotelSelector()
     },
   },

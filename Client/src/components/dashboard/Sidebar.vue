@@ -3,6 +3,7 @@ import { computed, ref, watch, onMounted, onUnmounted, type Component } from 'vu
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { useHotelStore } from '../../stores/hotelStore'
+import { useGuestHotelStore } from '../../stores/guestHotelStore'
 import { useSidebarStore } from '../../stores/sidebarStore'
 import { useLanguageStore } from '../../stores/language'
 import { rbacService } from '../../services/rbacService'
@@ -61,8 +62,52 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const hotelStore = useHotelStore()
+const guestHotelStore = useGuestHotelStore()
 const sidebarStore = useSidebarStore()
 const languageStore = useLanguageStore()
+
+const currentHotelName = computed(() => {
+  return hotelStore.hotelName || guestHotelStore.hotelName || 'Grand Horizon Hotel'
+})
+
+const currentHotelCity = computed(() => {
+  return (
+    guestHotelStore.hotelCity ||
+    (hotelStore.currentHotel as any)?.city ||
+    'Addis Ababa'
+  )
+})
+
+const currentHotelLogo = computed(() => {
+  const logo = hotelStore.currentHotel?.logo || guestHotelStore.currentHotel?.logo
+  if (logo && typeof logo === 'string' && logo.trim()) {
+    const trimmed = logo.trim()
+    if (
+      trimmed.startsWith('http://') ||
+      trimmed.startsWith('https://') ||
+      trimmed.startsWith('data:') ||
+      trimmed.startsWith('/images/')
+    ) {
+      return trimmed
+    }
+    if (trimmed.startsWith('/storage/')) {
+      return `http://127.0.0.1:8000${trimmed}`
+    }
+    if (trimmed.startsWith('storage/')) {
+      return `http://127.0.0.1:8000/${trimmed}`
+    }
+    if (trimmed.startsWith('hotels/')) {
+      return `http://127.0.0.1:8000/storage/${trimmed}`
+    }
+    return `http://127.0.0.1:8000/storage/${trimmed}`
+  }
+
+  const name = (currentHotelName.value || '').toLowerCase()
+  if (name.includes('qelem') || name.includes('meda')) {
+    return '/images/qelem meda logo.png'
+  }
+  return '/images/Hotel logo.png'
+})
 
 const handleNavigate = () => {
   emit('navigate')
@@ -682,14 +727,19 @@ onMounted(() => {
   window.addEventListener('resize', updateIsMobile)
   window.addEventListener('keydown', handleKeyDown)
   window.addEventListener('hotel-switched', handleHotelSwitched)
+  window.addEventListener('guest-hotel-selected', handleHotelSwitched)
   window.addEventListener('permissions-updated', handleHotelSwitched)
   updateActiveSection()
+  if (!hotelStore.currentHotel || !hotelStore.availableHotels.length) {
+    hotelStore.fetchMyHotels().catch(() => {})
+  }
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateIsMobile)
   window.removeEventListener('keydown', handleKeyDown)
   window.removeEventListener('hotel-switched', handleHotelSwitched)
+  window.removeEventListener('guest-hotel-selected', handleHotelSwitched)
   window.removeEventListener('permissions-updated', handleHotelSwitched)
 })
 </script>
@@ -703,17 +753,33 @@ onUnmounted(() => {
     <div
       class="flex items-center bg-white dark:bg-slate-950 transition-all duration-300 border-b border-slate-200/80 dark:border-slate-800/80 flex-shrink-0"
       :class="
-        isSidebarExpanded ? 'h-16 px-4 justify-between' : 'h-16 py-2 px-2 flex-col justify-center'
+        isSidebarExpanded ? 'h-16 px-3.5 justify-between' : 'h-16 py-1.5 px-1.5 flex-col justify-center'
       "
     >
       <template v-if="isSidebarExpanded">
-        <div class="flex items-center min-w-0">
-          <div class="w-10 h-10 flex items-center justify-center flex-shrink-0">
+        <div class="flex items-center min-w-0 flex-1 mr-2 gap-2.5">
+          <div
+            class="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-center flex-shrink-0 p-1 shadow-xs overflow-hidden"
+          >
             <img
-              src="/images/Hotel logo.png"
-              alt="Hotel Logo"
+              :src="currentHotelLogo"
+              :alt="currentHotelName"
               class="w-full h-full object-contain select-none"
+              @error="(e: any) => { e.target.src = '/images/Hotel logo.png' }"
             />
+          </div>
+          <div class="min-w-0 flex-1 flex flex-col justify-center">
+            <span
+              class="text-xs sm:text-[13px] font-black text-slate-900 dark:text-white leading-tight uppercase truncate tracking-tight"
+              :title="currentHotelName"
+            >
+              {{ currentHotelName }}
+            </span>
+            <span
+              class="text-[10px] font-bold text-amber-600 dark:text-amber-400 tracking-wider uppercase truncate mt-0.5 leading-none"
+            >
+              {{ currentHotelCity }}
+            </span>
           </div>
         </div>
 
@@ -738,13 +804,26 @@ onUnmounted(() => {
       </template>
 
       <template v-else>
-        <button
-          @click="sidebarStore.toggleCollapse()"
-          class="flex items-center justify-center w-8.5 h-8.5 rounded-full border border-slate-200/80 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/60 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer mx-auto shadow-xs"
-          title="Expand sidebar"
-        >
-          <PanelLeft class="w-4 h-4 transform rotate-180" />
-        </button>
+        <div class="flex flex-col items-center justify-center gap-1.5 py-1">
+          <div
+            class="w-8 h-8 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-center p-0.5 shadow-xs overflow-hidden"
+            :title="`${currentHotelName} • ${currentHotelCity}`"
+          >
+            <img
+              :src="currentHotelLogo"
+              :alt="currentHotelName"
+              class="w-full h-full object-contain select-none"
+              @error="(e: any) => { e.target.src = '/images/Hotel logo.png' }"
+            />
+          </div>
+          <button
+            @click="sidebarStore.toggleCollapse()"
+            class="flex items-center justify-center w-7 h-7 rounded-full border border-slate-200/80 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/60 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer shadow-xs"
+            title="Expand sidebar"
+          >
+            <PanelLeft class="w-3.5 h-3.5 transform rotate-180" />
+          </button>
+        </div>
       </template>
     </div>
 

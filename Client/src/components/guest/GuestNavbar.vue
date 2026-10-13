@@ -20,6 +20,37 @@ const theme = useThemeStore()
 const guestHotelStore = useGuestHotelStore()
 const languageStore = useLanguageStore()
 
+const currentHotelLogo = computed(() => {
+  const logo = guestHotelStore.currentHotel?.logo
+  if (logo && typeof logo === 'string' && logo.trim()) {
+    const trimmed = logo.trim()
+    if (
+      trimmed.startsWith('http://') ||
+      trimmed.startsWith('https://') ||
+      trimmed.startsWith('data:') ||
+      trimmed.startsWith('/images/')
+    ) {
+      return trimmed
+    }
+    if (trimmed.startsWith('/storage/')) {
+      return `http://127.0.0.1:8000${trimmed}`
+    }
+    if (trimmed.startsWith('storage/')) {
+      return `http://127.0.0.1:8000/${trimmed}`
+    }
+    if (trimmed.startsWith('hotels/')) {
+      return `http://127.0.0.1:8000/storage/${trimmed}`
+    }
+    return `http://127.0.0.1:8000/storage/${trimmed}`
+  }
+
+  const name = (guestHotelStore.hotelName || '').toLowerCase()
+  if (name.includes('qelem') || name.includes('meda')) {
+    return '/images/qelem meda logo.png'
+  }
+  return '/images/Hotel logo.png'
+})
+
 const mobileMenu = ref(false)
 const scrolled = ref(false)
 const isHotelModalOpen = ref(false)
@@ -97,12 +128,13 @@ onUnmounted(() => {
           class="flex items-center gap-2.5 sm:gap-3 min-w-0 select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E9A11A] rounded-lg group"
         >
           <div
-            class="relative w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl bg-white p-1 shadow-xs border border-slate-200/60 dark:border-slate-700/60 shrink-0 transition-transform duration-300 group-hover:scale-105"
+            class="relative w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl bg-white p-1 shadow-xs border border-slate-200/60 dark:border-slate-700/60 shrink-0 transition-transform duration-300 group-hover:scale-105 overflow-hidden"
           >
             <img
-              src="/images/Hotel logo.png"
-              alt="Hotel Logo"
+              :src="currentHotelLogo"
+              :alt="guestHotelStore.hotelName"
               class="w-full h-full object-contain select-none"
+              @error="(e: any) => { e.target.src = '/images/Hotel logo.png' }"
             />
           </div>
 
@@ -110,13 +142,13 @@ onUnmounted(() => {
             <span
               class="text-[13px] xs:text-[15px] sm:text-[17px] font-bold tracking-tight text-[#0B1B35] dark:text-white leading-tight uppercase truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none"
             >
-              {{ guestHotelStore.currentHotel?.name || 'SHERATON' }}
+              {{ guestHotelStore.hotelName }}
             </span>
             <span
               class="text-[9px] sm:text-[10px] font-semibold text-[#E9A11A] tracking-wider uppercase mt-0.5 leading-none truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none"
             >
               {{
-                (guestHotelStore.currentHotel?.city || 'ADDIS ABABA')
+                (guestHotelStore.hotelCity || 'ADDIS ABABA')
                   .toUpperCase()
                   .replace('ADDISS', 'ADDIS')
               }}
@@ -255,7 +287,7 @@ onUnmounted(() => {
         >
           <span class="flex items-center gap-2.5 truncate">
             <Building2 class="w-4 h-4 text-[#E9A11A]" />
-            <span class="truncate">{{ guestHotelStore.currentHotel?.name || 'SHERATON' }}</span>
+            <span class="truncate">{{ guestHotelStore.hotelName }}</span>
           </span>
           <span class="text-[11px] font-semibold text-[#E9A11A]">Switch</span>
         </button>
