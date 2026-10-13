@@ -31,7 +31,6 @@ class WaiterDashboardService
                 if ($hotelId) {
                     $query->where('hotel_id', $hotelId);
                 }
-
                 return $query->where(function ($q) {
                         $q->where('is_active', true)
                           ->orWhere('status', 'active');

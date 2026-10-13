@@ -77,6 +77,7 @@ use App\Http\Controllers\Api\ReviewNotificationController;
 use App\Http\Controllers\Api\Admin\AdminBookingController;
 use App\Http\Controllers\Api\Platform\PlatformHotelController;
 use App\Http\Controllers\Api\Guests\PublicHotelController;
+use App\Http\Controllers\Api\Guests\ContactMessageController;
 use App\Http\Controllers\Api\Guests\GuestBookingController;
 use App\Http\Controllers\Api\Payment\PaymentGatewayController;
 use App\Http\Controllers\Api\Analytics\BookingAnalyticsController;
@@ -204,6 +205,9 @@ Route::prefix('guest')->group(function () {
     
     // Real-time order status tracking (NEW - WebSocket support)
     Route::get('/orders/{orderId}/realtime-status', [CustomerOrderController::class, 'getOrderStatus']);
+    
+    // Contact Message Submission
+    Route::post('/contact-messages', [ContactMessageController::class, 'store']);
 });
 
 // Broadcasting Auth Route - Required for Laravel Echo WebSocket authorization

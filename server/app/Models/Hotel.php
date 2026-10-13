@@ -23,10 +23,14 @@ class Hotel extends Model
         'name',
         'slug',
         'email',
+        'reservation_email',
         'phone',
+        'reservation_phone',
         'address',
         'city',
         'country',
+        'front_desk_hours',
+        'dining_hours',
         'logo',
         'timezone',
         'currency',
@@ -78,6 +82,11 @@ class Hotel extends Model
     public function floors()
     {
         return $this->hasMany(Floor::class, 'hotel_id');
+    }
+
+    public function contactMessages()
+    {
+        return $this->hasMany(ContactMessage::class, 'hotel_id');
     }
 }
 
