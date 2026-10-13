@@ -23,12 +23,17 @@ export interface PublicHotel {
 
 function loadInitialHotel(): PublicHotel | null {
   try {
-    const raw = localStorage.getItem('guest_current_hotel')
-    return raw ? JSON.parse(raw) : null
+    const raw = localStorage.getItem('guest_current_hotel') || localStorage.getItem('current_hotel')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed && (parsed.id || parsed.name)) {
+        return parsed
+      }
+    }
   } catch (e) {
     console.error('[guestHotelStore] Failed to parse guest_current_hotel from localStorage:', e)
-    return null
   }
+  return null
 }
 
 export const useGuestHotelStore = defineStore('guestHotel', {
@@ -61,7 +66,8 @@ export const useGuestHotelStore = defineStore('guestHotel', {
       `reservations@${state.currentHotel?.slug || 'hotel'}.com`,
     frontDeskHours: (state): string =>
       state.currentHotel?.front_desk_hours || 'Open 24/7 / 365 Days',
-    diningHours: (state): string => state.currentHotel?.dining_hours || '06:00 AM – 11:00 PM Daily',
+    diningHours: (state): string =>
+      state.currentHotel?.dining_hours || '06:00 AM – 11:00 PM Daily',
     currency: (state): string => state.currentHotel?.currency || 'ETB',
     hasSelectedHotel: (state): boolean => !!state.currentHotel,
   },
@@ -72,17 +78,29 @@ export const useGuestHotelStore = defineStore('guestHotel', {
       this.error = null
       try {
         const response = await publicAxios.get('/guest/hotels')
-        if (response.data?.success) {
+        if (response.data?.success && Array.isArray(response.data?.data)) {
           this.availableHotels = response.data.data
+
+          // Persist user selection across page refresh
+          const savedId =
+            this.currentHotel?.id ||
+            localStorage.getItem('guest_hotel_id') ||
+            localStorage.getItem('hotel_id') ||
+            localStorage.getItem('active_hotel_id') ||
+            this.currentHotel?.slug
+
+          if (savedId) {
+            const matched = this.availableHotels.find(
+              (h) => h.id === savedId || h.slug === savedId,
+            )
+            if (matched) {
+              this.selectHotel(matched)
+              return
+            }
+          }
 
           if (!this.currentHotel && this.availableHotels.length > 0) {
             this.selectHotel(this.availableHotels[0])
-          } else if (this.currentHotel && this.availableHotels.length > 0) {
-            const matched = this.availableHotels.find((h) => h.id === this.currentHotel?.id)
-            if (matched) {
-              this.currentHotel = matched
-              localStorage.setItem('guest_current_hotel', JSON.stringify(matched))
-            }
           }
         }
       } catch (error: any) {
@@ -106,10 +124,12 @@ export const useGuestHotelStore = defineStore('guestHotel', {
       }
     },
 
-    selectHotel(hotel: PublicHotel) {
+    async selectHotel(hotel: PublicHotel) {
       this.currentHotel = hotel
       this.isSelectorOpen = false
-      localStorage.setItem('guest_current_hotel', JSON.stringify(hotel))
+      const hotelJson = JSON.stringify(hotel)
+      localStorage.setItem('guest_current_hotel', hotelJson)
+      localStorage.setItem('current_hotel', hotelJson)
       localStorage.setItem('guest_hotel_id', hotel.id)
       localStorage.setItem('hotel_id', hotel.id)
       localStorage.setItem('active_hotel_id', hotel.id)
@@ -121,7 +141,42 @@ export const useGuestHotelStore = defineStore('guestHotel', {
         console.warn('[guestHotelStore] Could not auto-sync theme:', e)
       }
 
+      // Synchronize dashboard hotelStore so sidebar has the exact same hotel
+      try {
+        const { useHotelStore } = await import('./hotelStore')
+        const hotelStore = useHotelStore()
+        hotelStore.currentHotel = {
+          id: hotel.id,
+          name: hotel.name,
+          slug: hotel.slug,
+          logo: hotel.logo || undefined,
+          currency: hotel.currency,
+          role: hotelStore.currentHotel?.role || 'admin',
+        }
+      } catch (e) {
+        console.warn('[guestHotelStore] Could not sync hotelStore:', e)
+      }
+
+      // Synchronize authStore if user is logged in
+      try {
+        const { useAuthStore } = await import('./auth')
+        const authStore = useAuthStore()
+        if (authStore.currentHotel) {
+          authStore.currentHotel = {
+            ...authStore.currentHotel,
+            id: hotel.id,
+            name: hotel.name,
+            slug: hotel.slug,
+            logo: hotel.logo,
+            currency: hotel.currency,
+          }
+        }
+      } catch (e) {
+        console.warn('[guestHotelStore] Could not sync authStore:', e)
+      }
+
       window.dispatchEvent(new CustomEvent('guest-hotel-selected', { detail: { hotel } }))
+      window.dispatchEvent(new CustomEvent('hotel-switched', { detail: { hotelId: hotel.id } }))
     },
 
     async selectHotelById(hotelId: string) {
