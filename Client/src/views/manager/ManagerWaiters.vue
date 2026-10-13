@@ -375,11 +375,15 @@ onUnmounted(() => {
               class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
               >Total Staff</span
             >
-            <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1">
+            <h3
+              class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1"
+            >
               {{ totalWaiters }}
             </h3>
           </div>
-          <div class="p-2.5 sm:p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex-shrink-0">
+          <div
+            class="p-2.5 sm:p-3 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex-shrink-0"
+          >
             <Users2 class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -392,11 +396,15 @@ onUnmounted(() => {
               class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
               >Active</span
             >
-            <h3 class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1">
+            <h3
+              class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1"
+            >
               {{ activeCount }}
             </h3>
           </div>
-          <div class="p-2.5 sm:p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex-shrink-0">
+          <div
+            class="p-2.5 sm:p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex-shrink-0"
+          >
             <CheckCircle2 class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -409,11 +417,15 @@ onUnmounted(() => {
               class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
               >On Break</span
             >
-            <h3 class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-1">
+            <h3
+              class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-1"
+            >
               {{ busyCount }}
             </h3>
           </div>
-          <div class="p-2.5 sm:p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex-shrink-0">
+          <div
+            class="p-2.5 sm:p-3 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex-shrink-0"
+          >
             <Clock class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -426,7 +438,9 @@ onUnmounted(() => {
               class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
               >Inactive</span
             >
-            <h3 class="text-xl sm:text-2xl font-black text-slate-600 dark:text-slate-400 mt-0.5 sm:mt-1">
+            <h3
+              class="text-xl sm:text-2xl font-black text-slate-600 dark:text-slate-400 mt-0.5 sm:mt-1"
+            >
               {{ inactiveCount }}
             </h3>
           </div>
@@ -454,7 +468,9 @@ onUnmounted(() => {
           />
         </div>
 
-        <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto flex-wrap">
+        <div
+          class="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto flex-wrap"
+        >
           <button
             type="button"
             @click="toggleFilter"
@@ -599,9 +615,7 @@ onUnmounted(() => {
             <span>Swipe table horizontally to see all columns</span>
             <span>👉</span>
           </span>
-          <span class="font-bold text-blue-600 dark:text-blue-400">
-            {{ total }} staff
-          </span>
+          <span class="font-bold text-blue-600 dark:text-blue-400"> {{ total }} staff </span>
         </div>
 
         <div class="overflow-x-auto w-full min-h-[220px]" style="-webkit-overflow-scrolling: touch">
@@ -727,8 +741,8 @@ onUnmounted(() => {
                           <button
                             type="button"
                             @click="
-                              openEditModal(waiter);
-                              activeMenuId = null;
+                              openEditModal(waiter)
+                              activeMenuId = null
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer text-left"
                           >
@@ -740,8 +754,8 @@ onUnmounted(() => {
                             v-if="waiter.status !== 'active'"
                             type="button"
                             @click="
-                              handleToggleStatus(waiter, 'active');
-                              activeMenuId = null;
+                              handleToggleStatus(waiter, 'active')
+                              activeMenuId = null
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer text-left"
                           >
@@ -753,8 +767,8 @@ onUnmounted(() => {
                             v-if="waiter.status === 'active'"
                             type="button"
                             @click="
-                              handleToggleStatus(waiter, 'on_break');
-                              activeMenuId = null;
+                              handleToggleStatus(waiter, 'on_break')
+                              activeMenuId = null
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-600 dark:hover:text-amber-400 transition cursor-pointer text-left"
                           >
@@ -767,8 +781,8 @@ onUnmounted(() => {
                           <button
                             type="button"
                             @click="
-                              handleDeleteWaiter(waiter.id);
-                              activeMenuId = null;
+                              handleDeleteWaiter(waiter.id)
+                              activeMenuId = null
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer text-left"
                           >

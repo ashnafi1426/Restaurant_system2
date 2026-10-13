@@ -466,7 +466,9 @@ watch(
           />
         </div>
 
-        <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto">
+        <div
+          class="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto"
+        >
           <button
             type="button"
             @click="toggleFilter"

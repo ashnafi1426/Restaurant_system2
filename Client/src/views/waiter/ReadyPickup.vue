@@ -211,7 +211,9 @@ watch(() => hotelStore.hotelId, loadOrders)
   <DashboardLayout>
     <div
       class="space-y-4 sm:space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-3 sm:p-6 max-w-full font-sans"
-      :class="{ 'fixed inset-0 z-50 p-4 sm:p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
+      :class="{
+        'fixed inset-0 z-50 p-4 sm:p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen,
+      }"
     >
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-5 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"
@@ -372,7 +374,13 @@ watch(() => hotelStore.hotelId, loadOrders)
         <div
           class="md:hidden flex items-center justify-between px-3.5 py-2 bg-blue-50/70 dark:bg-blue-950/20 border-b border-blue-100 dark:border-blue-900/30 text-[11px] font-semibold text-blue-700 dark:text-blue-300"
         >
-          <span>👈 {{ languageStore.t('swipe_horizontally', 'Swipe table horizontally to see all columns') }} 👉</span>
+          <span
+            >👈
+            {{
+              languageStore.t('swipe_horizontally', 'Swipe table horizontally to see all columns')
+            }}
+            👉</span
+          >
         </div>
 
         <div class="overflow-x-auto w-full min-h-[220px]">
@@ -505,7 +513,9 @@ watch(() => hotelStore.hotelId, loadOrders)
             {{ languageStore.t('orders', 'orders') }}
           </div>
 
-          <div class="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto">
+          <div
+            class="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto"
+          >
             <div class="flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{
                 languageStore.t('per_page', 'Per page:')

@@ -120,11 +120,15 @@ watch(
             >
               {{ languageStore.t('pending_orders', 'Pending Orders') }}
             </p>
-            <h3 class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 mt-0.5 sm:mt-1">
+            <h3
+              class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 mt-0.5 sm:mt-1"
+            >
               {{ operationsStore.pendingOrders?.length || 0 }}
             </h3>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0"
+          >
             <Clock class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -138,11 +142,15 @@ watch(
             >
               {{ languageStore.t('kitchen_prep', 'Kitchen Prep') }}
             </p>
-            <h3 class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-1">
+            <h3
+              class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-1"
+            >
               {{ operationsStore.preparingOrders?.length || 0 }}
             </h3>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0"
+          >
             <ChefHat class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -156,11 +164,15 @@ watch(
             >
               {{ languageStore.t('active_deliveries', 'Active Deliveries') }}
             </p>
-            <h3 class="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400 mt-0.5 sm:mt-1">
+            <h3
+              class="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400 mt-0.5 sm:mt-1"
+            >
               {{ operationsStore.activeDeliveries?.length || 0 }}
             </h3>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0"
+          >
             <Truck class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -174,11 +186,15 @@ watch(
             >
               {{ languageStore.t('pending_laundry', 'Pending Laundry') }}
             </p>
-            <h3 class="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400 mt-0.5 sm:mt-1">
+            <h3
+              class="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400 mt-0.5 sm:mt-1"
+            >
               {{ operationsStore.pendingLaundry?.length || 0 }}
             </h3>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0"
+          >
             <Shirt class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -196,10 +212,7 @@ watch(
               v-model="searchQuery"
               type="text"
               :placeholder="
-                languageStore.t(
-                  'search_operations_placeholder',
-                  'Search operations, orders...',
-                )
+                languageStore.t('search_operations_placeholder', 'Search operations, orders...')
               "
               class="w-full h-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-9 pr-3 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />

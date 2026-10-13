@@ -264,7 +264,10 @@ onMounted(() => {
         </div>
       </div>
 
-      <div v-if="statistics" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4">
+      <div
+        v-if="statistics"
+        class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4"
+      >
         <div
           class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-3.5 sm:p-4 shadow-xs flex items-center justify-between"
         >
@@ -274,7 +277,9 @@ onMounted(() => {
             >
               {{ languageStore.t('total', 'Total') }}
             </p>
-            <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1">
+            <h2
+              class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1"
+            >
               {{ statistics.total }}
             </h2>
           </div>
@@ -294,11 +299,15 @@ onMounted(() => {
             >
               {{ languageStore.t('Available', 'Available') }}
             </p>
-            <h2 class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1">
+            <h2
+              class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1"
+            >
               {{ statistics.available }}
             </h2>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0"
+          >
             <Sparkles class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -312,11 +321,15 @@ onMounted(() => {
             >
               {{ languageStore.t('Occupied', 'Occupied') }}
             </p>
-            <h2 class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 mt-0.5 sm:mt-1">
+            <h2
+              class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 mt-0.5 sm:mt-1"
+            >
               {{ statistics.occupied }}
             </h2>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0"
+          >
             <Users class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -330,11 +343,15 @@ onMounted(() => {
             >
               {{ languageStore.t('Reserved', 'Reserved') }}
             </p>
-            <h2 class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-1">
+            <h2
+              class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-1"
+            >
               {{ statistics.reserved || 0 }}
             </h2>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0"
+          >
             <CheckCircle2 class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -348,11 +365,15 @@ onMounted(() => {
             >
               {{ languageStore.t('Cleaning', 'Cleaning') }}
             </p>
-            <h2 class="text-xl sm:text-2xl font-black text-sky-600 dark:text-sky-400 mt-0.5 sm:mt-1">
+            <h2
+              class="text-xl sm:text-2xl font-black text-sky-600 dark:text-sky-400 mt-0.5 sm:mt-1"
+            >
               {{ statistics.cleaning || 0 }}
             </h2>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 shrink-0"
+          >
             <RefreshCw class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -366,11 +387,15 @@ onMounted(() => {
             >
               {{ languageStore.t('Maintenance', 'Service Off') }}
             </p>
-            <h2 class="text-xl sm:text-2xl font-black text-slate-500 dark:text-slate-400 mt-0.5 sm:mt-1">
+            <h2
+              class="text-xl sm:text-2xl font-black text-slate-500 dark:text-slate-400 mt-0.5 sm:mt-1"
+            >
               {{ statistics.out_of_service || 0 }}
             </h2>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 shrink-0"
+          >
             <AlertCircle class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -388,12 +413,7 @@ onMounted(() => {
               v-model="searchQuery"
               @input="handleSearchChange"
               type="text"
-              :placeholder="
-                languageStore.t(
-                  'search_tables_placeholder',
-                  'Search tables...',
-                )
-              "
+              :placeholder="languageStore.t('search_tables_placeholder', 'Search tables...')"
               class="w-full h-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-9 pr-3 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />
           </div>
@@ -417,7 +437,9 @@ onMounted(() => {
           </button>
         </div>
 
-        <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
+        <div
+          class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end"
+        >
           <div class="flex items-center gap-1.5">
             <button
               type="button"
@@ -713,7 +735,9 @@ onMounted(() => {
           >
             <div>
               {{ languageStore.t('Showing', 'Showing') }}
-              <span class="font-bold text-slate-900 dark:text-white">{{ pagination.from || 1 }}</span>
+              <span class="font-bold text-slate-900 dark:text-white">{{
+                pagination.from || 1
+              }}</span>
               {{ languageStore.t('to', 'to') }}
               <span class="font-bold text-slate-900 dark:text-white">{{
                 pagination.to || tables.length
@@ -737,7 +761,9 @@ onMounted(() => {
             </div>
           </div>
 
-          <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-3">
+          <div
+            class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-3"
+          >
             <div class="hidden sm:flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{
                 languageStore.t('per_page', 'Per page:')

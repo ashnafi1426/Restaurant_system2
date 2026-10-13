@@ -228,7 +228,9 @@ const getStatusBadgeClass = (status: string) => {
   <DashboardLayout>
     <div
       class="space-y-4 sm:space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-3 sm:p-6 max-w-full font-sans"
-      :class="{ 'fixed inset-0 z-50 p-4 sm:p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen }"
+      :class="{
+        'fixed inset-0 z-50 p-4 sm:p-6 overflow-y-auto bg-white dark:bg-slate-950': isFullscreen,
+      }"
     >
       <div
         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3.5 sm:p-5 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"
@@ -274,11 +276,15 @@ const getStatusBadgeClass = (status: string) => {
             >
               {{ languageStore.t('total_deliveries', 'Total Deliveries') }}
             </p>
-            <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1">
+            <h3
+              class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1"
+            >
               {{ deliveryData.total_deliveries }}
             </h3>
           </div>
-          <div class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+          <div
+            class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0"
+          >
             <Truck class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -292,11 +298,15 @@ const getStatusBadgeClass = (status: string) => {
             >
               {{ languageStore.t('completed', 'Completed') }}
             </p>
-            <h3 class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1">
+            <h3
+              class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1"
+            >
               {{ deliveryData.completed }}
             </h3>
           </div>
-          <div class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+          <div
+            class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0"
+          >
             <CheckCircle2 class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -310,11 +320,15 @@ const getStatusBadgeClass = (status: string) => {
             >
               {{ languageStore.t('in_progress', 'In Progress') }}
             </p>
-            <h3 class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-1">
+            <h3
+              class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-1"
+            >
               {{ deliveryData.in_progress }}
             </h3>
           </div>
-          <div class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+          <div
+            class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0"
+          >
             <Clock class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -328,11 +342,15 @@ const getStatusBadgeClass = (status: string) => {
             >
               {{ languageStore.t('failed_issues', 'Failed / Issues') }}
             </p>
-            <h3 class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 mt-0.5 sm:mt-1">
+            <h3
+              class="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 mt-0.5 sm:mt-1"
+            >
               {{ deliveryData.failed }}
             </h3>
           </div>
-          <div class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0">
+          <div
+            class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0"
+          >
             <AlertCircle class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -473,7 +491,13 @@ const getStatusBadgeClass = (status: string) => {
         <div
           class="md:hidden flex items-center justify-between px-3.5 py-2 bg-blue-50/70 dark:bg-blue-950/20 border-b border-blue-100 dark:border-blue-900/30 text-[11px] font-semibold text-blue-700 dark:text-blue-300"
         >
-          <span>👈 {{ languageStore.t('swipe_horizontally', 'Swipe table horizontally to see all columns') }} 👉</span>
+          <span
+            >👈
+            {{
+              languageStore.t('swipe_horizontally', 'Swipe table horizontally to see all columns')
+            }}
+            👉</span
+          >
         </div>
 
         <div class="overflow-x-auto w-full min-h-[220px]">
@@ -586,7 +610,9 @@ const getStatusBadgeClass = (status: string) => {
             {{ languageStore.t('tasks', 'tasks') }}
           </div>
 
-          <div class="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto">
+          <div
+            class="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 w-full sm:w-auto"
+          >
             <div class="flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium"
                 >{{ languageStore.t('per_page', 'Per page') }}:</span

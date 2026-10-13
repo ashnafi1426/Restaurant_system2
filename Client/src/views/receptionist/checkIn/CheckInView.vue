@@ -481,7 +481,9 @@ watch(
           />
         </div>
 
-        <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto">
+        <div
+          class="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto"
+        >
           <button
             type="button"
             @click="toggleFilter"
@@ -770,8 +772,7 @@ watch(
                             v-if="openDropdownId === String(checkIn.id)"
                             class="absolute right-0 z-50 w-48 rounded-2xl bg-white dark:bg-[#0f1d32] border border-slate-200 dark:border-slate-800 shadow-2xl p-1.5 space-y-0.5 text-left focus:outline-none"
                             :class="[
-                              index >= paginatedCheckIns.length - 2 &&
-                              paginatedCheckIns.length > 2
+                              index >= paginatedCheckIns.length - 2 && paginatedCheckIns.length > 2
                                 ? 'bottom-full mb-1.5'
                                 : 'top-full mt-1.5',
                             ]"
@@ -939,9 +940,7 @@ watch(
                   <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white">
                     {{ languageStore.t('check_in_details', 'Guest Check-In Details') }}
                   </h3>
-                  <p class="text-xs text-slate-400 font-medium">
-                    ID: #{{ selectedCheckIn.id }}
-                  </p>
+                  <p class="text-xs text-slate-400 font-medium">ID: #{{ selectedCheckIn.id }}</p>
                 </div>
               </div>
               <button

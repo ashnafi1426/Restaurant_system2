@@ -44,7 +44,8 @@ async function submitForm() {
 
     if (res.data?.success) {
       submitted.value = true
-      successMessage.value = res.data.message || `Thank you! Your message has been sent to ${guestHotelStore.hotelName}.`
+      successMessage.value =
+        res.data.message || `Thank you! Your message has been sent to ${guestHotelStore.hotelName}.`
       form.value = {
         name: '',
         email: '',
@@ -56,7 +57,8 @@ async function submitForm() {
       errorMessage.value = res.data?.message || 'Failed to send message.'
     }
   } catch (err: any) {
-    errorMessage.value = err.response?.data?.message || 'Error occurred while sending your message. Please try again.'
+    errorMessage.value =
+      err.response?.data?.message || 'Error occurred while sending your message. Please try again.'
   } finally {
     loading.value = false
   }
@@ -139,12 +141,18 @@ async function submitForm() {
           <form class="rounded-3xl bg-white p-10 shadow-lg" @submit.prevent="submitForm">
             <h3 class="text-3xl font-semibold text-slate-900">Send Message</h3>
 
-            <div v-if="submitted" class="mt-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-3">
+            <div
+              v-if="submitted"
+              class="mt-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-3"
+            >
               <CheckCircle2 class="w-5 h-5 flex-shrink-0 text-emerald-600" />
               <span>{{ successMessage }}</span>
             </div>
 
-            <div v-if="errorMessage" class="mt-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center gap-3">
+            <div
+              v-if="errorMessage"
+              class="mt-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center gap-3"
+            >
               <AlertCircle class="w-5 h-5 flex-shrink-0 text-rose-600" />
               <span>{{ errorMessage }}</span>
             </div>

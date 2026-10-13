@@ -98,7 +98,9 @@ onMounted(() => {
 
 <template>
   <DashboardLayout>
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-3 sm:p-6 max-w-full font-sans">
+    <div
+      class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-3 sm:p-6 max-w-full font-sans"
+    >
       <div class="flex items-center gap-4 mb-4 sm:mb-8">
         <button
           @click="goBack"

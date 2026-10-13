@@ -221,9 +221,7 @@ function handleClickOutside() {
           <span>Swipe table horizontally to see all columns</span>
           <span>👉</span>
         </span>
-        <span class="font-bold text-blue-600 dark:text-blue-400">
-          {{ total }} orders
-        </span>
+        <span class="font-bold text-blue-600 dark:text-blue-400"> {{ total }} orders </span>
       </div>
 
       <div class="overflow-x-auto w-full min-h-[360px]" style="-webkit-overflow-scrolling: touch">

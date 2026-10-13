@@ -73,8 +73,7 @@
               :key="item.id"
               class="hover:bg-slate-50/80 dark:hover:bg-[#13233c]/60 transition-colors duration-150 group"
               :class="{
-                'relative z-30 bg-blue-50/30 dark:bg-[#13233c]/40':
-                  activeMenuId === item.id,
+                'relative z-30 bg-blue-50/30 dark:bg-[#13233c]/40': activeMenuId === item.id,
               }"
             >
               <!-- Item Column -->
@@ -97,7 +96,10 @@
                     <div
                       class="text-[10px] text-slate-400 dark:text-slate-500 font-medium truncate max-w-[240px]"
                     >
-                      {{ item.description || languageStore.t('fresh_dish_desc', 'Served hot and fresh...') }}
+                      {{
+                        item.description ||
+                        languageStore.t('fresh_dish_desc', 'Served hot and fresh...')
+                      }}
                     </div>
                   </div>
                 </div>
@@ -156,7 +158,9 @@
                       ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
                       : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 hover:bg-rose-500/20'
                   "
-                  :title="languageStore.t('toggle_availability_tip', 'Click to toggle availability')"
+                  :title="
+                    languageStore.t('toggle_availability_tip', 'Click to toggle availability')
+                  "
                 >
                   <span class="w-1.5 h-1.5 rounded-full relative flex flex-shrink-0">
                     <span
@@ -233,10 +237,7 @@
                             v-if="!item.is_available"
                             class="w-4 h-4 text-emerald-500 flex-shrink-0"
                           />
-                          <XCircle
-                            v-else
-                            class="w-4 h-4 text-amber-500 flex-shrink-0"
-                          />
+                          <XCircle v-else class="w-4 h-4 text-amber-500 flex-shrink-0" />
                           <span>{{
                             item.is_available
                               ? languageStore.t('mark_out_of_stock', 'Mark Out of Stock')
@@ -269,14 +270,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import {
-  Loader2,
-  MoreVertical,
-  Edit,
-  CheckCircle2,
-  XCircle,
-  Trash2,
-} from 'lucide-vue-next'
+import { Loader2, MoreVertical, Edit, CheckCircle2, XCircle, Trash2 } from 'lucide-vue-next'
 import { useLanguageStore } from '@/stores/language'
 import type { MenuItem } from '@/types/menu'
 

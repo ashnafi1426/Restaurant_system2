@@ -361,11 +361,15 @@ const handleAssignSuccess = async () => {
             >
               {{ languageStore.t('total_assignments', 'Total Assignments') }}
             </p>
-            <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1">
+            <h3
+              class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1"
+            >
               {{ tableAssignmentStore.stats.total_assignments }}
             </h3>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0"
+          >
             <Users class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -379,11 +383,15 @@ const handleAssignSuccess = async () => {
             >
               {{ languageStore.t('tables_covered', 'Tables Covered') }}
             </p>
-            <h3 class="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400 mt-0.5 sm:mt-1">
+            <h3
+              class="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400 mt-0.5 sm:mt-1"
+            >
               {{ tableAssignmentStore.stats.total_tables }}
             </h3>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0"
+          >
             <MapPin class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -397,11 +405,15 @@ const handleAssignSuccess = async () => {
             >
               {{ languageStore.t('waiters_on_duty', 'Waiters on Duty') }}
             </p>
-            <h3 class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1">
+            <h3
+              class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1"
+            >
               {{ tableAssignmentStore.stats.total_waiters }}
             </h3>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0"
+          >
             <Users class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -415,14 +427,18 @@ const handleAssignSuccess = async () => {
             >
               {{ languageStore.t('active_assignments', 'Active Assignments') }}
             </p>
-            <h3 class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-1">
+            <h3
+              class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-0.5 sm:mt-1"
+            >
               {{
                 tableAssignmentStore.stats.active_assignments ??
                 tableAssignmentStore.stats.primary_assignments
               }}
             </h3>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0"
+          >
             <CheckCircle2 class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -440,10 +456,7 @@ const handleAssignSuccess = async () => {
               v-model="searchQuery"
               type="text"
               :placeholder="
-                languageStore.t(
-                  'search_assignments_placeholder',
-                  'Search assignments...',
-                )
+                languageStore.t('search_assignments_placeholder', 'Search assignments...')
               "
               class="w-full h-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 pl-9 pr-3 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition outline-none"
             />
@@ -468,7 +481,9 @@ const handleAssignSuccess = async () => {
           </button>
         </div>
 
-        <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
+        <div
+          class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end"
+        >
           <div class="flex items-center gap-1.5">
             <button
               type="button"
@@ -477,7 +492,10 @@ const handleAssignSuccess = async () => {
               :title="languageStore.t('refresh', 'Refresh')"
               class="inline-flex items-center justify-center h-[38px] w-[38px] rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
             >
-              <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': tableAssignmentStore.loading }" />
+              <RefreshCw
+                class="w-4 h-4"
+                :class="{ 'animate-spin': tableAssignmentStore.loading }"
+              />
             </button>
 
             <button
@@ -707,8 +725,8 @@ const handleAssignSuccess = async () => {
                         >
                           <button
                             @click="
-                              handleEdit(assignment);
-                              closeMenu();
+                              handleEdit(assignment)
+                              closeMenu()
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#152744] hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer"
                           >
@@ -720,8 +738,8 @@ const handleAssignSuccess = async () => {
 
                           <button
                             @click="
-                              promptDeleteAssignment(assignment);
-                              closeMenu();
+                              promptDeleteAssignment(assignment)
+                              closeMenu()
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer"
                           >
@@ -785,7 +803,9 @@ const handleAssignSuccess = async () => {
             </div>
           </div>
 
-          <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-3">
+          <div
+            class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-2 sm:gap-3"
+          >
             <div class="hidden sm:flex items-center gap-1.5">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{
                 languageStore.t('per_page', 'Per page:')

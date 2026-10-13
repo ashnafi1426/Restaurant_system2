@@ -77,7 +77,9 @@ const confirmDelete = async () => {
 
 <template>
   <DashboardLayout>
-    <div class="space-y-4 sm:space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-3 sm:p-6 max-w-full font-sans">
+    <div
+      class="space-y-4 sm:space-y-6 bg-slate-50 dark:bg-slate-950 min-h-screen p-3 sm:p-6 max-w-full font-sans"
+    >
       <!-- Top Action Bar -->
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-2xl shadow-xs"
@@ -195,17 +197,23 @@ const confirmDelete = async () => {
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-5 shadow-xs flex items-center justify-between"
           >
             <div>
-              <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              <p
+                class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+              >
                 {{ languageStore.t('base_price', 'Base Price / Night') }}
               </p>
-              <h3 class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 sm:mt-1">
+              <h3
+                class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5 sm:mt-1"
+              >
                 ${{ parseFloat(String(roomType.base_price_per_night || 0)).toFixed(2) }}
               </h3>
               <p class="text-[10px] text-slate-400 mt-0.5 font-medium">
                 {{ currency }} {{ languageStore.t('per_night', 'per night') }}
               </p>
             </div>
-            <div class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+            <div
+              class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0"
+            >
               <DollarSign class="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
@@ -215,17 +223,23 @@ const confirmDelete = async () => {
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-5 shadow-xs flex items-center justify-between"
           >
             <div>
-              <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              <p
+                class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+              >
                 {{ languageStore.t('max_capacity', 'Max Capacity') }}
               </p>
-              <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1">
+              <h3
+                class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 sm:mt-1"
+              >
                 {{ roomType.capacity || 1 }}
               </h3>
               <p class="text-[10px] text-slate-400 mt-0.5 font-medium">
                 {{ languageStore.t('guests_allowed', 'Guests max allowed') }}
               </p>
             </div>
-            <div class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+            <div
+              class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0"
+            >
               <Users class="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
@@ -235,7 +249,9 @@ const confirmDelete = async () => {
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-5 shadow-xs flex items-center justify-between"
           >
             <div>
-              <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              <p
+                class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+              >
                 {{ languageStore.t('status', 'Status') }}
               </p>
               <div class="mt-1">
@@ -255,12 +271,20 @@ const confirmDelete = async () => {
                 </span>
               </div>
               <p class="text-[10px] text-slate-400 mt-1 font-medium">
-                {{ roomType.is_active ? languageStore.t('open_for_booking', 'Available for booking') : languageStore.t('hidden_from_booking', 'Hidden from booking') }}
+                {{
+                  roomType.is_active
+                    ? languageStore.t('open_for_booking', 'Available for booking')
+                    : languageStore.t('hidden_from_booking', 'Hidden from booking')
+                }}
               </p>
             </div>
             <div
               class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl shrink-0"
-              :class="roomType.is_active ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'"
+              :class="
+                roomType.is_active
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+              "
             >
               <CheckCircle2 v-if="roomType.is_active" class="w-4 h-4 sm:w-5 sm:h-5" />
               <XCircle v-else class="w-4 h-4 sm:w-5 sm:h-5" />
@@ -272,46 +296,71 @@ const confirmDelete = async () => {
             class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 sm:p-5 shadow-xs flex items-center justify-between"
           >
             <div>
-              <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              <p
+                class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+              >
                 {{ languageStore.t('associated_rooms', 'Total Rooms') }}
               </p>
-              <h3 class="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400 mt-0.5 sm:mt-1">
+              <h3
+                class="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400 mt-0.5 sm:mt-1"
+              >
                 {{ roomType.rooms_count ?? 0 }}
               </h3>
               <p class="text-[10px] text-slate-400 mt-0.5 font-medium">
                 {{ languageStore.t('rooms_assigned_to_type', 'Rooms under this type') }}
               </p>
             </div>
-            <div class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
+            <div
+              class="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0"
+            >
               <DoorClosed class="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
         </div>
 
         <!-- Description Card -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs">
-          <div class="flex items-center gap-2 mb-3 border-b border-slate-100 dark:border-slate-800/80 pb-3">
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs"
+        >
+          <div
+            class="flex items-center gap-2 mb-3 border-b border-slate-100 dark:border-slate-800/80 pb-3"
+          >
             <BedDouble class="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <h2 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
               {{ languageStore.t('description', 'Description') }}
             </h2>
           </div>
-          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal whitespace-pre-line">
-            {{ roomType.description || languageStore.t('no_description_provided', 'No description provided for this room type.') }}
+          <p
+            class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal whitespace-pre-line"
+          >
+            {{
+              roomType.description ||
+              languageStore.t(
+                'no_description_provided',
+                'No description provided for this room type.',
+              )
+            }}
           </p>
         </div>
 
         <!-- Amenities & Features Card -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs">
-          <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800/80 pb-3">
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs"
+        >
+          <div
+            class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800/80 pb-3"
+          >
             <div class="flex items-center gap-2">
               <Sparkles class="w-5 h-5 text-amber-500" />
               <h2 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
                 {{ languageStore.t('amenities_features', 'Amenities & Included Features') }}
               </h2>
             </div>
-            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800">
-              {{ Array.isArray(roomType.amenities) ? roomType.amenities.length : 0 }} {{ languageStore.t('amenities', 'amenities') }}
+            <span
+              class="text-xs font-bold text-slate-500 dark:text-slate-400 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800"
+            >
+              {{ Array.isArray(roomType.amenities) ? roomType.amenities.length : 0 }}
+              {{ languageStore.t('amenities', 'amenities') }}
             </span>
           </div>
 
@@ -324,7 +373,9 @@ const confirmDelete = async () => {
               :key="idx"
               class="flex items-center gap-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold"
             >
-              <div class="w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <div
+                class="w-5 h-5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0"
+              >
                 <Check class="w-3 h-3 stroke-[3]" />
               </div>
               <span class="truncate">{{ amenity }}</span>
@@ -335,12 +386,19 @@ const confirmDelete = async () => {
             v-else
             class="p-8 text-center text-slate-400 dark:text-slate-500 text-xs font-medium"
           >
-            {{ languageStore.t('no_amenities_specified', 'No specific amenities have been registered for this room category.') }}
+            {{
+              languageStore.t(
+                'no_amenities_specified',
+                'No specific amenities have been registered for this room category.',
+              )
+            }}
           </div>
         </div>
 
         <!-- Timestamps & System Info Card -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs">
+        <div
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs"
+        >
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40">
               <Calendar class="w-4 h-4 text-slate-400 shrink-0" />

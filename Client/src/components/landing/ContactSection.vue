@@ -65,7 +65,8 @@
                 {{ guestHotelStore.hotelPhone }}
               </p>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                {{ languageStore.t('reservations_label', 'Reservations') }}: {{ guestHotelStore.reservationPhone }}
+                {{ languageStore.t('reservations_label', 'Reservations') }}:
+                {{ guestHotelStore.reservationPhone }}
               </p>
             </div>
           </div>
@@ -332,7 +333,16 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { MapPin, Phone, Mail, Clock, Send, Loader2, CheckCircle2, AlertCircle } from 'lucide-vue-next'
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Clock,
+  Send,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+} from 'lucide-vue-next'
 import { useLanguageStore } from '@/stores/language'
 import { useGuestHotelStore } from '@/stores/guestHotelStore'
 import { publicAxios } from '@/services/axios'

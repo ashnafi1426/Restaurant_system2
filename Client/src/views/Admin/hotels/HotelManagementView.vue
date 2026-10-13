@@ -981,9 +981,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
-                    >{{ languageStore.t('email', 'Email') }}</label
-                  >
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('email', 'Email')
+                  }}</label>
                   <input
                     v-model="hotelForm.email"
                     type="email"
@@ -992,9 +992,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
-                    >{{ languageStore.t('reservation_email', 'Reservation Email') }}</label
-                  >
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('reservation_email', 'Reservation Email')
+                  }}</label>
                   <input
                     v-model="hotelForm.reservation_email"
                     type="email"
@@ -1003,9 +1003,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
-                    >{{ languageStore.t('phone', 'Phone') }}</label
-                  >
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('phone', 'Phone')
+                  }}</label>
                   <input
                     v-model="hotelForm.phone"
                     type="text"
@@ -1014,9 +1014,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
-                    >{{ languageStore.t('reservation_phone', 'Reservation / Hotline') }}</label
-                  >
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('reservation_phone', 'Reservation / Hotline')
+                  }}</label>
                   <input
                     v-model="hotelForm.reservation_phone"
                     type="text"
@@ -1025,9 +1025,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div class="sm:col-span-2">
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
-                    >{{ languageStore.t('address', 'Address') }}</label
-                  >
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('address', 'Address')
+                  }}</label>
                   <input
                     v-model="hotelForm.address"
                     type="text"
@@ -1036,9 +1036,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
-                    >{{ languageStore.t('city', 'City') }}</label
-                  >
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('city', 'City')
+                  }}</label>
                   <input
                     v-model="hotelForm.city"
                     type="text"
@@ -1047,9 +1047,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
-                    >{{ languageStore.t('country', 'Country') }}</label
-                  >
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('country', 'Country')
+                  }}</label>
                   <input
                     v-model="hotelForm.country"
                     type="text"
@@ -1058,9 +1058,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
-                    >{{ languageStore.t('front_desk_hours', 'Front Desk Hours') }}</label
-                  >
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('front_desk_hours', 'Front Desk Hours')
+                  }}</label>
                   <input
                     v-model="hotelForm.front_desk_hours"
                     type="text"
@@ -1069,9 +1069,9 @@ const handleConfirmPermanentDelete = confirmDelete
                   />
                 </div>
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
-                    >{{ languageStore.t('dining_hours', 'Dining Hours') }}</label
-                  >
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('dining_hours', 'Dining Hours')
+                  }}</label>
                   <input
                     v-model="hotelForm.dining_hours"
                     type="text"

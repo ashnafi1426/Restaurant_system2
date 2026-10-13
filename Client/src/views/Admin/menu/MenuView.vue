@@ -280,7 +280,9 @@ onMounted(async () => {
           />
         </div>
 
-        <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto">
+        <div
+          class="flex items-center justify-between sm:justify-end gap-2 shrink-0 w-full sm:w-auto"
+        >
           <button
             type="button"
             @click="toggleFilter"
@@ -372,10 +374,16 @@ onMounted(async () => {
                 @change="loadMenu"
                 class="w-full rounded-xl border border-slate-200 dark:border-[#1e3455] bg-slate-50/80 dark:bg-[#13233c] text-slate-900 dark:text-white px-3.5 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 dark:focus:border-blue-400 transition cursor-pointer font-medium outline-none"
               >
-                <option :value="null">{{ languageStore.t('all_categories', 'All Categories') }}</option>
+                <option :value="null">
+                  {{ languageStore.t('all_categories', 'All Categories') }}
+                </option>
                 <option value="Breakfast">{{ languageStore.t('breakfast', 'Breakfast') }}</option>
-                <option value="Main Course">{{ languageStore.t('main_course', 'Main Course') }}</option>
-                <option value="Appetizers">{{ languageStore.t('appetizers', 'Appetizers') }}</option>
+                <option value="Main Course">
+                  {{ languageStore.t('main_course', 'Main Course') }}
+                </option>
+                <option value="Appetizers">
+                  {{ languageStore.t('appetizers', 'Appetizers') }}
+                </option>
                 <option value="Desserts">{{ languageStore.t('desserts', 'Desserts') }}</option>
                 <option value="Beverages">{{ languageStore.t('beverages', 'Beverages') }}</option>
               </select>

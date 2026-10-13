@@ -27,9 +27,10 @@
         <span class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
           {{ card.count }}
         </span>
-        <span class="text-[11px] sm:text-xs font-semibold text-slate-400 dark:text-slate-500 ml-1">{{
-          languageStore.t('items_count', 'Items')
-        }}</span>
+        <span
+          class="text-[11px] sm:text-xs font-semibold text-slate-400 dark:text-slate-500 ml-1"
+          >{{ languageStore.t('items_count', 'Items') }}</span
+        >
       </div>
     </div>
   </div>

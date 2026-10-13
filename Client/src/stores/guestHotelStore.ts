@@ -61,8 +61,7 @@ export const useGuestHotelStore = defineStore('guestHotel', {
       `reservations@${state.currentHotel?.slug || 'hotel'}.com`,
     frontDeskHours: (state): string =>
       state.currentHotel?.front_desk_hours || 'Open 24/7 / 365 Days',
-    diningHours: (state): string =>
-      state.currentHotel?.dining_hours || '06:00 AM – 11:00 PM Daily',
+    diningHours: (state): string => state.currentHotel?.dining_hours || '06:00 AM – 11:00 PM Daily',
     currency: (state): string => state.currentHotel?.currency || 'ETB',
     hasSelectedHotel: (state): boolean => !!state.currentHotel,
   },

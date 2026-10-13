@@ -452,7 +452,9 @@ watch(() => hotelStore.hotelId, loadData)
               </span>
             </div>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0"
+          >
             <Layers class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -475,7 +477,9 @@ watch(() => hotelStore.hotelId, loadData)
               </span>
             </div>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 shrink-0"
+          >
             <BedDouble class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -498,7 +502,9 @@ watch(() => hotelStore.hotelId, loadData)
               </span>
             </div>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0"
+          >
             <Users class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -521,7 +527,9 @@ watch(() => hotelStore.hotelId, loadData)
               </span>
             </div>
           </div>
-          <div class="p-2 sm:p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
+          <div
+            class="p-2 sm:p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0"
+          >
             <Sparkles class="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -538,12 +546,7 @@ watch(() => hotelStore.hotelId, loadData)
             <input
               v-model="searchQuery"
               type="text"
-              :placeholder="
-                languageStore.t(
-                  'search_floors_placeholder',
-                  'Search floors, staff...',
-                )
-              "
+              :placeholder="languageStore.t('search_floors_placeholder', 'Search floors, staff...')"
               class="w-full h-[38px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white placeholder-slate-400 pl-9 pr-3 text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/40 transition"
             />
           </div>
