@@ -182,17 +182,7 @@
                 :class="{ 'z-50': activeMenuId === item.id }"
                 @click.stop
               >
-                <div class="flex items-center justify-end gap-1.5">
-                  <button
-                    type="button"
-                    @click.stop="$emit('edit', item)"
-                    class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/60 shadow-2xs text-xs font-bold transition cursor-pointer"
-                    :title="languageStore.t('modify_item', 'Modify Item')"
-                  >
-                    <Edit class="w-3.5 h-3.5 stroke-[2.2]" />
-                    <span class="hidden sm:inline">{{ languageStore.t('edit', 'Edit') }}</span>
-                  </button>
-
+                <div class="flex items-center justify-end">
                   <div class="relative inline-block text-left action-dropdown-container">
                     <button
                       type="button"
@@ -231,7 +221,7 @@
                           class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer text-left"
                         >
                           <Edit class="w-4 h-4 text-blue-500 flex-shrink-0" />
-                          <span>{{ languageStore.t('modify_item', 'Modify Item') }}</span>
+                          <span>{{ languageStore.t('edit', 'Edit') }}</span>
                         </button>
 
                         <button
