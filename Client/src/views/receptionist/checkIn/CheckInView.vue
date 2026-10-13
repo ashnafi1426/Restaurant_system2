@@ -48,8 +48,19 @@ const languageStore = useLanguageStore()
 const isFilterOpen = ref(false)
 const isFullscreen = ref(false)
 const showCheckInDialog = ref(false)
+const showDetailsModal = ref(false)
 const selectedCheckIn = ref<CheckIn | null>(null)
 const toastMessage = ref<string | null>(null)
+
+const openDetails = (item: CheckIn) => {
+  selectedCheckIn.value = item
+  showDetailsModal.value = true
+}
+
+const closeDetails = () => {
+  showDetailsModal.value = false
+  selectedCheckIn.value = null
+}
 
 const searchQuery = ref('')
 const filterStatus = ref<'all' | 'active' | 'checked_out'>('all')
@@ -260,6 +271,13 @@ const handleCheckout = async (item: CheckIn) => {
     console.error('[CheckIn] Error checking out guest:', error)
     showToast(error.message || 'Failed to check out guest')
   }
+}
+
+const handleCheckoutFromModal = async () => {
+  if (!selectedCheckIn.value) return
+  const item = selectedCheckIn.value
+  closeDetails()
+  await handleCheckout(item)
 }
 
 const handleDelete = async (item: CheckIn) => {
@@ -650,8 +668,14 @@ watch(
                       >
                         {{ getGuestInitials(checkIn.guest) }}
                       </div>
-                      <div>
-                        <div class="font-bold text-slate-900 dark:text-white">
+                      <div
+                        @click="openDetails(checkIn)"
+                        class="cursor-pointer group/guest"
+                        :title="languageStore.t('view_details', 'View Details')"
+                      >
+                        <div
+                          class="font-bold text-slate-900 dark:text-white group-hover/guest:text-blue-600 transition-colors"
+                        >
                           {{ getGuestName(checkIn.guest) }}
                         </div>
                         <div class="text-[10px] text-slate-400 font-medium">
@@ -719,18 +743,7 @@ watch(
                     :class="{ 'z-50': openDropdownId === String(checkIn.id) }"
                     @click.stop
                   >
-                    <div class="flex items-center justify-end gap-1.5">
-                      <button
-                        v-if="!checkIn.checked_out_at"
-                        type="button"
-                        @click.stop="handleCheckout(checkIn)"
-                        class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-purple-200 dark:border-purple-900/60 bg-purple-50/70 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/60 shadow-2xs text-xs font-bold transition cursor-pointer"
-                        :title="languageStore.t('Check Out', 'Check Out Guest')"
-                      >
-                        <LogOut class="w-3.5 h-3.5" />
-                        <span class="hidden sm:inline">{{ languageStore.t('Check Out', 'Check Out') }}</span>
-                      </button>
-
+                    <div class="flex items-center justify-end">
                       <div class="relative inline-block text-left action-dropdown-container">
                         <button
                           type="button"
@@ -765,6 +778,15 @@ watch(
                             @click.stop
                           >
                             <button
+                              type="button"
+                              @click="handleAction(() => openDetails(checkIn))"
+                              class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer text-left"
+                            >
+                              <Eye class="w-4 h-4 text-blue-500 flex-shrink-0" />
+                              <span>{{ languageStore.t('view_details', 'View Details') }}</span>
+                            </button>
+
+                            <button
                               v-if="!checkIn.checked_out_at"
                               type="button"
                               @click="handleAction(() => handleCheckout(checkIn))"
@@ -773,6 +795,8 @@ watch(
                               <LogOut class="w-4 h-4 text-purple-500 flex-shrink-0" />
                               <span>{{ languageStore.t('Check Out', 'Check Out Guest') }}</span>
                             </button>
+
+                            <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
 
                             <button
                               type="button"
@@ -883,6 +907,205 @@ watch(
           </div>
         </div>
       </div>
+
+      <!-- Check-In Details Modal -->
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="opacity-0 scale-95"
+        enter-to-class="opacity-100 scale-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="opacity-100 scale-100"
+        leave-to-class="opacity-0 scale-95"
+      >
+        <div
+          v-if="showDetailsModal && selectedCheckIn"
+          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans"
+          @click.self="closeDetails"
+        >
+          <div
+            class="w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+          >
+            <!-- Header -->
+            <div
+              class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center"
+                >
+                  <UserCheck class="w-5 h-5 stroke-[2.2]" />
+                </div>
+                <div>
+                  <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                    {{ languageStore.t('check_in_details', 'Guest Check-In Details') }}
+                  </h3>
+                  <p class="text-xs text-slate-400 font-medium">
+                    ID: #{{ selectedCheckIn.id }}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                @click="closeDetails"
+                class="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition cursor-pointer"
+              >
+                <X class="w-4 h-4" />
+              </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-5 sm:p-6 space-y-4 overflow-y-auto">
+              <!-- Guest Info -->
+              <div
+                class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-2"
+              >
+                <div class="flex items-center gap-3">
+                  <div
+                    class="w-10 h-10 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center text-sm flex-shrink-0"
+                  >
+                    {{ getGuestInitials(selectedCheckIn.guest) }}
+                  </div>
+                  <div>
+                    <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">
+                      {{ getGuestName(selectedCheckIn.guest) }}
+                    </h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                      {{ selectedCheckIn.guest?.email || 'No email provided' }}
+                    </p>
+                  </div>
+                </div>
+                <div
+                  v-if="selectedCheckIn.guest?.phone"
+                  class="text-xs text-slate-600 dark:text-slate-300 font-medium pt-1"
+                >
+                  📞 {{ selectedCheckIn.guest?.phone }}
+                </div>
+              </div>
+
+              <!-- Room & Booking Grid -->
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <div
+                  class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800"
+                >
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    {{ languageStore.t('room', 'Assigned Room') }}
+                  </span>
+                  <span class="text-sm font-black text-slate-900 dark:text-white block mt-0.5">
+                    Room {{ selectedCheckIn.room?.room_number || selectedCheckIn.room_id }}
+                  </span>
+                  <span
+                    v-if="selectedCheckIn.room?.room_type?.name"
+                    class="text-[11px] text-slate-500 font-medium"
+                  >
+                    {{ selectedCheckIn.room.room_type.name }}
+                  </span>
+                </div>
+
+                <div
+                  class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800"
+                >
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    {{ languageStore.t('reservation', 'Reservation #') }}
+                  </span>
+                  <span
+                    class="text-xs font-mono font-bold text-blue-600 dark:text-blue-400 block mt-1 truncate"
+                  >
+                    {{
+                      selectedCheckIn.reservation?.reservation_number ||
+                      selectedCheckIn.reservation?.booking_reference ||
+                      'Direct Check-In'
+                    }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Timestamps -->
+              <div
+                class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 space-y-2 text-xs"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400 font-medium"
+                    >{{ languageStore.t('checked_in', 'Checked In') }}:</span
+                  >
+                  <span class="font-bold text-slate-800 dark:text-slate-200">
+                    {{ formatDate(selectedCheckIn.checked_in_at) }}
+                  </span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400 font-medium"
+                    >{{ languageStore.t('expected_check_out', 'Expected Checkout') }}:</span
+                  >
+                  <span class="font-bold text-slate-800 dark:text-slate-200">
+                    {{ formatDate(selectedCheckIn.expected_check_out_at) }}
+                  </span>
+                </div>
+                <div
+                  v-if="selectedCheckIn.checked_out_at"
+                  class="flex items-center justify-between pt-1 border-t border-slate-200/60 dark:border-slate-700/60"
+                >
+                  <span class="text-slate-400 font-medium"
+                    >{{ languageStore.t('actual_checkout', 'Actual Checkout') }}:</span
+                  >
+                  <span class="font-bold text-purple-600 dark:text-purple-400">
+                    {{ formatDate(selectedCheckIn.checked_out_at) }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Status Badge -->
+              <div class="flex items-center justify-between px-1">
+                <span class="text-xs font-bold text-slate-500"
+                  >{{ languageStore.t('status', 'Stay Status') }}:</span
+                >
+                <span
+                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold border uppercase tracking-wider"
+                  :class="
+                    !selectedCheckIn.checked_out_at
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                      : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                  "
+                >
+                  <span
+                    class="w-1.5 h-1.5 rounded-full"
+                    :class="
+                      !selectedCheckIn.checked_out_at
+                        ? 'bg-emerald-500 animate-pulse'
+                        : 'bg-slate-400'
+                    "
+                  ></span>
+                  <span>{{
+                    !selectedCheckIn.checked_out_at
+                      ? languageStore.t('In House', 'In House')
+                      : languageStore.t('checked_out', 'Checked Out')
+                  }}</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div
+              class="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2 bg-slate-50/50 dark:bg-slate-900"
+            >
+              <button
+                type="button"
+                @click="closeDetails"
+                class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              >
+                {{ languageStore.t('close', 'Close') }}
+              </button>
+              <button
+                v-if="!selectedCheckIn.checked_out_at"
+                type="button"
+                @click="handleCheckoutFromModal"
+                class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-xs"
+              >
+                <LogOut class="w-3.5 h-3.5" />
+                <span>{{ languageStore.t('Check Out', 'Check Out Guest') }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
     </div>
   </DashboardLayout>
 </template>
