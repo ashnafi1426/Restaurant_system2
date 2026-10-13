@@ -1,7 +1,18 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
+import { useGuestHotelStore } from '@/stores/guestHotelStore'
+import { publicAxios } from '@/services/axios'
+import { Loader2, CheckCircle2, AlertCircle } from 'lucide-vue-next'
 
-const form = reactive({
+const guestHotelStore = useGuestHotelStore()
+
+const loading = ref(false)
+const submitted = ref(false)
+const successMessage = ref('')
+const errorMessage = ref('')
+
+const form = ref({
   name: '',
   email: '',
   phone: '',
@@ -9,8 +20,46 @@ const form = reactive({
   message: '',
 })
 
-function submitForm() {
-  alert('Thank you! Your message has been sent.')
+async function submitForm() {
+  loading.value = true
+  errorMessage.value = ''
+  submitted.value = false
+  successMessage.value = ''
+
+  try {
+    const hotelTarget =
+      guestHotelStore.hotelId ||
+      guestHotelStore.currentHotel?.slug ||
+      localStorage.getItem('guest_hotel_id') ||
+      'executive-horizon'
+
+    const res = await publicAxios.post('/guest/contact-messages', {
+      hotel_id: hotelTarget,
+      name: form.value.name,
+      email: form.value.email,
+      phone: form.value.phone || undefined,
+      subject: form.value.subject || 'General Inquiry',
+      message: form.value.message,
+    })
+
+    if (res.data?.success) {
+      submitted.value = true
+      successMessage.value = res.data.message || `Thank you! Your message has been sent to ${guestHotelStore.hotelName}.`
+      form.value = {
+        name: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: '',
+      }
+    } else {
+      errorMessage.value = res.data?.message || 'Failed to send message.'
+    }
+  } catch (err: any) {
+    errorMessage.value = err.response?.data?.message || 'Error occurred while sending your message. Please try again.'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -24,7 +73,7 @@ function submitForm() {
 
         <p class="mx-auto mt-6 max-w-3xl text-lg text-slate-500">
           Whether you're planning your next vacation, have questions about reservations, or need
-          assistance during your stay, our team is ready to help.
+          assistance during your stay at {{ guestHotelStore.hotelName }}, our team is ready to help.
         </p>
       </div>
 
@@ -38,11 +87,10 @@ function submitForm() {
                 <div class="text-3xl">📍</div>
 
                 <div class="ml-5">
-                  <h4 class="font-semibold">Address</h4>
+                  <h4 class="font-semibold text-slate-900">Address</h4>
 
                   <p class="mt-2 text-slate-500">
-                    123 Luxury Avenue<br />
-                    Addis Ababa, Ethiopia
+                    {{ guestHotelStore.hotelAddress }}
                   </p>
                 </div>
               </div>
@@ -51,9 +99,14 @@ function submitForm() {
                 <div class="text-3xl">☎️</div>
 
                 <div class="ml-5">
-                  <h4 class="font-semibold">Phone</h4>
+                  <h4 class="font-semibold text-slate-900">Phone</h4>
 
-                  <p class="mt-2 text-slate-500">+251 911 000 000</p>
+                  <p class="mt-2 text-slate-500">
+                    {{ guestHotelStore.hotelPhone }}
+                  </p>
+                  <p class="text-xs text-slate-400 mt-1">
+                    Hotline: {{ guestHotelStore.reservationPhone }}
+                  </p>
                 </div>
               </div>
 
@@ -61,9 +114,10 @@ function submitForm() {
                 <div class="text-3xl">✉️</div>
 
                 <div class="ml-5">
-                  <h4 class="font-semibold">Email</h4>
+                  <h4 class="font-semibold text-slate-900">Email</h4>
 
-                  <p class="mt-2 text-slate-500">info@grandhorizon.com</p>
+                  <p class="mt-2 text-slate-500">{{ guestHotelStore.hotelEmail }}</p>
+                  <p class="text-xs text-slate-400 mt-1">{{ guestHotelStore.reservationEmail }}</p>
                 </div>
               </div>
 
@@ -71,20 +125,13 @@ function submitForm() {
                 <div class="text-3xl">🕒</div>
 
                 <div class="ml-5">
-                  <h4 class="font-semibold">Reception</h4>
+                  <h4 class="font-semibold text-slate-900">Reception & Dining</h4>
 
-                  <p class="mt-2 text-slate-500">Open 24 Hours</p>
+                  <p class="mt-2 text-slate-500">{{ guestHotelStore.frontDeskHours }}</p>
+                  <p class="text-xs text-slate-400 mt-1">{{ guestHotelStore.diningHours }}</p>
                 </div>
               </div>
             </div>
-          </div>
-
-          <div class="mt-8 overflow-hidden rounded-3xl shadow-lg">
-            <iframe
-              src="https://www.google.com/maps/embed?pb="
-              class="h-80 w-full"
-              loading="lazy"
-            />
           </div>
         </div>
 
@@ -92,18 +139,30 @@ function submitForm() {
           <form class="rounded-3xl bg-white p-10 shadow-lg" @submit.prevent="submitForm">
             <h3 class="text-3xl font-semibold text-slate-900">Send Message</h3>
 
+            <div v-if="submitted" class="mt-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-3">
+              <CheckCircle2 class="w-5 h-5 flex-shrink-0 text-emerald-600" />
+              <span>{{ successMessage }}</span>
+            </div>
+
+            <div v-if="errorMessage" class="mt-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center gap-3">
+              <AlertCircle class="w-5 h-5 flex-shrink-0 text-rose-600" />
+              <span>{{ errorMessage }}</span>
+            </div>
+
             <div class="mt-8 space-y-6">
               <input
                 v-model="form.name"
                 type="text"
-                placeholder="Full Name"
+                required
+                placeholder="Full Name *"
                 class="w-full rounded-xl border p-4 focus:border-amber-500 focus:outline-none"
               />
 
               <input
                 v-model="form.email"
                 type="email"
-                placeholder="Email Address"
+                required
+                placeholder="Email Address *"
                 class="w-full rounded-xl border p-4 focus:border-amber-500 focus:outline-none"
               />
 
@@ -117,21 +176,26 @@ function submitForm() {
               <input
                 v-model="form.subject"
                 type="text"
-                placeholder="Subject"
+                required
+                placeholder="Subject *"
                 class="w-full rounded-xl border p-4 focus:border-amber-500 focus:outline-none"
               />
 
               <textarea
                 v-model="form.message"
                 rows="6"
-                placeholder="Write your message..."
+                required
+                placeholder="Write your message... *"
                 class="w-full rounded-xl border p-4 focus:border-amber-500 focus:outline-none"
               />
 
               <button
-                class="w-full rounded-full bg-amber-600 py-4 text-lg font-semibold text-white transition hover:bg-amber-700"
+                type="submit"
+                :disabled="loading"
+                class="w-full rounded-full bg-amber-600 py-4 text-lg font-semibold text-white transition hover:bg-amber-700 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
-                Send Message
+                <Loader2 v-if="loading" class="w-5 h-5 animate-spin" />
+                <span>{{ loading ? 'Sending...' : 'Send Message' }}</span>
               </button>
             </div>
           </form>
@@ -143,7 +207,7 @@ function submitForm() {
 
         <p class="mx-auto mt-6 max-w-3xl text-lg text-slate-300">
           Book your luxury experience today and discover comfort, elegance, and world-class
-          hospitality.
+          hospitality at {{ guestHotelStore.hotelName }}.
         </p>
 
         <RouterLink

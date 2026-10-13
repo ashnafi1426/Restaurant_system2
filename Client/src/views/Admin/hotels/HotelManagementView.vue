@@ -138,10 +138,14 @@ const defaultHotelForm = (): CreateHotelPayload => ({
   name: '',
   slug: '',
   email: '',
+  reservation_email: '',
   phone: '',
+  reservation_phone: '',
   address: '',
   city: '',
   country: 'Ethiopia',
+  front_desk_hours: 'Open 24/7 / 365 Days',
+  dining_hours: '06:00 AM – 11:00 PM Daily',
   timezone: 'Africa/Addis_Ababa',
   currency: 'ETB',
   status: 'active',
@@ -160,10 +164,14 @@ const editForm = ref({
   name: '',
   slug: '',
   email: '',
+  reservation_email: '',
   phone: '',
+  reservation_phone: '',
   address: '',
   city: '',
   country: '',
+  front_desk_hours: '',
+  dining_hours: '',
   timezone: '',
   currency: '',
   status: 'active' as 'active' | 'inactive' | 'suspended' | 'archived',
@@ -280,10 +288,14 @@ const openEditModal = (hotel: Hotel) => {
     name: hotel.name,
     slug: hotel.slug,
     email: hotel.email || '',
+    reservation_email: hotel.reservation_email || '',
     phone: hotel.phone || '',
+    reservation_phone: hotel.reservation_phone || '',
     address: hotel.address || '',
     city: hotel.city || '',
     country: hotel.country || '',
+    front_desk_hours: hotel.front_desk_hours || '',
+    dining_hours: hotel.dining_hours || '',
     timezone: hotel.timezone || 'Africa/Addis_Ababa',
     currency: hotel.currency || 'ETB',
     status: hotel.status,
@@ -970,7 +982,7 @@ const handleConfirmPermanentDelete = confirmDelete
                 </div>
                 <div>
                   <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
-                    >{{ languageStore.t('email', 'Email') }} *</label
+                    >{{ languageStore.t('email', 'Email') }}</label
                   >
                   <input
                     v-model="hotelForm.email"
@@ -981,7 +993,18 @@ const handleConfirmPermanentDelete = confirmDelete
                 </div>
                 <div>
                   <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
-                    >{{ languageStore.t('phone', 'Phone') }} *</label
+                    >{{ languageStore.t('reservation_email', 'Reservation Email') }}</label
+                  >
+                  <input
+                    v-model="hotelForm.reservation_email"
+                    type="email"
+                    placeholder="reservations@hotel.com"
+                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
+                  />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >{{ languageStore.t('phone', 'Phone') }}</label
                   >
                   <input
                     v-model="hotelForm.phone"
@@ -990,9 +1013,20 @@ const handleConfirmPermanentDelete = confirmDelete
                     class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
                   />
                 </div>
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >{{ languageStore.t('reservation_phone', 'Reservation / Hotline') }}</label
+                  >
+                  <input
+                    v-model="hotelForm.reservation_phone"
+                    type="text"
+                    placeholder="+251 91 100 2200"
+                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
+                  />
+                </div>
                 <div class="sm:col-span-2">
                   <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
-                    >{{ languageStore.t('address', 'Address') }} *</label
+                    >{{ languageStore.t('address', 'Address') }}</label
                   >
                   <input
                     v-model="hotelForm.address"
@@ -1003,7 +1037,7 @@ const handleConfirmPermanentDelete = confirmDelete
                 </div>
                 <div>
                   <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
-                    >{{ languageStore.t('city', 'City') }} *</label
+                    >{{ languageStore.t('city', 'City') }}</label
                   >
                   <input
                     v-model="hotelForm.city"
@@ -1014,12 +1048,34 @@ const handleConfirmPermanentDelete = confirmDelete
                 </div>
                 <div>
                   <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
-                    >{{ languageStore.t('country', 'Country') }} *</label
+                    >{{ languageStore.t('country', 'Country') }}</label
                   >
                   <input
                     v-model="hotelForm.country"
                     type="text"
                     placeholder="Ethiopia"
+                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
+                  />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >{{ languageStore.t('front_desk_hours', 'Front Desk Hours') }}</label
+                  >
+                  <input
+                    v-model="hotelForm.front_desk_hours"
+                    type="text"
+                    placeholder="Open 24/7 / 365 Days"
+                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
+                  />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1"
+                    >{{ languageStore.t('dining_hours', 'Dining Hours') }}</label
+                  >
+                  <input
+                    v-model="hotelForm.dining_hours"
+                    type="text"
+                    placeholder="06:00 AM – 11:00 PM Daily"
                     class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
                   />
                 </div>
@@ -1304,6 +1360,17 @@ const handleConfirmPermanentDelete = confirmDelete
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
+                    <Mail class="w-4 h-4 text-amber-500" />
+                    <div>
+                      <span class="text-slate-400 block text-[10px]">{{
+                        languageStore.t('reservation_email', 'Reservation Email')
+                      }}</span>
+                      <span class="font-bold text-slate-800 dark:text-slate-200">{{
+                        selectedHotel.reservation_email || 'N/A'
+                      }}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
                     <Phone class="w-4 h-4 text-slate-400" />
                     <div>
                       <span class="text-slate-400 block text-[10px]">{{
@@ -1311,6 +1378,17 @@ const handleConfirmPermanentDelete = confirmDelete
                       }}</span>
                       <span class="font-bold text-slate-800 dark:text-slate-200">{{
                         selectedHotel.phone || 'N/A'
+                      }}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <Phone class="w-4 h-4 text-blue-500" />
+                    <div>
+                      <span class="text-slate-400 block text-[10px]">{{
+                        languageStore.t('reservation_phone', 'Reservation / Hotline')
+                      }}</span>
+                      <span class="font-bold text-slate-800 dark:text-slate-200">{{
+                        selectedHotel.reservation_phone || 'N/A'
                       }}</span>
                     </div>
                   </div>
@@ -1334,6 +1412,28 @@ const handleConfirmPermanentDelete = confirmDelete
                       <span class="font-bold text-slate-800 dark:text-slate-200"
                         >{{ selectedHotel.city }}, {{ selectedHotel.country }}</span
                       >
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <Clock class="w-4 h-4 text-purple-500" />
+                    <div>
+                      <span class="text-slate-400 block text-[10px]">{{
+                        languageStore.t('front_desk_hours', 'Front Desk Hours')
+                      }}</span>
+                      <span class="font-bold text-slate-800 dark:text-slate-200">{{
+                        selectedHotel.front_desk_hours || 'Open 24/7 / 365 Days'
+                      }}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <Clock class="w-4 h-4 text-orange-500" />
+                    <div>
+                      <span class="text-slate-400 block text-[10px]">{{
+                        languageStore.t('dining_hours', 'Dining Hours')
+                      }}</span>
+                      <span class="font-bold text-slate-800 dark:text-slate-200">{{
+                        selectedHotel.dining_hours || '06:00 AM – 11:00 PM Daily'
+                      }}</span>
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
@@ -1478,6 +1578,18 @@ const handleConfirmPermanentDelete = confirmDelete
                   <input
                     v-model="editForm.email"
                     type="email"
+                    placeholder="contact@hotel.com"
+                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
+                  />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('reservation_email', 'Reservation Email')
+                  }}</label>
+                  <input
+                    v-model="editForm.reservation_email"
+                    type="email"
+                    placeholder="reservations@hotel.com"
                     class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
                   />
                 </div>
@@ -1488,6 +1600,18 @@ const handleConfirmPermanentDelete = confirmDelete
                   <input
                     v-model="editForm.phone"
                     type="text"
+                    placeholder="+251 91 123 4567"
+                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
+                  />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('reservation_phone', 'Reservation / Hotline')
+                  }}</label>
+                  <input
+                    v-model="editForm.reservation_phone"
+                    type="text"
+                    placeholder="+251 91 100 2200"
                     class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
                   />
                 </div>
@@ -1498,6 +1622,7 @@ const handleConfirmPermanentDelete = confirmDelete
                   <input
                     v-model="editForm.address"
                     type="text"
+                    placeholder="Bole Road, Sub-city, Street 12"
                     class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
                   />
                 </div>
@@ -1518,6 +1643,28 @@ const handleConfirmPermanentDelete = confirmDelete
                   <input
                     v-model="editForm.country"
                     type="text"
+                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
+                  />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('front_desk_hours', 'Front Desk Hours')
+                  }}</label>
+                  <input
+                    v-model="editForm.front_desk_hours"
+                    type="text"
+                    placeholder="Open 24/7 / 365 Days"
+                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
+                  />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">{{
+                    languageStore.t('dining_hours', 'Dining Hours')
+                  }}</label>
+                  <input
+                    v-model="editForm.dining_hours"
+                    type="text"
+                    placeholder="06:00 AM – 11:00 PM Daily"
                     class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium"
                   />
                 </div>

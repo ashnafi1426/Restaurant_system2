@@ -13,6 +13,10 @@ export interface PublicHotel {
   country?: string | null
   phone: string | null
   email: string | null
+  reservation_email?: string | null
+  reservation_phone?: string | null
+  front_desk_hours?: string | null
+  dining_hours?: string | null
   currency: string
   status: string
 }
@@ -41,10 +45,24 @@ export const useGuestHotelStore = defineStore('guestHotel', {
     hotelName: (state): string => state.currentHotel?.name || 'Grand Horizon Hotel',
     hotelCity: (state): string => state.currentHotel?.city || 'Addis Ababa',
     hotelCountry: (state): string => state.currentHotel?.country || 'Ethiopia',
-    hotelAddress: (state): string =>
-      state.currentHotel?.address || 'Bolé Road, Addis Ababa, Ethiopia',
+    hotelAddress: (state): string => {
+      if (state.currentHotel?.address) return state.currentHotel.address
+      const city = state.currentHotel?.city || 'Addis Ababa'
+      const country = state.currentHotel?.country || 'Ethiopia'
+      return `${city}, ${country}`
+    },
     hotelPhone: (state): string => state.currentHotel?.phone || '+251 11 555 1234',
+    reservationPhone: (state): string =>
+      state.currentHotel?.reservation_phone || state.currentHotel?.phone || '+251 91 100 2200',
     hotelEmail: (state): string => state.currentHotel?.email || 'concierge@grandhorizon.com',
+    reservationEmail: (state): string =>
+      state.currentHotel?.reservation_email ||
+      state.currentHotel?.email ||
+      `reservations@${state.currentHotel?.slug || 'hotel'}.com`,
+    frontDeskHours: (state): string =>
+      state.currentHotel?.front_desk_hours || 'Open 24/7 / 365 Days',
+    diningHours: (state): string =>
+      state.currentHotel?.dining_hours || '06:00 AM – 11:00 PM Daily',
     currency: (state): string => state.currentHotel?.currency || 'ETB',
     hasSelectedHotel: (state): boolean => !!state.currentHotel,
   },

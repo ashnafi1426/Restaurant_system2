@@ -5,10 +5,14 @@ export interface Hotel {
   name: string
   slug: string
   email?: string
+  reservation_email?: string
   phone?: string
+  reservation_phone?: string
   address?: string
   city?: string
   country?: string
+  front_desk_hours?: string
+  dining_hours?: string
   logo?: string
   timezone?: string
   currency?: string
@@ -62,10 +66,14 @@ export interface CreateHotelPayload {
   name: string
   slug: string
   email?: string
+  reservation_email?: string
   phone?: string
+  reservation_phone?: string
   address?: string
   city?: string
   country?: string
+  front_desk_hours?: string
+  dining_hours?: string
   logo?: string
   timezone?: string
   currency?: string

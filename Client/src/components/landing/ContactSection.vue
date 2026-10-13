@@ -65,9 +65,7 @@
                 {{ guestHotelStore.hotelPhone }}
               </p>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                {{
-                  languageStore.t('reservations_hotline', 'Reservations & Concierge (24/7 Hotline)')
-                }}
+                {{ languageStore.t('reservations_label', 'Reservations') }}: {{ guestHotelStore.reservationPhone }}
               </p>
             </div>
           </div>
@@ -88,7 +86,7 @@
                 {{ guestHotelStore.hotelEmail }}
               </p>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                reservations@{{ guestHotelStore.currentHotel?.slug || 'hotel' }}.com
+                {{ guestHotelStore.reservationEmail }}
               </p>
             </div>
           </div>
@@ -106,10 +104,10 @@
                 {{ languageStore.t('hours_of_service', 'Hours of Service') }}
               </h3>
               <p class="text-sm font-extrabold text-slate-900 dark:text-white mt-1">
-                {{ languageStore.t('front_desk_hours', 'Front Desk: Open 24/7 / 365 Days') }}
+                {{ guestHotelStore.frontDeskHours }}
               </p>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                {{ languageStore.t('dining_hours', 'Dining & Kitchen: 06:00 AM – 11:00 PM Daily') }}
+                {{ guestHotelStore.diningHours }}
               </p>
             </div>
           </div>
@@ -138,11 +136,20 @@
           >
             <CheckCircle2 class="w-5 h-5 flex-shrink-0" />
             <span>{{
+              successText ||
               languageStore.t(
                 'message_sent_success',
                 'Thank you! Your message has been received. Our concierge team will contact you shortly.',
               )
             }}</span>
+          </div>
+
+          <div
+            v-if="errorText"
+            class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-extrabold flex items-center gap-3"
+          >
+            <AlertCircle class="w-5 h-5 flex-shrink-0" />
+            <span>{{ errorText }}</span>
           </div>
 
           <form @submit.prevent="handleSubmit" class="space-y-4 text-xs">
@@ -325,14 +332,17 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { MapPin, Phone, Mail, Clock, Send, Loader2, CheckCircle2 } from 'lucide-vue-next'
+import { MapPin, Phone, Mail, Clock, Send, Loader2, CheckCircle2, AlertCircle } from 'lucide-vue-next'
 import { useLanguageStore } from '@/stores/language'
 import { useGuestHotelStore } from '@/stores/guestHotelStore'
+import { publicAxios } from '@/services/axios'
 
 const languageStore = useLanguageStore()
 const guestHotelStore = useGuestHotelStore()
 const loading = ref(false)
 const submitted = ref(false)
+const successText = ref('')
+const errorText = ref('')
 
 const form = ref({
   name: '',
@@ -344,16 +354,46 @@ const form = ref({
 
 const handleSubmit = async () => {
   loading.value = true
+  errorText.value = ''
+  submitted.value = false
+  successText.value = ''
+
   try {
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    submitted.value = true
-    form.value = {
-      name: '',
-      email: '',
-      phone: '',
-      subject: 'reservation',
-      message: '',
+    const hotelTarget =
+      guestHotelStore.hotelId ||
+      guestHotelStore.currentHotel?.slug ||
+      localStorage.getItem('guest_hotel_id') ||
+      'executive-horizon'
+
+    const response = await publicAxios.post('/guest/contact-messages', {
+      hotel_id: hotelTarget,
+      name: form.value.name,
+      email: form.value.email,
+      phone: form.value.phone || undefined,
+      subject: form.value.subject,
+      message: form.value.message,
+    })
+
+    if (response.data?.success) {
+      submitted.value = true
+      successText.value =
+        response.data.message ||
+        `Thank you! Your message has been sent directly to ${guestHotelStore.hotelName}.`
+      form.value = {
+        name: '',
+        email: '',
+        phone: '',
+        subject: 'reservation',
+        message: '',
+      }
+    } else {
+      errorText.value = response.data?.message || 'Failed to send message. Please try again.'
     }
+  } catch (err: any) {
+    console.error('[ContactSection] Submit error:', err)
+    errorText.value =
+      err.response?.data?.message ||
+      'An error occurred while sending your message. Please verify your details and try again.'
   } finally {
     loading.value = false
   }
