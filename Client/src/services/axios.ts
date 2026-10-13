@@ -12,17 +12,23 @@ export const axiosInstance = axios.create({
 })
 
 const resolveHotelId = (): string | null => {
-  const currentHotelRaw = localStorage.getItem('current_hotel')
-  if (currentHotelRaw) {
-    try {
-      const currentHotel = JSON.parse(currentHotelRaw)
-      if (currentHotel?.id) return String(currentHotel.id)
-    } catch (e) {
-      console.error('[Axios] Error parsing current_hotel from storage:', e)
+  for (const key of ['current_hotel', 'guest_current_hotel']) {
+    const raw = localStorage.getItem(key)
+    if (raw) {
+      try {
+        const currentHotel = JSON.parse(raw)
+        if (currentHotel?.id) return String(currentHotel.id)
+      } catch (e) {
+        console.error(`[Axios] Error parsing ${key} from storage:`, e)
+      }
     }
   }
-  const hotelIdRaw = localStorage.getItem('hotel_id')
-  if (hotelIdRaw) return String(hotelIdRaw)
+
+  for (const key of ['hotel_id', 'guest_hotel_id', 'active_hotel_id']) {
+    const raw = localStorage.getItem(key)
+    if (raw && raw !== 'undefined' && raw !== 'null') return String(raw)
+  }
+
   const userRaw = localStorage.getItem('user')
   if (userRaw) {
     try {

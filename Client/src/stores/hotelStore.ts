@@ -20,16 +20,58 @@ const loadStorage = <T>(key: string, fallback: T): T => {
   }
 }
 
+const loadInitialHotelItem = (): HotelItem | null => {
+  for (const key of ['current_hotel', 'guest_current_hotel']) {
+    try {
+      const raw = localStorage.getItem(key)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (parsed && (parsed.id || parsed.name)) {
+          return {
+            id: String(parsed.id || ''),
+            name: parsed.name || 'Grand Horizon Hotel',
+            slug: parsed.slug || '',
+            logo: parsed.logo || undefined,
+            role: parsed.role || 'admin',
+            currency: parsed.currency || 'ETB',
+            is_viewing_as_platform_admin: parsed.is_viewing_as_platform_admin,
+          }
+        }
+      }
+    } catch (e) {
+      console.error(`[hotelStore] Error reading initial hotel from ${key}:`, e)
+    }
+  }
+  return null
+}
+
+const persistHotelContext = (hotel: HotelItem | null) => {
+  if (hotel && hotel.id) {
+    const json = JSON.stringify(hotel)
+    localStorage.setItem('current_hotel', json)
+    localStorage.setItem('guest_current_hotel', json)
+    localStorage.setItem('hotel_id', String(hotel.id))
+    localStorage.setItem('guest_hotel_id', String(hotel.id))
+    localStorage.setItem('active_hotel_id', String(hotel.id))
+  } else {
+    localStorage.removeItem('current_hotel')
+    localStorage.removeItem('guest_current_hotel')
+    localStorage.removeItem('hotel_id')
+    localStorage.removeItem('guest_hotel_id')
+    localStorage.removeItem('active_hotel_id')
+  }
+}
+
 export const useHotelStore = defineStore('hotel', {
   state: () => ({
-    currentHotel: loadStorage<HotelItem | null>('current_hotel', null),
+    currentHotel: loadInitialHotelItem(),
     availableHotels: loadStorage<HotelItem[]>('available_hotels', []),
     isLoading: false,
   }),
 
   getters: {
     hotelId: (state): string => state.currentHotel?.id || '',
-    hotelName: (state): string => state.currentHotel?.name || 'Hotel Management',
+    hotelName: (state): string => state.currentHotel?.name || 'Grand Horizon Hotel',
     currency: (state): string => state.currentHotel?.currency || 'ETB',
     hasMultipleHotels: (state): boolean => state.availableHotels.length > 1,
     isViewingAsPlatformAdmin: (state): boolean =>
@@ -39,13 +81,13 @@ export const useHotelStore = defineStore('hotel', {
   actions: {
     enterPlatformViewMode(hotel: HotelItem) {
       this.currentHotel = { ...hotel, is_viewing_as_platform_admin: true }
-      localStorage.setItem('current_hotel', JSON.stringify(this.currentHotel))
+      persistHotelContext(this.currentHotel)
     },
 
     exitPlatformViewMode() {
       if (this.currentHotel) {
         delete this.currentHotel.is_viewing_as_platform_admin
-        localStorage.setItem('current_hotel', JSON.stringify(this.currentHotel))
+        persistHotelContext(this.currentHotel)
       }
     },
 
@@ -55,14 +97,14 @@ export const useHotelStore = defineStore('hotel', {
 
       localStorage.setItem('available_hotels', JSON.stringify(this.availableHotels))
       if (this.currentHotel) {
-        localStorage.setItem('current_hotel', JSON.stringify(this.currentHotel))
+        persistHotelContext(this.currentHotel)
         import('./theme')
           .then(({ useThemeStore }) => {
             useThemeStore().syncWithHotel(this.currentHotel)
           })
           .catch(() => {})
       } else {
-        localStorage.removeItem('current_hotel')
+        persistHotelContext(null)
       }
     },
 
@@ -75,7 +117,7 @@ export const useHotelStore = defineStore('hotel', {
         if (response.data?.success && response.data?.current_hotel) {
           const hotelData = response.data.current_hotel
           this.currentHotel = hotelData
-          localStorage.setItem('current_hotel', JSON.stringify(hotelData))
+          persistHotelContext(hotelData)
 
           try {
             const { useAuthStore } = await import('./auth')
@@ -112,9 +154,31 @@ export const useHotelStore = defineStore('hotel', {
               console.warn('[hotelStore] Theme sync error on switch:', themeErr)
             }
 
+            try {
+              const { useGuestHotelStore } = await import('./guestHotelStore')
+              const guestHotelStore = useGuestHotelStore()
+              guestHotelStore.currentHotel = {
+                ...guestHotelStore.currentHotel,
+                ...hotelData,
+                id: String(hotelData.id),
+                name: hotelData.name,
+                slug: hotelData.slug,
+                logo: hotelData.logo || null,
+                currency: hotelData.currency || 'ETB',
+                status: 'active',
+              }
+            } catch (guestErr) {
+              console.warn('[hotelStore] Guest store sync error on switch:', guestErr)
+            }
+
             window.dispatchEvent(
               new CustomEvent('hotel-switched', {
-                detail: { hotelId, role: hotelData.role },
+                detail: { hotelId, role: hotelData.role, hotel: hotelData },
+              }),
+            )
+            window.dispatchEvent(
+              new CustomEvent('guest-hotel-selected', {
+                detail: { hotel: hotelData },
               }),
             )
           } catch (err: any) {
@@ -139,9 +203,28 @@ export const useHotelStore = defineStore('hotel', {
           this.availableHotels = response.data.hotels
           localStorage.setItem('available_hotels', JSON.stringify(this.availableHotels))
 
+          const savedId =
+            this.currentHotel?.id ||
+            localStorage.getItem('hotel_id') ||
+            localStorage.getItem('guest_hotel_id') ||
+            localStorage.getItem('active_hotel_id')
+
+          if (savedId) {
+            const matched = this.availableHotels.find(
+              (h) =>
+                String(h.id).trim().toLowerCase() === String(savedId).trim().toLowerCase() ||
+                (h.slug && String(h.slug).trim().toLowerCase() === String(savedId).trim().toLowerCase()),
+            )
+            if (matched) {
+              this.currentHotel = matched
+              persistHotelContext(this.currentHotel)
+              return
+            }
+          }
+
           if (!this.currentHotel && this.availableHotels.length > 0) {
             this.currentHotel = this.availableHotels[0]
-            localStorage.setItem('current_hotel', JSON.stringify(this.currentHotel))
+            persistHotelContext(this.currentHotel)
           }
         }
       } catch (err: any) {
@@ -152,7 +235,7 @@ export const useHotelStore = defineStore('hotel', {
     clearHotel() {
       this.currentHotel = null
       this.availableHotels = []
-      localStorage.removeItem('current_hotel')
+      persistHotelContext(null)
       localStorage.removeItem('available_hotels')
       import('./theme')
         .then(({ useThemeStore }) => {
