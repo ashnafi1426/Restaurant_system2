@@ -599,7 +599,9 @@ const handleConfirmPermanentDelete = confirmDelete
             @click="openCreateModal"
             class="flex-1 sm:flex-initial inline-flex items-center justify-center rounded-[10px] bg-[#1257A2] hover:bg-[#0e4884] active:bg-[#0b3c6f] text-white px-5 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-[15px] font-semibold transition-colors duration-150 cursor-pointer flex-shrink-0 shadow-none border-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1257A2]/40"
           >
-            <span class="text-white font-semibold">{{ languageStore.t('create_hotel', 'Create Hotel') }}</span>
+            <span class="text-white font-semibold">{{
+              languageStore.t('create_hotel', 'Create Hotel')
+            }}</span>
           </button>
         </div>
       </div>

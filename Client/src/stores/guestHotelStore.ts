@@ -73,10 +73,10 @@ export const useGuestHotelStore = defineStore('guestHotel', {
       `reservations@${state.currentHotel?.slug || 'hotel'}.com`,
     frontDeskHours: (state): string =>
       state.currentHotel?.front_desk_hours || 'Open 24/7 / 365 Days',
-    diningHours: (state): string =>
-      state.currentHotel?.dining_hours || '06:00 AM – 11:00 PM Daily',
+    diningHours: (state): string => state.currentHotel?.dining_hours || '06:00 AM – 11:00 PM Daily',
     currency: (state): string => state.currentHotel?.currency || 'ETB',
-    hasSelectedHotel: (state): boolean => Boolean(state.currentHotel && (state.currentHotel.id || state.currentHotel.name)),
+    hasSelectedHotel: (state): boolean =>
+      Boolean(state.currentHotel && (state.currentHotel.id || state.currentHotel.name)),
   },
 
   actions: {
@@ -104,7 +104,9 @@ export const useGuestHotelStore = defineStore('guestHotel', {
                 isSameId(h.id, savedId) ||
                 isSameId(h.slug, savedSlug) ||
                 isSameId(h.slug, savedId) ||
-                (savedName && h.name && h.name.trim().toLowerCase() === savedName.trim().toLowerCase())
+                (savedName &&
+                  h.name &&
+                  h.name.trim().toLowerCase() === savedName.trim().toLowerCase())
               )
             })
 
@@ -200,7 +202,9 @@ export const useGuestHotelStore = defineStore('guestHotel', {
       }
 
       window.dispatchEvent(new CustomEvent('guest-hotel-selected', { detail: { hotel } }))
-      window.dispatchEvent(new CustomEvent('hotel-switched', { detail: { hotelId: String(hotel.id), hotel } }))
+      window.dispatchEvent(
+        new CustomEvent('hotel-switched', { detail: { hotelId: String(hotel.id), hotel } }),
+      )
     },
 
     async selectHotelById(hotelId: string) {
@@ -211,7 +215,9 @@ export const useGuestHotelStore = defineStore('guestHotel', {
         await this.fetchAvailableHotels()
       }
 
-      const matched = this.availableHotels.find((h) => isSameId(h.id, hotelId) || isSameId(h.slug, hotelId))
+      const matched = this.availableHotels.find(
+        (h) => isSameId(h.id, hotelId) || isSameId(h.slug, hotelId),
+      )
       if (matched) {
         this.selectHotel(matched)
         return

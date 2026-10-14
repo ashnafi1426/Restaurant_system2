@@ -134,7 +134,11 @@ onUnmounted(() => {
               :src="currentHotelLogo"
               :alt="guestHotelStore.hotelName"
               class="w-full h-full object-contain select-none"
-              @error="(e: any) => { e.target.src = '/images/Hotel logo.png' }"
+              @error="
+                (e: any) => {
+                  e.target.src = '/images/Hotel logo.png'
+                }
+              "
             />
           </div>
 

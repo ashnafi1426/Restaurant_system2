@@ -71,11 +71,7 @@ const currentHotelName = computed(() => {
 })
 
 const currentHotelCity = computed(() => {
-  return (
-    guestHotelStore.hotelCity ||
-    (hotelStore.currentHotel as any)?.city ||
-    'Addis Ababa'
-  )
+  return guestHotelStore.hotelCity || (hotelStore.currentHotel as any)?.city || 'Addis Ababa'
 })
 
 const currentHotelLogo = computed(() => {
@@ -767,12 +763,25 @@ onUnmounted(() => {
     @mouseenter="sidebarStore.onMouseEnter()"
     @mouseleave="sidebarStore.onMouseLeave()"
     class="h-full w-full bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex flex-col relative select-none flex-shrink-0 border-r border-slate-200 dark:border-slate-800 transition-all duration-200 overflow-hidden font-sans antialiased"
-    style="font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;"
+    style="
+      font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
+    "
   >
     <div
       class="flex items-center bg-white dark:bg-slate-900 transition-all duration-200 border-b border-slate-200 dark:border-slate-800 flex-shrink-0"
       :class="
-        isSidebarExpanded ? 'h-16 px-3.5 justify-between' : 'h-16 py-1.5 px-1.5 flex-col justify-center'
+        isSidebarExpanded
+          ? 'h-16 px-3.5 justify-between'
+          : 'h-16 py-1.5 px-1.5 flex-col justify-center'
       "
     >
       <template v-if="isSidebarExpanded">
@@ -784,7 +793,11 @@ onUnmounted(() => {
               :src="currentHotelLogo"
               :alt="currentHotelName"
               class="w-full h-full object-contain select-none"
-              @error="(e: any) => { e.target.src = '/images/Hotel logo.png' }"
+              @error="
+                (e: any) => {
+                  e.target.src = '/images/Hotel logo.png'
+                }
+              "
             />
           </div>
           <div class="min-w-0 flex-1 flex flex-col justify-center">
@@ -832,7 +845,11 @@ onUnmounted(() => {
               :src="currentHotelLogo"
               :alt="currentHotelName"
               class="w-full h-full object-contain select-none"
-              @error="(e: any) => { e.target.src = '/images/Hotel logo.png' }"
+              @error="
+                (e: any) => {
+                  e.target.src = '/images/Hotel logo.png'
+                }
+              "
             />
           </div>
           <button
@@ -919,11 +936,19 @@ onUnmounted(() => {
         </template>
 
         <template v-else>
-          <div v-if="isSidebarExpanded && getSectionCategoryHeader(section)" class="px-3.5 pt-4 pb-1.5">
+          <div
+            v-if="isSidebarExpanded && getSectionCategoryHeader(section)"
+            class="px-3.5 pt-4 pb-1.5"
+          >
             <p
               class="text-[13px] font-bold uppercase tracking-wider text-[#667085] dark:text-[#98a2b3] select-none"
             >
-              {{ languageStore.t(getSectionCategoryHeader(section)!, getSectionCategoryHeader(section)!) }}
+              {{
+                languageStore.t(
+                  getSectionCategoryHeader(section)!,
+                  getSectionCategoryHeader(section)!,
+                )
+              }}
             </p>
           </div>
           <div
@@ -989,7 +1014,9 @@ onUnmounted(() => {
                   "
                   :stroke-width="2"
                 />
-                <span class="text-[16px] font-semibold truncate leading-5">{{ languageStore.t(section, section) }}</span>
+                <span class="text-[16px] font-semibold truncate leading-5">{{
+                  languageStore.t(section, section)
+                }}</span>
               </div>
 
               <ChevronDown

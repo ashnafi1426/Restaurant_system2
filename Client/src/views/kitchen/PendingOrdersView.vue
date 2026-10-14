@@ -486,7 +486,9 @@ const formatTime = (dateTime: string) => {
                       :disabled="Boolean(actionLoading)"
                       class="inline-flex items-center justify-center rounded-[10px] bg-[#1257A2] hover:bg-[#0e4884] active:bg-[#0b3c6f] text-white px-4 py-1.5 text-xs font-semibold transition-colors duration-150 cursor-pointer shadow-none border-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1257A2]/40 disabled:opacity-50"
                     >
-                      <span class="text-white font-semibold">{{ languageStore.t('prepare', 'Prepare') }}</span>
+                      <span class="text-white font-semibold">{{
+                        languageStore.t('prepare', 'Prepare')
+                      }}</span>
                     </button>
                   </td>
                 </tr>

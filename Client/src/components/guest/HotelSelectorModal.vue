@@ -77,13 +77,25 @@ function getHotelLogoUrl(hotel: PublicHotel) {
 
 function isHotelActive(hotel: PublicHotel): boolean {
   if (!hotel) return false
-  const activeId = String(guestHotelStore.hotelId || '').trim().toLowerCase()
-  const activeSlug = String(guestHotelStore.currentHotel?.slug || '').trim().toLowerCase()
-  const activeName = String(guestHotelStore.hotelName || '').trim().toLowerCase()
+  const activeId = String(guestHotelStore.hotelId || '')
+    .trim()
+    .toLowerCase()
+  const activeSlug = String(guestHotelStore.currentHotel?.slug || '')
+    .trim()
+    .toLowerCase()
+  const activeName = String(guestHotelStore.hotelName || '')
+    .trim()
+    .toLowerCase()
 
-  const hId = String(hotel.id || '').trim().toLowerCase()
-  const hSlug = String(hotel.slug || '').trim().toLowerCase()
-  const hName = String(hotel.name || '').trim().toLowerCase()
+  const hId = String(hotel.id || '')
+    .trim()
+    .toLowerCase()
+  const hSlug = String(hotel.slug || '')
+    .trim()
+    .toLowerCase()
+  const hName = String(hotel.name || '')
+    .trim()
+    .toLowerCase()
 
   return (
     (Boolean(activeId) && (activeId === hId || activeId === hSlug)) ||

@@ -213,7 +213,8 @@ export const useHotelStore = defineStore('hotel', {
             const matched = this.availableHotels.find(
               (h) =>
                 String(h.id).trim().toLowerCase() === String(savedId).trim().toLowerCase() ||
-                (h.slug && String(h.slug).trim().toLowerCase() === String(savedId).trim().toLowerCase()),
+                (h.slug &&
+                  String(h.slug).trim().toLowerCase() === String(savedId).trim().toLowerCase()),
             )
             if (matched) {
               this.currentHotel = matched

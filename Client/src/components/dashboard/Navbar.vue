@@ -194,7 +194,7 @@ const toggleSidebar = () => {
           >
             {{ languageStore.t('switch_hotel', 'Switch Hotel') }}
           </div>
-            <button
+          <button
             v-for="h in hotelStore.availableHotels"
             :key="h.id"
             @click="handleSwitchHotel(String(h.id))"
@@ -207,7 +207,10 @@ const toggleSidebar = () => {
           >
             <span class="truncate">{{ h.name }}</span>
             <Check
-              v-if="String(h.id).trim().toLowerCase() === String(hotelStore.hotelId).trim().toLowerCase()"
+              v-if="
+                String(h.id).trim().toLowerCase() ===
+                String(hotelStore.hotelId).trim().toLowerCase()
+              "
               class="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0"
             />
           </button>
