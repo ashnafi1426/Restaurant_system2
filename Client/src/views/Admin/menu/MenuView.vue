@@ -242,11 +242,11 @@ onMounted(async () => {
         </div>
 
         <button
+          type="button"
           @click="navigateToCreate"
-          class="w-full sm:w-auto px-4 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-[#0066FF] dark:hover:bg-[#0055DD] text-white font-bold rounded-xl transition text-xs sm:text-sm inline-flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-600/20 active:scale-98"
+          class="w-full sm:w-auto inline-flex items-center justify-center rounded-[10px] bg-[#1257A2] hover:bg-[#0e4884] active:bg-[#0b3c6f] text-white px-5 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-[15px] font-semibold transition-colors duration-150 cursor-pointer flex-shrink-0 shadow-none border-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1257A2]/40"
         >
-          <Plus class="w-4 h-4 stroke-[3]" />
-          <span>{{ languageStore.t('add_menu_item', 'Add Menu Item') }}</span>
+          <span class="text-white font-semibold">{{ languageStore.t('add_menu_item', 'Add Menu Item') }}</span>
         </button>
       </div>
 

@@ -597,10 +597,9 @@ const handleConfirmPermanentDelete = confirmDelete
           <button
             type="button"
             @click="openCreateModal"
-            class="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3.5 sm:px-4 py-2.5 text-xs sm:text-sm font-bold shadow-md shadow-blue-600/25 transition active:scale-98 cursor-pointer flex-shrink-0"
+            class="flex-1 sm:flex-initial inline-flex items-center justify-center rounded-[10px] bg-[#1257A2] hover:bg-[#0e4884] active:bg-[#0b3c6f] text-white px-5 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-[15px] font-semibold transition-colors duration-150 cursor-pointer flex-shrink-0 shadow-none border-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1257A2]/40"
           >
-            <Plus class="w-4 h-4 text-white" />
-            <span class="text-white">{{ languageStore.t('create_hotel', 'Create Hotel') }}</span>
+            <span class="text-white font-semibold">{{ languageStore.t('create_hotel', 'Create Hotel') }}</span>
           </button>
         </div>
       </div>

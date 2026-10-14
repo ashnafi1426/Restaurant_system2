@@ -542,11 +542,11 @@ const deletePermission = async (perm: Permission) => {
               Permission Group
             </h2>
             <button
+              type="button"
               @click="openCreateGroupModal()"
-              class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-blue-600 dark:text-blue-400 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700"
+              class="inline-flex items-center justify-center rounded-[10px] bg-[#1257A2] hover:bg-[#0e4884] active:bg-[#0b3c6f] text-white px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-[13px] font-semibold transition-colors duration-150 cursor-pointer flex-shrink-0 shadow-none border-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1257A2]/40"
             >
-              <Plus class="w-3.5 h-3.5 stroke-[3]" />
-              <span>Add New Group</span>
+              <span class="text-white font-semibold">Add New Group</span>
             </button>
           </div>
 
@@ -681,11 +681,11 @@ const deletePermission = async (perm: Permission) => {
             </div>
 
             <button
+              type="button"
               @click="openCreatePermissionModal(selectedGroupKey !== 'all' ? selectedGroupKey : '')"
-              class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs shadow-md transition cursor-pointer"
+              class="inline-flex items-center justify-center rounded-[10px] bg-[#1257A2] hover:bg-[#0e4884] active:bg-[#0b3c6f] text-white px-5 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-[15px] font-semibold transition-colors duration-150 cursor-pointer flex-shrink-0 shadow-none border-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1257A2]/40"
             >
-              <Plus class="w-4 h-4 stroke-[2.5]" />
-              <span>Add New Permission</span>
+              <span class="text-white font-semibold">Add New Permission</span>
             </button>
           </div>
 

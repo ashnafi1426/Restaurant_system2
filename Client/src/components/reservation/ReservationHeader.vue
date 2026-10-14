@@ -38,11 +38,11 @@ const emit = defineEmits<{
           </button>
 
           <button
+            type="button"
             @click="emit('create')"
-            class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow transition"
+            class="inline-flex items-center justify-center rounded-[10px] bg-[#1257A2] hover:bg-[#0e4884] active:bg-[#0b3c6f] text-white px-5 sm:px-6 py-2 sm:py-2.5 text-sm sm:text-[15px] font-semibold transition-colors duration-150 cursor-pointer flex-shrink-0 shadow-none border-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1257A2]/40"
           >
-            <span class="material-icons"> add </span>
-            New Reservation
+            <span class="text-white font-semibold">New Reservation</span>
           </button>
         </div>
       </div>
