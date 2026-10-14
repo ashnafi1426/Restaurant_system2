@@ -246,12 +246,12 @@ onMounted(() => {
               Cancel
             </button>
             <button
+              type="button"
               @click="submitForm"
               :disabled="!canSubmit || isSubmitting"
-              class="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-lg transition shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="flex-1 inline-flex items-center justify-center rounded-[10px] bg-[#1257A2] hover:bg-[#0e4884] active:bg-[#0b3c6f] text-white px-6 py-3 font-semibold transition-colors duration-150 cursor-pointer shadow-none border-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1257A2]/40 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save class="w-5 h-5" />
-              {{ isSubmitting ? 'Creating Floor...' : 'Create Floor' }}
+              <span class="text-white font-semibold">{{ isSubmitting ? 'Creating Floor...' : 'Create Floor' }}</span>
             </button>
           </div>
         </div>

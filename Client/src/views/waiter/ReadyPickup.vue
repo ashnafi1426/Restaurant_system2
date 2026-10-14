@@ -476,12 +476,12 @@ watch(() => hotelStore.hotelId, loadOrders)
 
                   <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
                     <button
+                      type="button"
                       @click="pickupOrder(order.id)"
                       :disabled="loadingOrderId === String(order.id)"
-                      class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50"
+                      class="inline-flex items-center justify-center rounded-[10px] bg-[#1257A2] hover:bg-[#0e4884] active:bg-[#0b3c6f] text-white px-4 py-1.5 text-xs font-semibold transition-colors duration-150 cursor-pointer shadow-none border-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1257A2]/40 disabled:opacity-50"
                     >
-                      <PackageCheck class="w-3.5 h-3.5" />
-                      <span>{{ languageStore.t('pickup', 'Pickup') }}</span>
+                      <span class="text-white font-semibold">{{ languageStore.t('pickup', 'Pickup') }}</span>
                     </button>
                   </td>
                 </tr>
