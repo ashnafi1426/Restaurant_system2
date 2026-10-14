@@ -653,6 +653,11 @@ function isActive(path: string): boolean {
   return current === path || current.startsWith(path + '/')
 }
 
+const isSectionActive = (section: string): boolean => {
+  const items = groupedMenus.value[section] || []
+  return items.some((item) => isActive(item.path))
+}
+
 const updateActiveSection = () => {
   Object.entries(groupedMenus.value).forEach(([section, items]) => {
     if (items.some((item) => isActive(item.path))) {
@@ -702,6 +707,29 @@ const filteredGroupedMenus = computed(() => {
   return filtered
 })
 
+const getSectionCategoryHeader = (section: string): string | null => {
+  if (section === 'General') return null
+  if (section === 'Platform') return 'Platform'
+  if (section === 'Account') return 'Account'
+  const operationalSections = [
+    'Administration',
+    'Property Management',
+    'Front Desk',
+    'Dining & Kitchen',
+    'Operations',
+    'Deliveries',
+    'Billing',
+    'Reports & Analytics',
+  ]
+  const visibleOperational = Object.keys(filteredGroupedMenus.value).filter((s) =>
+    operationalSections.includes(s),
+  )
+  if (visibleOperational.length > 0 && visibleOperational[0] === section) {
+    return 'Menu'
+  }
+  return null
+}
+
 const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth < 1024 : false)
 
 const updateIsMobile = () => {
@@ -748,10 +776,11 @@ onUnmounted(() => {
   <aside
     @mouseenter="sidebarStore.onMouseEnter()"
     @mouseleave="sidebarStore.onMouseLeave()"
-    class="h-full w-full bg-white/95 dark:bg-slate-950/95 text-slate-800 dark:text-slate-100 flex flex-col relative select-none flex-shrink-0 shadow-md dark:shadow-xl border-r border-slate-200/80 dark:border-slate-800/80 transition-all duration-300 overflow-hidden backdrop-blur-md"
+    class="h-full w-full bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex flex-col relative select-none flex-shrink-0 border-r border-slate-200 dark:border-slate-800 transition-all duration-200 overflow-hidden font-sans antialiased"
+    style="font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;"
   >
     <div
-      class="flex items-center bg-white dark:bg-slate-950 transition-all duration-300 border-b border-slate-200/80 dark:border-slate-800/80 flex-shrink-0"
+      class="flex items-center bg-white dark:bg-slate-900 transition-all duration-200 border-b border-slate-200 dark:border-slate-800 flex-shrink-0"
       :class="
         isSidebarExpanded ? 'h-16 px-3.5 justify-between' : 'h-16 py-1.5 px-1.5 flex-col justify-center'
       "
@@ -759,7 +788,7 @@ onUnmounted(() => {
       <template v-if="isSidebarExpanded">
         <div class="flex items-center min-w-0 flex-1 mr-2 gap-2.5">
           <div
-            class="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-center flex-shrink-0 p-1 shadow-xs overflow-hidden"
+            class="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center flex-shrink-0 p-1 overflow-hidden"
           >
             <img
               :src="currentHotelLogo"
@@ -776,7 +805,7 @@ onUnmounted(() => {
               {{ currentHotelName }}
             </span>
             <span
-              class="text-[10px] font-bold text-amber-600 dark:text-amber-400 tracking-wider uppercase truncate mt-0.5 leading-none"
+              class="text-[10px] font-bold text-blue-600 dark:text-blue-400 tracking-wider uppercase truncate mt-0.5 leading-none"
             >
               {{ currentHotelCity }}
             </span>
@@ -785,18 +814,18 @@ onUnmounted(() => {
 
         <button
           @click="sidebarStore.toggleCollapse()"
-          class="hidden lg:flex items-center justify-center w-8.5 h-8.5 rounded-full border border-slate-200/70 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/60 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer flex-shrink-0 shadow-xs"
+          class="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer flex-shrink-0"
           :title="sidebarStore.sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
         >
           <PanelLeft
-            class="w-4 h-4 transition-transform duration-300"
+            class="w-4 h-4 transition-transform duration-200"
             :class="sidebarStore.sidebarCollapsed ? 'rotate-180' : ''"
           />
         </button>
 
         <button
           @click="sidebarStore.closeMobile()"
-          class="flex lg:hidden items-center justify-center w-8 h-8 rounded-full border border-slate-200/70 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer flex-shrink-0"
+          class="flex lg:hidden items-center justify-center w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer flex-shrink-0"
           title="Close sidebar"
         >
           <X class="w-4 h-4" />
@@ -806,7 +835,7 @@ onUnmounted(() => {
       <template v-else>
         <div class="flex flex-col items-center justify-center gap-1.5 py-1">
           <div
-            class="w-8 h-8 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-center p-0.5 shadow-xs overflow-hidden"
+            class="w-8 h-8 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center p-0.5 overflow-hidden"
             :title="`${currentHotelName} • ${currentHotelCity}`"
           >
             <img
@@ -818,7 +847,7 @@ onUnmounted(() => {
           </div>
           <button
             @click="sidebarStore.toggleCollapse()"
-            class="flex items-center justify-center w-7 h-7 rounded-full border border-slate-200/80 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-800/60 hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer shadow-xs"
+            class="flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
             title="Expand sidebar"
           >
             <PanelLeft class="w-3.5 h-3.5 transform rotate-180" />
@@ -828,31 +857,32 @@ onUnmounted(() => {
     </div>
 
     <nav
-      class="flex-1 min-h-0 py-3 overflow-y-auto transition-all duration-300 space-y-4 pr-1 pb-6"
-      :class="isSidebarExpanded ? 'px-3' : 'px-2'"
+      class="flex-1 min-h-0 py-3 overflow-y-auto transition-all duration-200 space-y-3 pr-1.5 pb-6"
+      :class="isSidebarExpanded ? 'px-3' : 'px-1.5'"
     >
-      <div v-if="isSidebarExpanded" class="px-0.5 pb-1">
+      <div v-if="isSidebarExpanded" class="px-0.5 pb-0.5">
         <div class="relative flex items-center">
           <Search
-            class="absolute left-3 w-3.5 h-3.5 text-slate-400 dark:text-slate-500 pointer-events-none"
+            class="absolute left-3 w-4 h-4 text-slate-400 dark:text-slate-500 pointer-events-none"
+            :stroke-width="2"
           />
           <input
             ref="searchInputRef"
             v-model="searchQuery"
             type="text"
             :placeholder="languageStore.t('search_menu', 'Search menu or type /')"
-            class="w-full pl-8 pr-8 py-2 text-xs font-semibold bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:bg-white dark:focus:bg-slate-800 transition-all"
+            class="w-full pl-9 pr-9 py-2 text-xs font-normal bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
           />
           <button
             v-if="searchQuery"
             @click="searchQuery = ''"
-            class="absolute right-2.5 p-0.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition"
+            class="absolute right-2.5 p-0.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition"
           >
             <X class="w-3.5 h-3.5" />
           </button>
           <kbd
             v-else
-            class="absolute right-2 px-1.5 py-0.5 text-[9px] font-bold text-slate-500 dark:text-slate-400 bg-slate-200/80 dark:bg-slate-700/80 rounded border border-slate-300/80 dark:border-slate-600/80"
+            class="absolute right-2 px-1.5 py-0.5 text-[9px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/80 rounded border border-slate-200 dark:border-slate-600"
           >
             ⌘K
           </kbd>
@@ -866,32 +896,32 @@ onUnmounted(() => {
             :key="menu.path"
             :to="menu.path"
             @click="handleNavigate"
-            class="group relative flex items-center gap-3 rounded-lg transition-all duration-200"
+            class="group relative flex items-center gap-3 rounded-lg transition-all duration-150"
             :class="[
-              isSidebarExpanded ? 'px-4 py-3' : 'justify-center py-3',
+              isSidebarExpanded ? 'px-3 py-2.5' : 'justify-center py-2.5',
               isActive(menu.path)
-                ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400 font-semibold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50',
+                ? 'bg-[#ebf3fe] text-[#0b57d0] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8] font-semibold'
+                : 'text-[#667085] dark:text-[#98a2b3] hover:text-[#344054] dark:hover:text-white hover:bg-[#f1f3f4] dark:hover:bg-slate-800/60 font-semibold',
             ]"
             :title="!isSidebarExpanded ? languageStore.t(menu.name, menu.name) : ''"
           >
             <component
               :is="menuIcons[menu.icon] || menuIcons['Dashboard']"
-              class="flex-shrink-0 w-5 h-5"
+              class="flex-shrink-0 w-[18px] h-[18px] transition-colors"
               :class="
                 isActive(menu.path)
-                  ? 'text-amber-600 dark:text-amber-400'
-                  : 'text-slate-500 dark:text-slate-500'
+                  ? 'text-[#0b57d0] dark:text-[#8ab4f8]'
+                  : 'text-[#667085] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
               "
-              :stroke-width="1.75"
+              :stroke-width="2"
             />
-            <span v-if="isSidebarExpanded" class="text-sm font-medium">
+            <span v-if="isSidebarExpanded" class="text-[14px] font-semibold truncate leading-5">
               {{ languageStore.t(menu.name, menu.name) }}
             </span>
 
             <div
               v-if="!isSidebarExpanded && !sidebarStore.hoverExpand"
-              class="absolute left-full ml-3 px-3 py-1.5 bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white text-xs font-semibold rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none"
+              class="absolute left-full ml-3 px-3 py-1.5 bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white text-xs font-semibold rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 whitespace-nowrap z-50 pointer-events-none"
             >
               {{ languageStore.t(menu.name, menu.name) }}
             </div>
@@ -902,32 +932,32 @@ onUnmounted(() => {
           <router-link
             :to="items[0].path"
             @click="handleNavigate"
-            class="group relative flex items-center gap-3 rounded-lg transition-all duration-200"
+            class="group relative flex items-center gap-3 rounded-lg transition-all duration-150"
             :class="[
-              isSidebarExpanded ? 'px-4 py-3' : 'justify-center py-3',
+              isSidebarExpanded ? 'px-3 py-2.5' : 'justify-center py-2.5',
               isActive(items[0].path)
-                ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400 font-semibold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50',
+                ? 'bg-[#ebf3fe] text-[#0b57d0] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8] font-semibold'
+                : 'text-[#667085] dark:text-[#98a2b3] hover:text-[#344054] dark:hover:text-white hover:bg-[#f1f3f4] dark:hover:bg-slate-800/60 font-semibold',
             ]"
             :title="!isSidebarExpanded ? languageStore.t(items[0].name, items[0].name) : ''"
           >
             <component
               :is="menuIcons[items[0].icon] || menuIcons['Dashboard']"
-              class="flex-shrink-0 w-5 h-5"
+              class="flex-shrink-0 w-[18px] h-[18px] transition-colors"
               :class="
                 isActive(items[0].path)
-                  ? 'text-amber-600 dark:text-amber-400'
-                  : 'text-slate-500 dark:text-slate-500'
+                  ? 'text-[#0b57d0] dark:text-[#8ab4f8]'
+                  : 'text-[#667085] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
               "
-              :stroke-width="1.75"
+              :stroke-width="2"
             />
-            <span v-if="isSidebarExpanded" class="text-sm font-medium">
+            <span v-if="isSidebarExpanded" class="text-[14px] font-semibold truncate leading-5">
               {{ languageStore.t(items[0].name, items[0].name) }}
             </span>
 
             <div
               v-if="!isSidebarExpanded && !sidebarStore.hoverExpand"
-              class="absolute left-full ml-3 px-3 py-1.5 bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white text-xs font-semibold rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none"
+              class="absolute left-full ml-3 px-3 py-1.5 bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white text-xs font-semibold rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 whitespace-nowrap z-50 pointer-events-none"
             >
               {{ languageStore.t(items[0].name, items[0].name) }}
             </div>
@@ -935,15 +965,15 @@ onUnmounted(() => {
         </template>
 
         <template v-else-if="isAdminUser && section !== 'General'">
-          <div v-if="isSidebarExpanded" class="px-4 pt-4 pb-1">
+          <div v-if="isSidebarExpanded && getSectionCategoryHeader(section)" class="px-3 pt-3.5 pb-1">
             <p
-              class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500"
+              class="text-[11px] font-bold uppercase tracking-wider text-[#667085] dark:text-[#98a2b3] select-none"
             >
-              {{ languageStore.t(section, section) }}
+              {{ languageStore.t(getSectionCategoryHeader(section)!, getSectionCategoryHeader(section)!) }}
             </p>
           </div>
           <div
-            v-else
+            v-else-if="!isSidebarExpanded && getSectionCategoryHeader(section)"
             class="flex items-center justify-center py-2 text-slate-300 dark:text-slate-600 select-none text-[8px] tracking-[0.25em]"
           >
             •••
@@ -955,28 +985,28 @@ onUnmounted(() => {
               :key="menu.path"
               :to="menu.path"
               @click="handleNavigate"
-              class="group relative flex items-center justify-center py-3 rounded-lg transition-all duration-200"
+              class="group relative flex items-center justify-center py-2.5 rounded-lg transition-all duration-150"
               :class="
                 isActive(menu.path)
-                  ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50'
+                  ? 'bg-[#ebf3fe] text-[#0b57d0] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8]'
+                  : 'text-[#667085] dark:text-[#98a2b3] hover:text-[#344054] hover:bg-[#f1f3f4] dark:hover:text-white dark:hover:bg-slate-800/60'
               "
               :title="languageStore.t(menu.name, menu.name)"
             >
               <component
                 :is="menuIcons[menu.icon] || menuIcons['Dashboard']"
-                class="flex-shrink-0 w-5 h-5"
+                class="flex-shrink-0 w-[18px] h-[18px] transition-colors"
                 :class="
                   isActive(menu.path)
-                    ? 'text-amber-600 dark:text-amber-400'
-                    : 'text-slate-500 dark:text-slate-500'
+                    ? 'text-[#0b57d0] dark:text-[#8ab4f8]'
+                    : 'text-[#667085] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
                 "
-                :stroke-width="1.75"
+                :stroke-width="2"
               />
 
               <div
                 v-if="!sidebarStore.hoverExpand"
-                class="absolute left-full ml-3 px-3 py-1.5 bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white text-xs font-semibold rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none"
+                class="absolute left-full ml-3 px-3 py-1.5 bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white text-xs font-semibold rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 whitespace-nowrap z-50 pointer-events-none"
               >
                 {{ languageStore.t(menu.name, menu.name) }}
               </div>
@@ -987,51 +1017,66 @@ onUnmounted(() => {
             <button
               v-if="items.length > 1"
               @click="toggleSection(section)"
-              class="w-full flex items-center justify-between px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg transition-all duration-200 group cursor-pointer"
+              class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group cursor-pointer text-left"
+              :class="[
+                isSectionActive(section) || openSections[section]
+                  ? 'bg-[#ebf3fe] text-[#0b57d0] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8] font-semibold'
+                  : 'text-[#667085] dark:text-[#98a2b3] hover:bg-[#f1f3f4] dark:hover:bg-slate-800/60 hover:text-[#344054] dark:hover:text-white font-semibold',
+              ]"
             >
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-3 min-w-0">
                 <component
                   :is="sectionIcons[section] || SlidersHorizontal"
-                  class="w-5 h-5 text-slate-500 dark:text-slate-500 flex-shrink-0"
-                  :stroke-width="1.75"
+                  class="w-[18px] h-[18px] flex-shrink-0 transition-colors"
+                  :class="
+                    isSectionActive(section) || openSections[section]
+                      ? 'text-[#0b57d0] dark:text-[#8ab4f8]'
+                      : 'text-[#667085] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
+                  "
+                  :stroke-width="2"
                 />
-                <span class="text-sm font-medium">{{ languageStore.t(section, section) }}</span>
+                <span class="text-[14px] font-semibold truncate leading-5">{{ languageStore.t(section, section) }}</span>
               </div>
 
               <ChevronDown
-                class="w-4 h-4 text-slate-400 dark:text-slate-500 transition-transform duration-300 flex-shrink-0"
-                :class="openSections[section] ? '' : '-rotate-90'"
+                class="w-4 h-4 transition-transform duration-200 flex-shrink-0 ml-1.5"
+                :class="[
+                  openSections[section] ? '' : '-rotate-90',
+                  isSectionActive(section) || openSections[section]
+                    ? 'text-[#0b57d0] dark:text-[#8ab4f8]'
+                    : 'text-[#667085] dark:text-[#98a2b3]',
+                ]"
               />
             </button>
 
             <div
               v-if="items.length > 1"
               v-show="openSections[section]"
-              class="space-y-0.5 pl-4 transition-all duration-200"
+              class="relative ml-5 pl-2.5 border-l border-slate-200 dark:border-slate-800 space-y-0.5 mt-1 transition-all duration-150"
             >
               <router-link
                 v-for="menu in items"
                 :key="menu.path"
                 :to="menu.path"
                 @click="handleNavigate"
-                class="group relative flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200"
+                class="group relative flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 text-left"
                 :class="
                   isActive(menu.path)
-                    ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400 font-semibold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50'
+                    ? 'bg-[#ebf3fe] text-[#0b57d0] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8] font-semibold'
+                    : 'text-[#667085] dark:text-[#98a2b3] hover:text-[#344054] hover:bg-[#f1f3f4] dark:hover:text-white dark:hover:bg-slate-800/60 font-semibold'
                 "
               >
                 <component
                   :is="menuIcons[menu.icon] || menuIcons['Dashboard']"
-                  class="flex-shrink-0 w-4.5 h-4.5"
+                  class="flex-shrink-0 w-4.5 h-4.5 transition-colors"
                   :class="
                     isActive(menu.path)
-                      ? 'text-amber-600 dark:text-amber-400'
-                      : 'text-slate-500 dark:text-slate-500'
+                      ? 'text-[#0b57d0] dark:text-[#8ab4f8]'
+                      : 'text-[#667085] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
                   "
-                  :stroke-width="1.75"
+                  :stroke-width="2"
                 />
-                <span class="text-sm font-medium">
+                <span class="text-[14px] font-semibold truncate leading-5">
                   {{ languageStore.t(menu.name, menu.name) }}
                 </span>
               </router-link>
@@ -1041,24 +1086,24 @@ onUnmounted(() => {
               v-if="items.length === 1"
               :to="items[0].path"
               @click="handleNavigate"
-              class="group relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200"
+              class="group relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 text-left"
               :class="
                 isActive(items[0].path)
-                  ? 'bg-amber-500/10 text-amber-700 dark:bg-amber-400/10 dark:text-amber-400 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50'
+                  ? 'bg-[#ebf3fe] text-[#0b57d0] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8] font-semibold'
+                  : 'text-[#667085] dark:text-[#98a2b3] hover:text-[#344054] hover:bg-[#f1f3f4] dark:hover:text-white dark:hover:bg-slate-800/60 font-semibold'
               "
             >
               <component
                 :is="menuIcons[items[0].icon] || menuIcons['Dashboard']"
-                class="flex-shrink-0 w-5 h-5"
+                class="flex-shrink-0 w-[18px] h-[18px] transition-colors"
                 :class="
                   isActive(items[0].path)
-                    ? 'text-amber-600 dark:text-amber-400'
-                    : 'text-slate-500 dark:text-slate-500'
+                    ? 'text-[#0b57d0] dark:text-[#8ab4f8]'
+                    : 'text-[#667085] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
                 "
-                :stroke-width="1.75"
+                :stroke-width="2"
               />
-              <span class="text-sm font-medium">
+              <span class="text-[14px] font-semibold truncate leading-5">
                 {{ languageStore.t(items[0].name, items[0].name) }}
               </span>
             </router-link>
@@ -1068,11 +1113,11 @@ onUnmounted(() => {
     </nav>
 
     <div
-      class="p-3 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/90 dark:bg-slate-950/90 flex items-center justify-between flex-shrink-0"
+      class="p-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between flex-shrink-0"
     >
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
         <div
-          class="w-8 h-8 rounded-xl bg-amber-500/10 dark:bg-amber-400/15 text-amber-600 dark:text-amber-400 border border-amber-500/20 dark:border-amber-400/30 flex items-center justify-center font-black text-xs flex-shrink-0 shadow-xs"
+          class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/40 flex items-center justify-center font-bold text-xs flex-shrink-0"
         >
           {{ (auth.user?.full_name || auth.user?.first_name || 'U').charAt(0).toUpperCase() }}
         </div>
@@ -1081,7 +1126,7 @@ onUnmounted(() => {
             {{ auth.user?.full_name || auth.user?.first_name || 'Administrator' }}
           </p>
           <p
-            class="text-[10px] text-amber-600 dark:text-amber-400 font-semibold capitalize truncate mt-0.5 leading-tight"
+            class="text-[10px] text-blue-600 dark:text-blue-400 font-medium capitalize truncate mt-0.5 leading-tight"
           >
             {{ languageStore.t(auth.user?.role || 'Admin', auth.user?.role || 'Admin') }}
           </p>
@@ -1090,14 +1135,15 @@ onUnmounted(() => {
 
       <button
         @click="handleLogout"
-        class="p-2 rounded-xl text-rose-500 dark:text-rose-400 hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-300 transition cursor-pointer flex-shrink-0"
+        class="p-1.5 rounded-lg text-[#667085] dark:text-[#98a2b3] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer flex-shrink-0"
         :title="languageStore.t('sign_out', 'Sign Out')"
       >
-        <LogOut class="w-4.5 h-4.5" :stroke-width="1.75" />
+        <LogOut class="w-4 h-4" :stroke-width="1.75" />
       </button>
     </div>
   </aside>
 </template>
+
 <style scoped>
 nav::-webkit-scrollbar {
   width: 4px;
