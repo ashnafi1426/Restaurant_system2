@@ -598,12 +598,6 @@ const menus = computed(() => {
 })
 
 const groupedMenus = computed(() => {
-  if (!isAdminUser.value) {
-    return {
-      General: menus.value,
-    }
-  }
-
   const groups: Record<string, MenuItem[]> = {}
   menus.value.forEach((menu) => {
     const section = menu.section || 'General'
@@ -711,18 +705,8 @@ const getSectionCategoryHeader = (section: string): string | null => {
   if (section === 'General') return null
   if (section === 'Platform') return 'Platform'
   if (section === 'Account') return 'Account'
-  const operationalSections = [
-    'Administration',
-    'Property Management',
-    'Front Desk',
-    'Dining & Kitchen',
-    'Operations',
-    'Deliveries',
-    'Billing',
-    'Reports & Analytics',
-  ]
-  const visibleOperational = Object.keys(filteredGroupedMenus.value).filter((s) =>
-    operationalSections.includes(s),
+  const visibleOperational = Object.keys(filteredGroupedMenus.value).filter(
+    (s) => s !== 'General' && s !== 'Platform' && s !== 'Account',
   )
   if (visibleOperational.length > 0 && visibleOperational[0] === section) {
     return 'Menu'
@@ -890,32 +874,32 @@ onUnmounted(() => {
       </div>
 
       <div v-for="(items, section) in filteredGroupedMenus" :key="section" class="space-y-0.5">
-        <template v-if="!isAdminUser && section === 'General'">
+        <template v-if="section === 'General'">
           <router-link
             v-for="menu in items"
             :key="menu.path"
             :to="menu.path"
             @click="handleNavigate"
-            class="group relative flex items-center gap-3 rounded-lg transition-all duration-150"
+            class="group relative flex items-center gap-3 rounded-xl transition-all duration-150"
             :class="[
-              isSidebarExpanded ? 'px-3 py-2.5' : 'justify-center py-2.5',
+              isSidebarExpanded ? 'px-3.5 py-2.5' : 'justify-center py-2.5',
               isActive(menu.path)
-                ? 'bg-[#ebf3fe] text-[#0b57d0] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8] font-semibold'
-                : 'text-[#667085] dark:text-[#98a2b3] hover:text-[#344054] dark:hover:text-white hover:bg-[#f1f3f4] dark:hover:bg-slate-800/60 font-semibold',
+                ? 'bg-[#E6EDF5] text-[#17569A] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8] font-semibold'
+                : 'text-[#667085] dark:text-[#98a2b3] hover:text-[#344054] dark:hover:text-white hover:bg-[#f2f4f7] dark:hover:bg-slate-800/60 font-semibold',
             ]"
             :title="!isSidebarExpanded ? languageStore.t(menu.name, menu.name) : ''"
           >
             <component
               :is="menuIcons[menu.icon] || menuIcons['Dashboard']"
-              class="flex-shrink-0 w-[18px] h-[18px] transition-colors"
+              class="flex-shrink-0 w-[19px] h-[19px] transition-colors"
               :class="
                 isActive(menu.path)
-                  ? 'text-[#0b57d0] dark:text-[#8ab4f8]'
-                  : 'text-[#667085] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
+                  ? 'text-[#17569A] dark:text-[#8ab4f8]'
+                  : 'text-[#8993A5] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
               "
               :stroke-width="2"
             />
-            <span v-if="isSidebarExpanded" class="text-[14px] font-semibold truncate leading-5">
+            <span v-if="isSidebarExpanded" class="text-[16px] font-semibold truncate leading-5">
               {{ languageStore.t(menu.name, menu.name) }}
             </span>
 
@@ -928,46 +912,10 @@ onUnmounted(() => {
           </router-link>
         </template>
 
-        <template v-else-if="isAdminUser && section === 'General'">
-          <router-link
-            :to="items[0].path"
-            @click="handleNavigate"
-            class="group relative flex items-center gap-3 rounded-lg transition-all duration-150"
-            :class="[
-              isSidebarExpanded ? 'px-3 py-2.5' : 'justify-center py-2.5',
-              isActive(items[0].path)
-                ? 'bg-[#ebf3fe] text-[#0b57d0] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8] font-semibold'
-                : 'text-[#667085] dark:text-[#98a2b3] hover:text-[#344054] dark:hover:text-white hover:bg-[#f1f3f4] dark:hover:bg-slate-800/60 font-semibold',
-            ]"
-            :title="!isSidebarExpanded ? languageStore.t(items[0].name, items[0].name) : ''"
-          >
-            <component
-              :is="menuIcons[items[0].icon] || menuIcons['Dashboard']"
-              class="flex-shrink-0 w-[18px] h-[18px] transition-colors"
-              :class="
-                isActive(items[0].path)
-                  ? 'text-[#0b57d0] dark:text-[#8ab4f8]'
-                  : 'text-[#667085] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
-              "
-              :stroke-width="2"
-            />
-            <span v-if="isSidebarExpanded" class="text-[14px] font-semibold truncate leading-5">
-              {{ languageStore.t(items[0].name, items[0].name) }}
-            </span>
-
-            <div
-              v-if="!isSidebarExpanded && !sidebarStore.hoverExpand"
-              class="absolute left-full ml-3 px-3 py-1.5 bg-slate-900 dark:bg-slate-800 border border-slate-700 text-white text-xs font-semibold rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 whitespace-nowrap z-50 pointer-events-none"
-            >
-              {{ languageStore.t(items[0].name, items[0].name) }}
-            </div>
-          </router-link>
-        </template>
-
-        <template v-else-if="isAdminUser && section !== 'General'">
-          <div v-if="isSidebarExpanded && getSectionCategoryHeader(section)" class="px-3 pt-3.5 pb-1">
+        <template v-else>
+          <div v-if="isSidebarExpanded && getSectionCategoryHeader(section)" class="px-3.5 pt-4 pb-1.5">
             <p
-              class="text-[11px] font-bold uppercase tracking-wider text-[#667085] dark:text-[#98a2b3] select-none"
+              class="text-[13px] font-bold uppercase tracking-wider text-[#667085] dark:text-[#98a2b3] select-none"
             >
               {{ languageStore.t(getSectionCategoryHeader(section)!, getSectionCategoryHeader(section)!) }}
             </p>
@@ -985,21 +933,21 @@ onUnmounted(() => {
               :key="menu.path"
               :to="menu.path"
               @click="handleNavigate"
-              class="group relative flex items-center justify-center py-2.5 rounded-lg transition-all duration-150"
+              class="group relative flex items-center justify-center py-2.5 rounded-xl transition-all duration-150"
               :class="
                 isActive(menu.path)
-                  ? 'bg-[#ebf3fe] text-[#0b57d0] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8]'
-                  : 'text-[#667085] dark:text-[#98a2b3] hover:text-[#344054] hover:bg-[#f1f3f4] dark:hover:text-white dark:hover:bg-slate-800/60'
+                  ? 'bg-[#E6EDF5] text-[#17569A] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8]'
+                  : 'text-[#8993A5] dark:text-[#98a2b3] hover:text-[#344054] hover:bg-[#f2f4f7] dark:hover:text-white dark:hover:bg-slate-800/60'
               "
               :title="languageStore.t(menu.name, menu.name)"
             >
               <component
                 :is="menuIcons[menu.icon] || menuIcons['Dashboard']"
-                class="flex-shrink-0 w-[18px] h-[18px] transition-colors"
+                class="flex-shrink-0 w-[19px] h-[19px] transition-colors"
                 :class="
                   isActive(menu.path)
-                    ? 'text-[#0b57d0] dark:text-[#8ab4f8]'
-                    : 'text-[#667085] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
+                    ? 'text-[#17569A] dark:text-[#8ab4f8]'
+                    : 'text-[#8993A5] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
                 "
                 :stroke-width="2"
               />
@@ -1017,34 +965,34 @@ onUnmounted(() => {
             <button
               v-if="items.length > 1"
               @click="toggleSection(section)"
-              class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-150 group cursor-pointer text-left"
+              class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-150 group cursor-pointer text-left"
               :class="[
                 isSectionActive(section) || openSections[section]
-                  ? 'bg-[#ebf3fe] text-[#0b57d0] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8] font-semibold'
-                  : 'text-[#667085] dark:text-[#98a2b3] hover:bg-[#f1f3f4] dark:hover:bg-slate-800/60 hover:text-[#344054] dark:hover:text-white font-semibold',
+                  ? 'bg-[#E6EDF5] text-[#17569A] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8] font-semibold'
+                  : 'text-[#667085] dark:text-[#98a2b3] hover:bg-[#f2f4f7] dark:hover:bg-slate-800/60 hover:text-[#344054] dark:hover:text-white font-semibold',
               ]"
             >
               <div class="flex items-center gap-3 min-w-0">
                 <component
                   :is="sectionIcons[section] || SlidersHorizontal"
-                  class="w-[18px] h-[18px] flex-shrink-0 transition-colors"
+                  class="w-[19px] h-[19px] flex-shrink-0 transition-colors"
                   :class="
                     isSectionActive(section) || openSections[section]
-                      ? 'text-[#0b57d0] dark:text-[#8ab4f8]'
-                      : 'text-[#667085] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
+                      ? 'text-[#17569A] dark:text-[#8ab4f8]'
+                      : 'text-[#8993A5] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
                   "
                   :stroke-width="2"
                 />
-                <span class="text-[14px] font-semibold truncate leading-5">{{ languageStore.t(section, section) }}</span>
+                <span class="text-[16px] font-semibold truncate leading-5">{{ languageStore.t(section, section) }}</span>
               </div>
 
               <ChevronDown
                 class="w-4 h-4 transition-transform duration-200 flex-shrink-0 ml-1.5"
                 :class="[
-                  openSections[section] ? '' : '-rotate-90',
+                  openSections[section] ? 'rotate-0' : '-rotate-90',
                   isSectionActive(section) || openSections[section]
-                    ? 'text-[#0b57d0] dark:text-[#8ab4f8]'
-                    : 'text-[#667085] dark:text-[#98a2b3]',
+                    ? 'text-[#17569A] dark:text-[#8ab4f8]'
+                    : 'text-[#8993A5] dark:text-[#98a2b3]',
                 ]"
               />
             </button>
@@ -1052,18 +1000,18 @@ onUnmounted(() => {
             <div
               v-if="items.length > 1"
               v-show="openSections[section]"
-              class="relative ml-5 pl-2.5 border-l border-slate-200 dark:border-slate-800 space-y-0.5 mt-1 transition-all duration-150"
+              class="relative ml-5 pl-2.5 border-l border-slate-200/90 dark:border-slate-800 space-y-1 mt-1 transition-all duration-150"
             >
               <router-link
                 v-for="menu in items"
                 :key="menu.path"
                 :to="menu.path"
                 @click="handleNavigate"
-                class="group relative flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 text-left"
+                class="group relative flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-150 text-left"
                 :class="
                   isActive(menu.path)
-                    ? 'bg-[#ebf3fe] text-[#0b57d0] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8] font-semibold'
-                    : 'text-[#667085] dark:text-[#98a2b3] hover:text-[#344054] hover:bg-[#f1f3f4] dark:hover:text-white dark:hover:bg-slate-800/60 font-semibold'
+                    ? 'bg-[#E6EDF5] text-[#17569A] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8] font-semibold'
+                    : 'text-[#667085] dark:text-[#98a2b3] hover:text-[#344054] hover:bg-[#f2f4f7] dark:hover:text-white dark:hover:bg-slate-800/60 font-semibold'
                 "
               >
                 <component
@@ -1071,8 +1019,8 @@ onUnmounted(() => {
                   class="flex-shrink-0 w-4.5 h-4.5 transition-colors"
                   :class="
                     isActive(menu.path)
-                      ? 'text-[#0b57d0] dark:text-[#8ab4f8]'
-                      : 'text-[#667085] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
+                      ? 'text-[#17569A] dark:text-[#8ab4f8]'
+                      : 'text-[#8993A5] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
                   "
                   :stroke-width="2"
                 />
@@ -1086,24 +1034,24 @@ onUnmounted(() => {
               v-if="items.length === 1"
               :to="items[0].path"
               @click="handleNavigate"
-              class="group relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 text-left"
+              class="group relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-150 text-left"
               :class="
                 isActive(items[0].path)
-                  ? 'bg-[#ebf3fe] text-[#0b57d0] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8] font-semibold'
-                  : 'text-[#667085] dark:text-[#98a2b3] hover:text-[#344054] hover:bg-[#f1f3f4] dark:hover:text-white dark:hover:bg-slate-800/60 font-semibold'
+                  ? 'bg-[#E6EDF5] text-[#17569A] dark:bg-[#1a3860]/50 dark:text-[#8ab4f8] font-semibold'
+                  : 'text-[#667085] dark:text-[#98a2b3] hover:text-[#344054] hover:bg-[#f2f4f7] dark:hover:text-white dark:hover:bg-slate-800/60 font-semibold'
               "
             >
               <component
                 :is="menuIcons[items[0].icon] || menuIcons['Dashboard']"
-                class="flex-shrink-0 w-[18px] h-[18px] transition-colors"
+                class="flex-shrink-0 w-[19px] h-[19px] transition-colors"
                 :class="
                   isActive(items[0].path)
-                    ? 'text-[#0b57d0] dark:text-[#8ab4f8]'
-                    : 'text-[#667085] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
+                    ? 'text-[#17569A] dark:text-[#8ab4f8]'
+                    : 'text-[#8993A5] dark:text-[#98a2b3] group-hover:text-[#344054] dark:group-hover:text-white'
                 "
                 :stroke-width="2"
               />
-              <span class="text-[14px] font-semibold truncate leading-5">
+              <span class="text-[16px] font-semibold truncate leading-5">
                 {{ languageStore.t(items[0].name, items[0].name) }}
               </span>
             </router-link>
