@@ -598,6 +598,12 @@ const menus = computed(() => {
 })
 
 const groupedMenus = computed(() => {
+  if (!isAdminUser.value) {
+    return {
+      General: menus.value,
+    }
+  }
+
   const groups: Record<string, MenuItem[]> = {}
   menus.value.forEach((menu) => {
     const section = menu.section || 'General'
