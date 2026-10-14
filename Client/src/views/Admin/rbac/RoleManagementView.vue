@@ -1025,8 +1025,8 @@ const navigateToUserAssignments = () => {
                     <button
                       type="button"
                       @click="
-                        openEditModal(role)
-                        closeDropdown()
+                        openEditModal(role);
+                        closeDropdown();
                       "
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
@@ -1037,8 +1037,8 @@ const navigateToUserAssignments = () => {
                     <button
                       type="button"
                       @click="
-                        openUsersModal(role)
-                        closeDropdown()
+                        openUsersModal(role);
+                        closeDropdown();
                       "
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
@@ -1049,8 +1049,8 @@ const navigateToUserAssignments = () => {
                     <button
                       type="button"
                       @click="
-                        openCloneModal(role)
-                        closeDropdown()
+                        openCloneModal(role);
+                        closeDropdown();
                       "
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
@@ -1062,8 +1062,8 @@ const navigateToUserAssignments = () => {
                       v-if="role.slug !== 'admin'"
                       type="button"
                       @click="
-                        toggleRoleActive(role)
-                        closeDropdown()
+                        toggleRoleActive(role);
+                        closeDropdown();
                       "
                       class="w-full px-3.5 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2.5 transition cursor-pointer font-medium"
                     >
@@ -1084,8 +1084,8 @@ const navigateToUserAssignments = () => {
                       v-if="!role.is_system"
                       type="button"
                       @click="
-                        triggerDeleteConfirmation(role)
-                        closeDropdown()
+                        triggerDeleteConfirmation(role);
+                        closeDropdown();
                       "
                       class="w-full px-3.5 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center gap-2.5 transition text-left cursor-pointer font-medium"
                     >
