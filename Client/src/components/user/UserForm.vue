@@ -3,6 +3,7 @@ import { reactive, watch, ref, onMounted } from 'vue'
 import { rbacService } from '../../services/rbacService'
 import { useLanguageStore } from '@/stores/language'
 import type { Role } from '../../types/rbacTypes'
+import { Loader2 } from 'lucide-vue-next'
 
 interface UserFormProps {
   initialData?: {
@@ -221,9 +222,9 @@ const getInputClass = (fieldName: string) => [
       ]"
     >
       <span v-if="loading" class="inline-flex items-center gap-2">
-        <span class="animate-spin">⌛</span> {{ languageStore.t('saving', 'Saving...') }}
+        <Loader2 class="w-4 h-4 animate-spin" /> {{ languageStore.t('saving', 'Saving...') }}
       </span>
-      <span v-else>💾 {{ languageStore.t('save_user', 'Save User') }}</span>
+      <span v-else>{{ languageStore.t('save_user', 'Save User') }}</span>
     </button>
   </form>
 </template>

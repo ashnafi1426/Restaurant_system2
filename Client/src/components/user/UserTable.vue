@@ -21,6 +21,7 @@ import {
   Loader2,
   Phone,
   Mail,
+  Users,
 } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -318,10 +319,11 @@ onBeforeUnmount(() => {
     </Transition>
 
     <div
-      class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full min-h-[220px]"
+      class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden font-sans w-full min-h-[220px] relative"
     >
+      <!-- Centered Loading Spinner when no data is loaded yet -->
       <div
-        v-if="loading"
+        v-if="loading && paginatedUsers.length === 0"
         class="py-20 px-4 text-center flex flex-col items-center justify-center space-y-3"
       >
         <div
@@ -340,6 +342,13 @@ onBeforeUnmount(() => {
       </div>
 
       <template v-else>
+        <!-- Background Refresh Accent Bar when refreshing already loaded data -->
+        <div
+          v-if="loading"
+          class="absolute top-0 left-0 right-0 z-20 h-1 bg-blue-500/20 overflow-hidden"
+        >
+          <div class="h-full bg-blue-600 animate-pulse w-full"></div>
+        </div>
         <!-- Mobile Horizontal Scroll Hint -->
         <div
           class="md:hidden flex items-center justify-between px-3.5 py-1.5 bg-slate-50/80 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455] text-[11px] text-slate-500 dark:text-slate-400 select-none"
@@ -513,14 +522,19 @@ onBeforeUnmount(() => {
               <tr v-if="paginatedUsers.length === 0">
                 <td
                   colspan="6"
-                  class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
+                  class="px-6 py-14 text-center text-slate-500 dark:text-slate-400 text-xs font-bold"
                 >
-                  {{
-                    languageStore.t(
-                      'no_users_match',
-                      'No users match your current search or filter criteria.',
-                    )
-                  }}
+                  <div class="flex flex-col items-center justify-center gap-2.5">
+                    <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500">
+                      <Users class="w-6 h-6" />
+                    </div>
+                    <span>{{
+                      languageStore.t(
+                        'no_users_match',
+                        'No staff members match your current search or filter criteria.',
+                      )
+                    }}</span>
+                  </div>
                 </td>
               </tr>
             </tbody>

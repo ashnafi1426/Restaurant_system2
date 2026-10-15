@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import UserTable from '../../../components/user/UserTable.vue'
@@ -36,13 +36,26 @@ const saveToCache = (users: User[]) => {
   } catch (e) {}
 }
 
+const isInitialLoading = ref(true);
+const isDeletingUser = ref(false);
+
 const loadUsers = async (forceRefresh = false) => {
   if (!forceRefresh) loadFromCache()
-  await userStore.fetchUsers({}, forceRefresh)
-  saveToCache(userStore.users || [])
+  try {
+    await userStore.fetchUsers({}, forceRefresh)
+    saveToCache(userStore.users || [])
+  } finally {
+    isInitialLoading.value = false
+  }
 }
 
-onMounted(() => loadUsers(false))
+onMounted(() => {
+  const hasCache = loadFromCache()
+  if (hasCache) {
+    isInitialLoading.value = false
+  }
+  loadUsers(false)
+})
 
 watch(
   () => hotelStore.hotelId,
@@ -66,8 +79,13 @@ const deleteUser = async (user: User) => {
     `Are you sure you want to delete ${user.first_name || 'this user'}?`,
   )
   if (confirm(confirmMsg)) {
-    await userStore.deleteUser(String(user.id))
-    saveToCache(userStore.users || [])
+    isDeletingUser.value = true
+    try {
+      await userStore.deleteUser(String(user.id))
+      saveToCache(userStore.users || [])
+    } finally {
+      isDeletingUser.value = false
+    }
   }
 }
 
@@ -173,7 +191,7 @@ const refresh = () => loadUsers(true)
 
       <UserTable
         :users="usersList"
-        :loading="userStore.loading"
+        :loading="userStore.loading || isInitialLoading || isDeletingUser"
         @view="viewUser"
         @edit="editUser"
         @delete="deleteUser"

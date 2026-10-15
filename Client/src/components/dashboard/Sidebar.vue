@@ -781,16 +781,16 @@ onUnmounted(() => {
       :class="
         isSidebarExpanded
           ? 'h-16 px-3.5 justify-between'
-          : 'h-16 py-1.5 px-1.5 flex-col justify-center'
+          : 'h-16 px-2 justify-center'
       "
     >
       <template v-if="isSidebarExpanded">
         <div class="flex items-center min-w-0 flex-1 mr-2 gap-2.5">
           <div
-            class="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center flex-shrink-0 p-1 overflow-hidden"
+            class="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center flex-shrink-0 p-1 overflow-hidden shadow-xs"
           >
             <img
-              :src="currentHotelLogo"
+              :src="currentHotelLogo || '/images/Hotel logo.png'"
               :alt="currentHotelName"
               class="w-full h-full object-contain select-none"
               @error="
@@ -835,31 +835,15 @@ onUnmounted(() => {
         </button>
       </template>
 
+      <!-- Collapsed State: Logo hidden, only circular collapse toggle button visible (matches Screenshot 2) -->
       <template v-else>
-        <div class="flex flex-col items-center justify-center gap-1.5 py-1">
-          <div
-            class="w-8 h-8 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center p-0.5 overflow-hidden"
-            :title="`${currentHotelName} • ${currentHotelCity}`"
-          >
-            <img
-              :src="currentHotelLogo"
-              :alt="currentHotelName"
-              class="w-full h-full object-contain select-none"
-              @error="
-                (e: any) => {
-                  e.target.src = '/images/Hotel logo.png'
-                }
-              "
-            />
-          </div>
-          <button
-            @click="sidebarStore.toggleCollapse()"
-            class="flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
-            title="Expand sidebar"
-          >
-            <PanelLeft class="w-3.5 h-3.5 transform rotate-180" />
-          </button>
-        </div>
+        <button
+          @click="sidebarStore.toggleCollapse()"
+          class="flex items-center justify-center w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white shadow-xs transition-all duration-150 cursor-pointer flex-shrink-0"
+          :title="languageStore.t('expand_sidebar', 'Expand sidebar')"
+        >
+          <PanelLeft class="w-5 h-5 transform rotate-180" :stroke-width="1.8" />
+        </button>
       </template>
     </div>
 

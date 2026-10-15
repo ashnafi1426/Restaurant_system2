@@ -10,9 +10,7 @@ export const useUserStore = defineStore('user', () => {
   const errors = ref<Record<string, string[]>>({})
 
   async function fetchUsers(params: any = {}, forceRefresh = false) {
-    if (users.value.length === 0) {
-      loading.value = true
-    }
+    loading.value = true
 
     try {
       const queryParams = { ...params }

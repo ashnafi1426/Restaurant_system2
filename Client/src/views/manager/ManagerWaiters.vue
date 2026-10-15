@@ -27,6 +27,9 @@ import {
 
 const waiterStore = useManagerWaiterStore()
 
+const isInitialLoading = ref(true)
+const actionWaiterId = ref<string | null>(null)
+
 const showModal = ref(false)
 const showSuccessAlert = ref(false)
 const successMessage = ref('')
@@ -245,6 +248,7 @@ const handleSubmitWaiter = async (formData: any) => {
 
 const handleDeleteWaiter = async (waiterId: string) => {
   if (confirm('Are you sure you want to remove this waiter record?')) {
+    actionWaiterId.value = waiterId
     try {
       if (typeof waiterStore.delete_ === 'function') {
         await waiterStore.delete_(waiterId)
@@ -260,11 +264,14 @@ const handleDeleteWaiter = async (waiterId: string) => {
     } catch (err: any) {
       console.error('[ManagerWaiters] Failed to delete waiter:', err)
       alert(err.message || 'Failed to delete waiter.')
+    } finally {
+      actionWaiterId.value = null
     }
   }
 }
 
 const handleToggleStatus = async (waiter: any, newStatus: string) => {
+  actionWaiterId.value = waiter.id
   try {
     if (typeof waiterStore.updateStatus === 'function') {
       await waiterStore.updateStatus(waiter.id, newStatus as any)
@@ -281,6 +288,8 @@ const handleToggleStatus = async (waiter: any, newStatus: string) => {
   } catch (err: any) {
     console.error('[ManagerWaiters] Failed to update status:', err)
     alert(err.message || 'Failed to update status')
+  } finally {
+    actionWaiterId.value = null
   }
 }
 
@@ -314,10 +323,14 @@ const exportToCSV = () => {
 }
 
 const refreshData = async () => {
-  if (typeof waiterStore.load === 'function') {
-    await waiterStore.load()
-  } else if (typeof (waiterStore as any).fetchWaiters === 'function') {
-    await (waiterStore as any).fetchWaiters()
+  try {
+    if (typeof waiterStore.load === 'function') {
+      await waiterStore.load()
+    } else if (typeof (waiterStore as any).fetchWaiters === 'function') {
+      await (waiterStore as any).fetchWaiters()
+    }
+  } finally {
+    isInitialLoading.value = false
   }
 }
 
@@ -499,11 +512,11 @@ onUnmounted(() => {
             <button
               type="button"
               @click="refreshData"
-              :disabled="waiterStore.loading"
+              :disabled="waiterStore.loading || isInitialLoading"
               title="Refresh"
               class="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-slate-200 dark:border-[#1e3455] bg-white dark:bg-[#13233c]/80 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1c3356] hover:text-slate-900 dark:hover:text-white transition disabled:opacity-50 cursor-pointer"
             >
-              <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': waiterStore.loading }" />
+              <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': waiterStore.loading || isInitialLoading }" />
             </button>
 
             <button
@@ -616,7 +629,15 @@ onUnmounted(() => {
           <span class="font-bold text-blue-600 dark:text-blue-400"> {{ total }} staff </span>
         </div>
 
-        <div class="overflow-x-auto w-full min-h-[220px]" style="-webkit-overflow-scrolling: touch">
+        <div class="overflow-x-auto w-full min-h-[220px] relative" style="-webkit-overflow-scrolling: touch">
+          <!-- Background Refresh Accent Bar when refreshing already loaded data -->
+          <div
+            v-if="(waiterStore.loading || isInitialLoading) && paginatedWaiters.length > 0"
+            class="absolute top-0 left-0 right-0 z-20 h-1 bg-blue-500/20 overflow-hidden"
+          >
+            <div class="h-full bg-blue-600 animate-pulse w-full"></div>
+          </div>
+
           <table class="w-full min-w-[750px] text-left border-collapse">
             <thead
               class="bg-slate-50/90 dark:bg-[#0c182c] border-b border-slate-200 dark:border-[#1e3455]"
@@ -631,13 +652,22 @@ onUnmounted(() => {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-[#1e3455]/60 text-xs">
-              <tr v-if="waiterStore.loading">
+              <tr v-if="(waiterStore.loading || isInitialLoading) && paginatedWaiters.length === 0">
                 <td colspan="6" class="px-6 py-20 text-center">
                   <div class="flex flex-col items-center justify-center gap-3">
-                    <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
-                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400"
-                      >Loading waiters...</span
+                    <div
+                      class="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/60 border border-blue-100 dark:border-blue-900/50 shadow-xs"
                     >
+                      <Loader2 class="w-8 h-8 text-blue-600 dark:text-blue-400 animate-spin" />
+                    </div>
+                    <div>
+                      <span class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 block"
+                        >Loading waiters & staff...</span
+                      >
+                      <span class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 block"
+                        >Please wait while retrieving staff records</span
+                      >
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -706,7 +736,15 @@ onUnmounted(() => {
 
                   <td class="py-3 px-4 text-right pr-5 whitespace-nowrap">
                     <div class="relative inline-block text-left">
+                      <div
+                        v-if="actionWaiterId === waiter.id"
+                        class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"
+                        title="Updating..."
+                      >
+                        <Loader2 class="w-4 h-4 animate-spin" />
+                      </div>
                       <button
+                        v-else
                         type="button"
                         @click.stop="toggleMenu(waiter.id)"
                         class="inline-flex items-center justify-center w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#13233c] text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 shadow-xs transition cursor-pointer"
@@ -739,7 +777,7 @@ onUnmounted(() => {
                           <button
                             type="button"
                             @click="
-                              openEditModal(waiter)
+                              openEditModal(waiter);
                               activeMenuId = null
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition cursor-pointer text-left"
@@ -752,7 +790,7 @@ onUnmounted(() => {
                             v-if="waiter.status !== 'active'"
                             type="button"
                             @click="
-                              handleToggleStatus(waiter, 'active')
+                              handleToggleStatus(waiter, 'active');
                               activeMenuId = null
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer text-left"
@@ -765,7 +803,7 @@ onUnmounted(() => {
                             v-if="waiter.status === 'active'"
                             type="button"
                             @click="
-                              handleToggleStatus(waiter, 'on_break')
+                              handleToggleStatus(waiter, 'on_break');
                               activeMenuId = null
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-600 dark:hover:text-amber-400 transition cursor-pointer text-left"
@@ -779,7 +817,7 @@ onUnmounted(() => {
                           <button
                             type="button"
                             @click="
-                              handleDeleteWaiter(waiter.id)
+                              handleDeleteWaiter(waiter.id);
                               activeMenuId = null
                             "
                             class="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer text-left"
