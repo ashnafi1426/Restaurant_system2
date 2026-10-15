@@ -7,9 +7,9 @@
         class="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400/60 dark:via-amber-500/40 to-transparent"
       ></div>
 
-      <div class="px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 md:w-11 md:h-11 flex items-center justify-center flex-shrink-0">
+      <div class="px-3 sm:px-4 md:px-6 h-16 md:h-20 flex items-center justify-between gap-2 max-w-full">
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 flex items-center justify-center flex-shrink-0">
             <img
               v-if="hotelLogoUrl && !imageLoadFailed"
               :src="hotelLogoUrl || ''"
@@ -46,11 +46,12 @@
           </p>
         </div>
 
-        <div class="flex items-center gap-2 sm:gap-2.5">
-          <div class="flex items-center gap-1.5 sm:gap-2">
+        <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <div class="flex items-center gap-1 sm:gap-1.5 md:gap-2">
+            <!-- Theme Toggle -->
             <button
               @click="handleThemeToggle"
-              class="flex items-center justify-center w-9 h-9 rounded-full border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 transition cursor-pointer shadow-2xs shrink-0"
+              class="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 transition cursor-pointer shadow-2xs shrink-0"
               :title="
                 theme.isDark
                   ? languageStore.t('light_mode', 'Switch to Light Mode')
@@ -61,9 +62,10 @@
               <Moon v-else class="w-4 h-4 text-slate-700" />
             </button>
 
+            <!-- Fullscreen Toggle: hidden on small screens to prevent overflow -->
             <button
               @click="toggleFullscreen"
-              class="flex items-center justify-center w-9 h-9 rounded-full border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 transition-all cursor-pointer shadow-2xs shrink-0"
+              class="hidden sm:flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 transition-all cursor-pointer shadow-2xs shrink-0"
               :title="
                 isFullscreen
                   ? languageStore.t('exit_fullscreen', 'Exit Fullscreen')
@@ -74,85 +76,92 @@
               <Minimize v-else class="w-4 h-4 text-amber-500" />
             </button>
 
+            <!-- Language Selector -->
             <LanguageSelector variant="compact" />
 
-            <button
-              @click="toggleProfileDropdown"
-              class="flex items-center gap-2 h-9 px-4 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black shadow-sm transition cursor-pointer shrink-0"
-            >
-              <User class="w-3.5 h-3.5" />
-              <span class="max-w-[120px] truncate">{{
-                guestName || languageStore.t('walk_in_guest', 'Walk-in Guest')
-              }}</span>
-              <ChevronDown class="w-3 h-3 text-slate-950/70" />
-            </button>
-
-            <Transition name="dropdown">
-              <div
-                v-if="showProfileDropdown"
-                class="absolute right-0 mt-2 top-full w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-800 z-50 overflow-hidden font-sans"
+            <!-- Profile Button & Dropdown Container -->
+            <div class="relative shrink-0">
+              <button
+                @click.stop="toggleProfileDropdown"
+                class="flex items-center gap-1.5 sm:gap-2 h-8 sm:h-9 px-2.5 sm:px-3.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black shadow-sm transition cursor-pointer shrink-0"
+                :title="guestName || languageStore.t('walk_in_guest', 'Walk-in Guest')"
               >
+                <User class="w-3.5 h-3.5 shrink-0" />
+                <span class="hidden sm:inline max-w-[80px] md:max-w-[120px] truncate">{{
+                  guestName || languageStore.t('walk_in_guest', 'Walk-in Guest')
+                }}</span>
+                <ChevronDown class="w-3 h-3 text-slate-950/70 shrink-0" />
+              </button>
+
+              <Transition name="dropdown">
                 <div
-                  class="p-4 bg-[#fffdf5] dark:bg-slate-800/80 border-b border-amber-100 dark:border-slate-800 flex items-center gap-3"
+                  v-if="showProfileDropdown"
+                  class="absolute right-0 mt-2 top-full w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-800 z-50 overflow-hidden font-sans"
                 >
                   <div
-                    class="w-11 h-11 rounded-full border-2 border-[#c29353] bg-[#c29353]/10 flex items-center justify-center text-amber-700 dark:text-amber-400 flex-shrink-0"
+                    class="p-4 bg-[#fffdf5] dark:bg-slate-800/80 border-b border-amber-100 dark:border-slate-800 flex items-center gap-3"
                   >
-                    <User class="w-5 h-5" />
+                    <div
+                      class="w-11 h-11 rounded-full border-2 border-[#c29353] bg-[#c29353]/10 flex items-center justify-center text-amber-700 dark:text-amber-400 flex-shrink-0"
+                    >
+                      <User class="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p class="text-sm font-black text-slate-900 dark:text-white leading-tight">
+                        {{ guestName || languageStore.t('walk_in_guest', 'Walk-in Guest') }}
+                      </p>
+                      <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                        {{ languageStore.t('room', 'Room') }} {{ currentRoom || '101' }}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p class="text-sm font-black text-slate-900 dark:text-white leading-tight">
-                      {{ guestName || languageStore.t('walk_in_guest', 'Walk-in Guest') }}
-                    </p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                      {{ languageStore.t('room', 'Room') }} {{ currentRoom || '101' }}
-                    </p>
-                  </div>
-                </div>
 
-                <div class="py-1">
-                  <button
-                    @click="handleViewProfile"
-                    class="w-full px-5 py-3 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-3 cursor-pointer"
-                  >
-                    <User class="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                    <span>{{ languageStore.t('my_profile', 'My Profile') }}</span>
-                  </button>
-                  <button
-                    @click="handleMyOrders"
-                    class="w-full px-5 py-3 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-3 cursor-pointer"
-                  >
-                    <ShoppingBag class="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                    <span>{{ languageStore.t('my_orders', 'My Orders') }}</span>
-                  </button>
-                  <button
-                    @click="handleSettings"
-                    class="w-full px-5 py-3 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-3 cursor-pointer"
-                  >
-                    <Settings class="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                    <span>{{ languageStore.t('settings', 'Settings') }}</span>
-                  </button>
-                  <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
-                  <button
-                    @click="handleLogout"
-                    class="w-full px-5 py-3 text-left text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition flex items-center gap-3 cursor-pointer"
-                  >
-                    <LogOut class="w-4 h-4 text-rose-500" />
-                    <span>{{ languageStore.t('logout', 'Logout') }}</span>
-                  </button>
+                  <div class="py-1">
+                    <button
+                      @click="handleViewProfile"
+                      class="w-full px-5 py-3 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-3 cursor-pointer"
+                    >
+                      <User class="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <span>{{ languageStore.t('my_profile', 'My Profile') }}</span>
+                    </button>
+                    <button
+                      @click="handleMyOrders"
+                      class="w-full px-5 py-3 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-3 cursor-pointer"
+                    >
+                      <ShoppingBag class="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                      <span>{{ languageStore.t('my_orders', 'My Orders') }}</span>
+                    </button>
+                    <button
+                      @click="handleSettings"
+                      class="w-full px-5 py-3 text-left text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-3 cursor-pointer"
+                    >
+                      <Settings class="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                      <span>{{ languageStore.t('settings', 'Settings') }}</span>
+                    </button>
+                    <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
+                    <button
+                      @click="handleLogout"
+                      class="w-full px-5 py-3 text-left text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition flex items-center gap-3 cursor-pointer"
+                    >
+                      <LogOut class="w-4 h-4 text-rose-500" />
+                      <span>{{ languageStore.t('logout', 'Logout') }}</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </Transition>
+              </Transition>
+            </div>
           </div>
 
+          <!-- Mobile Toggle Bar (Hamburger): Fully visible, protected from shrinking or clipping -->
           <button
             @click="toggleMobileMenu"
-            class="md:hidden flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-amber-50 dark:hover:bg-slate-800 transition-colors shrink-0"
+            class="md:hidden flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-amber-50 dark:hover:bg-slate-800 transition-colors shrink-0 ml-0.5"
             :title="showMobileMenu ? 'Close menu' : 'Open menu'"
+            aria-label="Toggle navigation menu"
           >
             <svg
               v-if="!showMobileMenu"
-              class="w-6 h-6 text-slate-600 dark:text-slate-300"
+              class="w-4.5 h-4.5 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-300"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -166,7 +175,7 @@
             </svg>
             <svg
               v-else
-              class="w-6 h-6 text-slate-600 dark:text-slate-300"
+              class="w-4.5 h-4.5 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-300"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
