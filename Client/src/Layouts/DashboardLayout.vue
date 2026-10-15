@@ -62,22 +62,37 @@ const closeMobileSidebar = () => {
       :class="[
         'h-screen flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out',
         'fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] shadow-2xl lg:shadow-none',
-        'lg:static lg:sticky lg:top-0 lg:left-0 lg:z-30',
-        sidebarStore.isCollapsed ? 'lg:w-20' : 'lg:w-72',
+        'lg:sticky lg:top-0 lg:left-0',
+        sidebarStore.sidebarCollapsed && sidebarStore.hoverExpand ? 'lg:z-50' : 'lg:z-30',
+        sidebarStore.sidebarCollapsed ? 'lg:w-20' : 'lg:w-72',
         sidebarStore.isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
       ]"
     >
-      <Sidebar
-        :key="hotelStore.hotelId || authStore.currentHotel?.id || 'sidebar-main'"
-        @navigate="closeMobileSidebar"
-      />
+      <div
+        :class="[
+          'h-full transition-all duration-300 ease-in-out',
+          sidebarStore.sidebarCollapsed && sidebarStore.hoverExpand
+            ? 'lg:absolute lg:top-0 lg:left-0 lg:w-72 lg:shadow-2xl lg:z-50'
+            : 'w-full',
+        ]"
+      >
+        <Sidebar
+          :key="hotelStore.hotelId || authStore.currentHotel?.id || 'sidebar-main'"
+          @navigate="closeMobileSidebar"
+        />
+      </div>
     </div>
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
       <Navbar />
 
       <div
         v-if="hotelStore.isViewingAsPlatformAdmin"
-        class="bg-amber-500 text-slate-950 font-black px-4 sm:px-6 py-2 flex items-center justify-between shadow-md text-xs tracking-wide flex-shrink-0 z-20 animate-in fade-in duration-200"
+        :class="[
+          'bg-amber-500 text-slate-950 font-black py-2 flex items-center justify-between shadow-md text-xs tracking-wide flex-shrink-0 z-20 animate-in fade-in duration-200 transition-all duration-300 ease-in-out',
+          sidebarStore.sidebarCollapsed && sidebarStore.hoverExpand
+            ? 'px-4 sm:px-6 lg:pl-[232px]'
+            : 'px-4 sm:px-6',
+        ]"
       >
         <div class="flex items-center gap-2">
           <ShieldAlert class="w-4 h-4 text-slate-950 flex-shrink-0" />

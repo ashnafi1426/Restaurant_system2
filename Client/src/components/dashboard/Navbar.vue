@@ -142,7 +142,12 @@ const toggleSidebar = () => {
 </script>
 <template>
   <header
-    class="sticky top-0 z-40 h-16 w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-3 transition-colors"
+    :class="[
+      'sticky top-0 z-40 h-16 w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 pr-3 sm:pr-6 flex items-center justify-between gap-2 sm:gap-3 transition-all duration-300 ease-in-out',
+      sidebarStore.sidebarCollapsed && sidebarStore.hoverExpand
+        ? 'pl-3 sm:pl-6 lg:pl-[232px]'
+        : 'px-3 sm:px-6',
+    ]"
   >
     <div class="flex items-center gap-2 sm:gap-3.5 min-w-0 shrink">
       <button
